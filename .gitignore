@@ -1,0 +1,12 @@
+# Xcode user data
+xcuserdata/
+*.xcuserstate
+
+# Derived data
+DerivedData/
+
+# Build products
+build/
+
+# SwiftPM
+.build/
