@@ -24,6 +24,7 @@ enum Symptom: String {
 
 class AddRecordTableViewController: UITableViewController {
 
+    @IBOutlet weak var saveButton: UIBarButtonItem!
     @IBOutlet weak var notesTextView: UITextView!
     @IBOutlet weak var memoryLossSymptomButton: UIButton!
     @IBOutlet weak var weaknessSymptomButton: UIButton!
@@ -66,25 +67,41 @@ class AddRecordTableViewController: UITableViewController {
                 weaknessSymptomButton,
                 memoryLossSymptomButton
             ]
-        
+        saveButton.isEnabled = false
+
             
         for button in symptomButtons {
             guard let btn = button else { continue }
 
+            var config = btn.configuration ?? UIButton.Configuration.plain()
+
+            config.titleAlignment = .center
+            config.contentInsets = NSDirectionalEdgeInsets(top: 6, leading: 12, bottom: 6, trailing: 12)
+
+       
+            btn.configuration = config
+
+
             btn.layer.cornerRadius = 10
             btn.clipsToBounds = false
-            btn.titleLabel?.font = UIFont.systemFont(ofSize: 14, weight: .medium)
-
-            btn.contentEdgeInsets = UIEdgeInsets(top: 6, left: 12, bottom: 6, right: 12)
-
-            btn.backgroundColor = UIColor.systemGray6
+            btn.backgroundColor = .systemGray6
             btn.layer.borderWidth = 1
             btn.layer.borderColor = UIColor.systemBlue.cgColor
+            btn.setTitleColor(.systemBlue, for: .normal)
+
+         
+            btn.titleLabel?.font = UIFont.systemFont(ofSize: 14, weight: .medium)
         }
-
-
+        
+        titleTextField.addTarget(self, action: #selector(textFieldChanged), for: .editingChanged)
+        dateTextField.addTarget(self, action: #selector(textFieldChanged), for: .editingChanged)
+        durationTextField.addTarget(self, action: #selector(textFieldChanged), for: .editingChanged)
 
     }
+    @objc func textFieldChanged() {
+        validateForm()
+    }
+
     
     @IBAction func symptomTapped(_ sender: UIButton) {
         guard let symptom = Symptom(rawValue: symptomNameFromTag(sender.tag)) else { return }
@@ -96,6 +113,7 @@ class AddRecordTableViewController: UITableViewController {
                selectedSymptoms.insert(symptom)
                highlight(button: sender)
            }
+        validateForm()
     }
     func symptomNameFromTag(_ tag: Int) -> String {
         switch tag {
@@ -160,6 +178,16 @@ class AddRecordTableViewController: UITableViewController {
         
         // Now you can save to model / database / API
     }
+    func validateForm() {
+        let isTitleValid = !(titleTextField.text?.isEmpty ?? true)
+        let isDateValid = !(dateTextField.text?.isEmpty ?? true)
+        let isDurationValid = !(durationTextField.text?.isEmpty ?? true)
+        
+        let isSymptomsValid = !selectedSymptoms.isEmpty
+        
+        saveButton.isEnabled = isTitleValid && isDateValid && isDurationValid && isSymptomsValid
+    }
+
 
 
 
