@@ -64,7 +64,7 @@
                                                             </subviews>
                                                         </stackView>
                                                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="13 OCT" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ubc-hg-VRc">
-                                                            <rect key="frame" x="246" y="0.0" width="44.666666666666629" height="43.666666666666664"/>
+                                                            <rect key="frame" x="245.99999999999997" y="0.0" width="44.666666666666657" height="43.666666666666664"/>
                                                             <fontDescription key="fontDescription" type="system" pointSize="13"/>
                                                             <nil key="textColor"/>
                                                             <nil key="highlightedColor"/>
@@ -253,152 +253,177 @@
                             <tableViewSection headerTitle="SYMPTOMPS" id="cqO-GB-JOc">
                                 <cells>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" id="4zw-C6-6Iw">
-                                        <rect key="frame" x="0.0" y="291" width="393" height="189.33332824707031"/>
+                                        <rect key="frame" x="0.0" y="291" width="393" height="212"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="4zw-C6-6Iw" id="LZs-aX-skW">
-                                            <rect key="frame" x="0.0" y="0.0" width="393" height="189.33332824707031"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="393" height="212"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" distribution="fillEqually" spacing="12" translatesAutoresizingMaskIntoConstraints="NO" id="yvw-14-g91">
-                                                    <rect key="frame" x="12" y="8" width="369" height="173.33333333333334"/>
+                                                    <rect key="frame" x="12" y="8" width="369" height="196"/>
                                                     <subviews>
                                                         <stackView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" distribution="fillProportionally" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="4nf-Kh-tJ5">
-                                                            <rect key="frame" x="0.0" y="0.0" width="369" height="34.333333333333336"/>
+                                                            <rect key="frame" x="0.0" y="0.0" width="369" height="40"/>
                                                             <subviews>
-                                                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ptL-c4-xNq">
-                                                                    <rect key="frame" x="0.0" y="0.0" width="97.666666666666671" height="34.333333333333336"/>
-                                                                    <color key="backgroundColor" systemColor="systemGray6Color"/>
+                                                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ptL-c4-xNq">
+                                                                    <rect key="frame" x="0.0" y="0.0" width="96" height="40"/>
+                                                                    <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                                    <color key="tintColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                                     <inset key="contentEdgeInsets" minX="12" minY="6" maxX="6" maxY="12"/>
-                                                                    <state key="normal" title="Button"/>
-                                                                    <buttonConfiguration key="configuration" style="gray" title="Deja Vu">
-                                                                        <color key="baseForegroundColor" white="0.33333333333333331" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                                                        <color key="baseBackgroundColor" systemColor="systemGray6Color"/>
-                                                                    </buttonConfiguration>
+                                                                    <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
+                                                                    <state key="normal" title="Deja Vu">
+                                                                        <color key="titleColor" white="0.33333333333333331" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                                    </state>
+                                                                    <connections>
+                                                                        <action selector="symptomTapped:" destination="Yg6-5T-xJU" eventType="touchUpInside" id="rJW-nH-gQM"/>
+                                                                    </connections>
                                                                 </button>
-                                                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="QLz-FD-4xq">
-                                                                    <rect key="frame" x="105.66666666666669" y="0.0" width="95.333333333333314" height="34.333333333333336"/>
+                                                                <button opaque="NO" tag="1" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="QLz-FD-4xq">
+                                                                    <rect key="frame" x="104" y="0.0" width="94" height="40"/>
                                                                     <color key="backgroundColor" systemColor="systemGray6Color"/>
                                                                     <inset key="contentEdgeInsets" minX="12" minY="6" maxX="6" maxY="12"/>
-                                                                    <state key="normal" title="Button"/>
-                                                                    <buttonConfiguration key="configuration" style="gray" title="Anxiety">
-                                                                        <color key="baseForegroundColor" white="0.33333333329999998" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                                                        <color key="baseBackgroundColor" systemColor="systemGray6Color"/>
-                                                                    </buttonConfiguration>
+                                                                    <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
+                                                                    <state key="normal" title="Anxiety">
+                                                                        <color key="titleColor" white="0.33333333329999998" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                                    </state>
+                                                                    <connections>
+                                                                        <action selector="symptomTapped:" destination="Yg6-5T-xJU" eventType="touchUpInside" id="Gcs-Kh-cBV"/>
+                                                                    </connections>
                                                                 </button>
-                                                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="wordWrap" translatesAutoresizingMaskIntoConstraints="NO" id="zWH-2S-Wql">
-                                                                    <rect key="frame" x="209" y="0.0" width="160" height="34.333333333333336"/>
+                                                                <button opaque="NO" tag="2" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="wordWrap" translatesAutoresizingMaskIntoConstraints="NO" id="zWH-2S-Wql">
+                                                                    <rect key="frame" x="206" y="0.0" width="163" height="40"/>
                                                                     <color key="backgroundColor" systemColor="systemGray6Color"/>
                                                                     <inset key="contentEdgeInsets" minX="12" minY="6" maxX="6" maxY="12"/>
-                                                                    <state key="normal" title="Button"/>
-                                                                    <buttonConfiguration key="configuration" style="gray" title="Visual Change">
-                                                                        <color key="baseForegroundColor" white="0.33333333329999998" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                                                        <color key="baseBackgroundColor" systemColor="systemGray6Color"/>
-                                                                    </buttonConfiguration>
+                                                                    <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
+                                                                    <state key="normal" title="Visual Change">
+                                                                        <color key="titleColor" white="0.33333333329999998" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                                    </state>
+                                                                    <connections>
+                                                                        <action selector="symptomTapped:" destination="Yg6-5T-xJU" eventType="touchUpInside" id="D7m-hE-d0a"/>
+                                                                    </connections>
                                                                 </button>
                                                             </subviews>
                                                         </stackView>
                                                         <stackView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" distribution="fillProportionally" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="27R-PU-pbG">
-                                                            <rect key="frame" x="0.0" y="46.333333333333329" width="369" height="34.333333333333329"/>
+                                                            <rect key="frame" x="0.0" y="52" width="369" height="40"/>
                                                             <subviews>
-                                                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="1tB-zn-R4Y">
-                                                                    <rect key="frame" x="0.0" y="0.0" width="160.33333333333334" height="34.333333333333336"/>
+                                                                <button opaque="NO" tag="3" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="1tB-zn-R4Y">
+                                                                    <rect key="frame" x="0.0" y="0.0" width="163.33333333333334" height="40"/>
                                                                     <color key="backgroundColor" systemColor="systemGray6Color"/>
                                                                     <inset key="contentEdgeInsets" minX="12" minY="6" maxX="6" maxY="12"/>
-                                                                    <state key="normal" title="Button"/>
-                                                                    <buttonConfiguration key="configuration" style="gray" title="Old Smell/Taste">
-                                                                        <color key="baseForegroundColor" white="0.33333333329999998" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                                                        <color key="baseBackgroundColor" systemColor="systemGray6Color"/>
-                                                                    </buttonConfiguration>
+                                                                    <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
+                                                                    <state key="normal" title="Old Smell/Taste">
+                                                                        <color key="titleColor" white="0.33333333329999998" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                                    </state>
+                                                                    <connections>
+                                                                        <action selector="symptomTapped:" destination="Yg6-5T-xJU" eventType="touchUpInside" id="kco-Rj-Qcd"/>
+                                                                    </connections>
                                                                 </button>
-                                                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="aWq-mI-TnN">
-                                                                    <rect key="frame" x="168.33333333333334" y="0.0" width="99.333333333333343" height="34.333333333333336"/>
+                                                                <button opaque="NO" tag="4" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="aWq-mI-TnN">
+                                                                    <rect key="frame" x="171.33333333333334" y="0.0" width="97.666666666666657" height="40"/>
                                                                     <color key="backgroundColor" systemColor="systemGray6Color"/>
                                                                     <inset key="contentEdgeInsets" minX="12" minY="6" maxX="6" maxY="12"/>
-                                                                    <state key="normal" title="Button"/>
-                                                                    <buttonConfiguration key="configuration" style="gray" title="Dizzines">
-                                                                        <color key="baseForegroundColor" white="0.33333333329999998" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                                                        <color key="baseBackgroundColor" systemColor="systemGray6Color"/>
-                                                                    </buttonConfiguration>
+                                                                    <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
+                                                                    <state key="normal" title="Dizzines">
+                                                                        <color key="titleColor" white="0.33333333329999998" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                                    </state>
+                                                                    <connections>
+                                                                        <action selector="symptomTapped:" destination="Yg6-5T-xJU" eventType="touchUpInside" id="cfb-QI-tLv"/>
+                                                                    </connections>
                                                                 </button>
-                                                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="iB8-ZN-48Z">
-                                                                    <rect key="frame" x="275.66666666666669" y="0.0" width="93.333333333333314" height="34.333333333333336"/>
+                                                                <button opaque="NO" tag="5" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="iB8-ZN-48Z">
+                                                                    <rect key="frame" x="277" y="0.0" width="92" height="40"/>
                                                                     <color key="backgroundColor" systemColor="systemGray6Color"/>
                                                                     <inset key="contentEdgeInsets" minX="12" minY="6" maxX="6" maxY="12"/>
-                                                                    <state key="normal" title="Button"/>
-                                                                    <buttonConfiguration key="configuration" style="gray" title="Nausea">
-                                                                        <color key="baseForegroundColor" white="0.33333333329999998" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                                                        <color key="baseBackgroundColor" systemColor="systemGray6Color"/>
-                                                                    </buttonConfiguration>
+                                                                    <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
+                                                                    <state key="normal" title="Nausea">
+                                                                        <color key="titleColor" white="0.33333333329999998" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                                    </state>
+                                                                    <connections>
+                                                                        <action selector="symptomTapped:" destination="Yg6-5T-xJU" eventType="touchUpInside" id="Nqv-SZ-MaJ"/>
+                                                                    </connections>
                                                                 </button>
                                                             </subviews>
                                                         </stackView>
                                                         <stackView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" distribution="fillProportionally" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="0Dc-oN-7da">
-                                                            <rect key="frame" x="0.0" y="92.666666666666671" width="369" height="34.333333333333329"/>
+                                                            <rect key="frame" x="0.0" y="104" width="369" height="40"/>
                                                             <subviews>
-                                                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="4aU-Nk-Y1V">
-                                                                    <rect key="frame" x="0.0" y="0.0" width="129.66666666666666" height="34.333333333333336"/>
+                                                                <button opaque="NO" tag="6" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="4aU-Nk-Y1V">
+                                                                    <rect key="frame" x="0.0" y="0.0" width="130.33333333333334" height="40"/>
                                                                     <color key="backgroundColor" systemColor="systemGray6Color"/>
                                                                     <inset key="contentEdgeInsets" minX="12" minY="6" maxX="6" maxY="12"/>
-                                                                    <state key="normal" title="Button"/>
-                                                                    <buttonConfiguration key="configuration" style="gray" title="Confused">
-                                                                        <color key="baseForegroundColor" white="0.33333333329999998" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                                                        <color key="baseBackgroundColor" systemColor="systemGray6Color"/>
-                                                                    </buttonConfiguration>
+                                                                    <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
+                                                                    <state key="normal" title="Confused">
+                                                                        <color key="titleColor" white="0.33333333329999998" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                                    </state>
+                                                                    <connections>
+                                                                        <action selector="symptomTapped:" destination="Yg6-5T-xJU" eventType="touchUpInside" id="mwb-OF-vPd"/>
+                                                                    </connections>
                                                                 </button>
-                                                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="9EO-9h-Tmq">
-                                                                    <rect key="frame" x="137.66666666666666" y="0.0" width="84" height="34.333333333333336"/>
+                                                                <button opaque="NO" tag="7" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="9EO-9h-Tmq">
+                                                                    <rect key="frame" x="138.33333333333334" y="0.0" width="81.333333333333343" height="40"/>
                                                                     <color key="backgroundColor" systemColor="systemGray6Color"/>
                                                                     <inset key="contentEdgeInsets" minX="12" minY="6" maxX="6" maxY="12"/>
-                                                                    <state key="normal" title="Button"/>
-                                                                    <buttonConfiguration key="configuration" style="gray" title="Tired">
-                                                                        <color key="baseForegroundColor" white="0.33333333329999998" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                                                        <color key="baseBackgroundColor" systemColor="systemGray6Color"/>
-                                                                    </buttonConfiguration>
+                                                                    <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
+                                                                    <state key="normal" title="Tired">
+                                                                        <color key="titleColor" white="0.33333333329999998" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                                    </state>
+                                                                    <connections>
+                                                                        <action selector="symptomTapped:" destination="Yg6-5T-xJU" eventType="touchUpInside" id="gBK-D2-B6B"/>
+                                                                    </connections>
                                                                 </button>
-                                                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="5Gt-A4-Xkg">
-                                                                    <rect key="frame" x="229.66666666666663" y="0.0" width="139.33333333333337" height="34.333333333333336"/>
+                                                                <button opaque="NO" tag="8" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="5Gt-A4-Xkg">
+                                                                    <rect key="frame" x="227.66666666666663" y="0.0" width="141.33333333333337" height="40"/>
                                                                     <color key="backgroundColor" systemColor="systemGray6Color"/>
                                                                     <inset key="contentEdgeInsets" minX="12" minY="6" maxX="6" maxY="12"/>
-                                                                    <state key="normal" title="Button"/>
-                                                                    <buttonConfiguration key="configuration" style="gray" title="Headache">
-                                                                        <color key="baseForegroundColor" white="0.33333333329999998" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                                                        <color key="baseBackgroundColor" systemColor="systemGray6Color"/>
-                                                                    </buttonConfiguration>
+                                                                    <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
+                                                                    <state key="normal" title="Headache">
+                                                                        <color key="titleColor" white="0.33333333329999998" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                                    </state>
+                                                                    <connections>
+                                                                        <action selector="symptomTapped:" destination="Yg6-5T-xJU" eventType="touchUpInside" id="Phs-rh-YCD"/>
+                                                                    </connections>
                                                                 </button>
                                                             </subviews>
                                                         </stackView>
                                                         <stackView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" distribution="fillProportionally" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="KLg-ow-JMo">
-                                                            <rect key="frame" x="0.0" y="139" width="369" height="34.333333333333343"/>
+                                                            <rect key="frame" x="0.0" y="156" width="369" height="40"/>
                                                             <subviews>
-                                                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="oBO-9T-Cye">
-                                                                    <rect key="frame" x="0.0" y="0.0" width="111.66666666666667" height="34.333333333333336"/>
+                                                                <button opaque="NO" tag="9" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="oBO-9T-Cye">
+                                                                    <rect key="frame" x="0.0" y="0.0" width="111.33333333333333" height="40"/>
                                                                     <color key="backgroundColor" systemColor="systemGray6Color"/>
                                                                     <inset key="contentEdgeInsets" minX="12" minY="6" maxX="6" maxY="12"/>
-                                                                    <state key="normal" title="Button"/>
-                                                                    <buttonConfiguration key="configuration" style="gray" title="Body Ache">
-                                                                        <color key="baseForegroundColor" white="0.33333333329999998" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                                                        <color key="baseBackgroundColor" systemColor="systemGray6Color"/>
-                                                                    </buttonConfiguration>
+                                                                    <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
+                                                                    <state key="normal" title="Body Ache">
+                                                                        <color key="titleColor" white="0.33333333329999998" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                                    </state>
+                                                                    <connections>
+                                                                        <action selector="symptomTapped:" destination="Yg6-5T-xJU" eventType="touchUpInside" id="OrA-3Y-Lm4"/>
+                                                                    </connections>
                                                                 </button>
-                                                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="mPj-Xg-sIx">
-                                                                    <rect key="frame" x="119.66666666666666" y="0.0" width="107.33333333333334" height="34.333333333333336"/>
+                                                                <button opaque="NO" tag="10" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="mPj-Xg-sIx">
+                                                                    <rect key="frame" x="119.33333333333334" y="0.0" width="107" height="40"/>
                                                                     <color key="backgroundColor" systemColor="systemGray6Color"/>
                                                                     <inset key="contentEdgeInsets" minX="12" minY="6" maxX="6" maxY="12"/>
-                                                                    <state key="normal" title="Button"/>
-                                                                    <buttonConfiguration key="configuration" style="gray" title="Weakness">
-                                                                        <color key="baseForegroundColor" white="0.33333333329999998" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                                                        <color key="baseBackgroundColor" systemColor="systemGray6Color"/>
-                                                                    </buttonConfiguration>
+                                                                    <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
+                                                                    <state key="normal" title="Weakness">
+                                                                        <color key="titleColor" white="0.33333333329999998" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                                    </state>
+                                                                    <connections>
+                                                                        <action selector="symptomTapped:" destination="Yg6-5T-xJU" eventType="touchUpInside" id="Pwx-u4-1gt"/>
+                                                                    </connections>
                                                                 </button>
-                                                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="xfg-oJ-HNP">
-                                                                    <rect key="frame" x="235" y="0.0" width="134" height="34.333333333333336"/>
+                                                                <button opaque="NO" tag="11" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="xfg-oJ-HNP">
+                                                                    <rect key="frame" x="234.33333333333337" y="0.0" width="134.66666666666663" height="40"/>
                                                                     <color key="backgroundColor" systemColor="systemGray6Color"/>
                                                                     <inset key="contentEdgeInsets" minX="12" minY="6" maxX="6" maxY="12"/>
-                                                                    <state key="normal" title="Button"/>
-                                                                    <buttonConfiguration key="configuration" style="gray" title="Memory Loss">
-                                                                        <color key="baseForegroundColor" white="0.33333333329999998" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                                                        <color key="baseBackgroundColor" systemColor="systemGray6Color"/>
-                                                                    </buttonConfiguration>
+                                                                    <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
+                                                                    <state key="normal" title="Memory Loss">
+                                                                        <color key="titleColor" white="0.33333333329999998" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                                    </state>
+                                                                    <connections>
+                                                                        <action selector="symptomTapped:" destination="Yg6-5T-xJU" eventType="touchUpInside" id="5no-0N-5ap"/>
+                                                                    </connections>
                                                                 </button>
                                                             </subviews>
                                                         </stackView>
@@ -418,7 +443,7 @@
                             <tableViewSection headerTitle="NOTES" id="b2n-Cl-RKG">
                                 <cells>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" id="gYi-na-7aR">
-                                        <rect key="frame" x="0.0" y="536.33332824707031" width="393" height="120"/>
+                                        <rect key="frame" x="0.0" y="559" width="393" height="120"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="gYi-na-7aR" id="ylf-2D-6IH">
                                             <rect key="frame" x="0.0" y="0.0" width="393" height="120"/>
@@ -455,10 +480,29 @@
                         <barButtonItem key="rightBarButtonItem" systemItem="save" id="Dmz-Nf-wiH">
                             <color key="tintColor" systemColor="linkColor"/>
                             <connections>
-                                <segue destination="xZD-bx-NBo" kind="presentation" id="KiV-uS-YYI"/>
+                                <action selector="saveRecord:" destination="Yg6-5T-xJU" id="mb0-Uz-uiL"/>
                             </connections>
                         </barButtonItem>
                     </navigationItem>
+                    <connections>
+                        <outlet property="anxietySymptomButton" destination="QLz-FD-4xq" id="46F-L4-avH"/>
+                        <outlet property="bodyacheSymptomButton" destination="oBO-9T-Cye" id="xJ4-ic-7BK"/>
+                        <outlet property="confusedSymptomButton" destination="4aU-Nk-Y1V" id="nBQ-9b-CUI"/>
+                        <outlet property="dateTextField" destination="GHD-wz-jsF" id="fya-X1-zqa"/>
+                        <outlet property="dejavuSymptomButton" destination="ptL-c4-xNq" id="Z1u-TS-ihZ"/>
+                        <outlet property="dizzinesSymptomButton" destination="aWq-mI-TnN" id="z1R-gT-Quc"/>
+                        <outlet property="durationTextField" destination="y8E-hM-lDd" id="Cnd-oO-M3R"/>
+                        <outlet property="headacheSymptomButton" destination="5Gt-A4-Xkg" id="bIB-iZ-76O"/>
+                        <outlet property="memoryLossSymptomButton" destination="xfg-oJ-HNP" id="xaL-Sl-pzS"/>
+                        <outlet property="nauseaSymptomButton" destination="iB8-ZN-48Z" id="jTi-MZ-VWw"/>
+                        <outlet property="notesTextView" destination="IEd-52-J64" id="4qk-9l-x33"/>
+                        <outlet property="severitySegment" destination="euo-xu-UN6" id="cEr-uP-dX1"/>
+                        <outlet property="smellSymptomButton" destination="1tB-zn-R4Y" id="aBM-R2-xJl"/>
+                        <outlet property="tiredSymptomButton" destination="9EO-9h-Tmq" id="kP2-u3-e81"/>
+                        <outlet property="titleTextField" destination="2jn-72-0AK" id="mco-Fv-AES"/>
+                        <outlet property="visualChangeSymptomButton" destination="zWH-2S-Wql" id="9V2-E1-fsr"/>
+                        <outlet property="weaknessSymptomButton" destination="mPj-Xg-sIx" id="Eq4-xZ-bsk"/>
+                    </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="S93-4k-EN9" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
@@ -469,7 +513,7 @@
             <objects>
                 <tableViewController id="zoN-As-dQ0" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="static" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" id="PXB-lD-fft">
-                        <rect key="frame" x="0.0" y="0.0" width="393" height="783"/>
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <sections>
@@ -774,7 +818,7 @@
                 <navigationController automaticallyAdjustsScrollViewInsets="NO" id="xZD-bx-NBo" sceneMemberID="viewController">
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" id="yg5-kb-eqB">
-                        <rect key="frame" x="0.0" y="16" width="393" height="54"/>
+                        <rect key="frame" x="0.0" y="118" width="393" height="54"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
                     <nil name="viewControllers"/>
