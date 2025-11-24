@@ -57,6 +57,31 @@ class EmergencyContactsTableViewController: UITableViewController, CNContactPick
         // #warning Incomplete implementation, return the number of rows
         return contacts.count
     }
+    
+    override func tableView(_ tableView: UITableView,
+                            trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath)
+        -> UISwipeActionsConfiguration? {
+
+        let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { _, _, completion in
+            
+            // Remove from array
+            self.contacts.remove(at: indexPath.row)
+
+            // Animate deletion
+            tableView.deleteRows(at: [indexPath], with: .automatic)
+            
+            completion(true)
+        }
+
+        deleteAction.backgroundColor = .systemRed
+
+        return UISwipeActionsConfiguration(actions: [deleteAction])
+    }
+
+    override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 80   
+    }
+
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
