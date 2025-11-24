@@ -160,23 +160,49 @@ class AddRecordTableViewController: UITableViewController {
 
     
     @IBAction func saveRecord(_ sender: UIBarButtonItem) {
-        let title = titleTextField.text ?? ""
-        let date = dateTextField.text ?? ""
-        let duration = durationTextField.text ?? ""
-        let severity = severitySegment.selectedSegmentIndex   // 0 = mild
+        guard let title = titleTextField.text, !title.isEmpty else { return }
+            guard let dateString = dateTextField.text, !dateString.isEmpty else { return }
+            guard let durationString = durationTextField.text, !durationString.isEmpty else { return }
+
+
+            let formatter = DateFormatter()
+            formatter.dateFormat = "dd/MM/yyyy"
+            guard let date = formatter.date(from: dateString) else { return }
+        print("coming2")
+            // NEW: parse "1min 30sec"
+            guard let durationSeconds = parseDuration(durationString) else {
+                print("❌ Invalid duration")
+                return
+            }
+    
+
+            let symptoms = selectedSymptoms.map { $0.rawValue }
+            let notes = notesTextView.text
+
+            let severity: SeizureType = {
+                switch severitySegment.selectedSegmentIndex {
+                case 0: return .mild
+                case 1: return .moderate
+                default: return .severe
+                }
+            }()
+
+            guard let user = UserDataModel.shared.getCurrentUser() else { return }
+     
+
+            let newRecord = SeizureRecord(
+                userId: user.id,
+                entryType: .manual,
+                dateTime: date,
+                description: notes,
+                type: severity,
+                duration: durationSeconds,
+                title: title,
+                symptoms: symptoms
+            )
+        SeizureRecordDataModel.shared.addManualRecord(newRecord)
         
-        let notes = notesTextView.text ?? ""
-        
-        let symptoms = selectedSymptoms.map { $0.rawValue }
-        
-        print("TITLE:", title)
-        print("DATE:", date)
-        print("DURATION:", duration)
-        print("SEVERITY:", severity)
-        print("SYMPTOMS:", symptoms)
-        print("NOTES:", notes)
-        
-        // Now you can save to model / database / API
+        dismiss(animated: true)
     }
     func validateForm() {
         let isTitleValid = !(titleTextField.text?.isEmpty ?? true)
@@ -187,6 +213,31 @@ class AddRecordTableViewController: UITableViewController {
         
         saveButton.isEnabled = isTitleValid && isDateValid && isDurationValid && isSymptomsValid
     }
+    func parseDuration(_ text: String) -> TimeInterval? {
+        let lower = text.lowercased()
+
+        var minutes: Double = 0
+        var seconds: Double = 0
+
+        // Extract minutes
+        if let minRange = lower.range(of: "min") {
+            let num = lower[..<minRange.lowerBound].trimmingCharacters(in: .whitespaces)
+            minutes = Double(num) ?? 0
+        }
+
+        // Extract seconds
+        if let secRange = lower.range(of: "sec") {
+            // find the number before "sec"
+            let before = lower[..<secRange.lowerBound]
+            if let lastSpace = before.lastIndex(of: " ") {
+                let secString = before[before.index(after: lastSpace)...]
+                seconds = Double(secString) ?? 0
+            }
+        }
+
+        return (minutes * 60) + seconds
+    }
+
 
 
 

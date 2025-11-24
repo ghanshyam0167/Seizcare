@@ -11,7 +11,7 @@
         <!--Hey Anmol-->
         <scene sceneID="wPF-27-IUu">
             <objects>
-                <tableViewController id="q7b-AN-xDw" sceneMemberID="viewController">
+                <tableViewController id="q7b-AN-xDw" customClass="DashboardTableViewController" customModule="Seizcare" customModuleProvider="target" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="static" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" id="Lvh-7l-IAL">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -200,7 +200,7 @@
                                                                                 <fontDescription key="titleFontDescription" type="system" pointSize="15"/>
                                                                             </buttonConfiguration>
                                                                             <connections>
-                                                                                <segue destination="wYa-Vf-Vow" kind="show" id="dju-ev-h5q"/>
+                                                                                <segue destination="wYa-Vf-Vow" kind="showDetail" id="dju-ev-h5q"/>
                                                                             </connections>
                                                                         </button>
                                                                     </subviews>
