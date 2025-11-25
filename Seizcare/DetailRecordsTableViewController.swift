@@ -9,6 +9,7 @@ import UIKit
 
 class DetailRecordsTableViewController: UITableViewController {
 
+    @IBOutlet weak var mainDetailsCardView: UIView!
     @IBOutlet weak var descriptionTextView: UITextView!
     @IBOutlet weak var bottomCardView: UIView!
     @IBOutlet weak var topCardView: UIView!
@@ -24,12 +25,20 @@ class DetailRecordsTableViewController: UITableViewController {
     @IBOutlet weak var seizureLevelLabel: UILabel!
     
     var onDismiss: (() -> Void)?
+    
     var record: SeizureRecord?
+    var shouldHideSection1: Bool {
+        return record?.entryType == .manual
+    }
+
 
         override func viewDidLoad() {
             super.viewDidLoad()
-            [topCardView, bottomCardView].forEach { view in
-                    view?.applyCardStyle()
+            applyDefaultTableBackground()
+            navigationController?.applyWhiteNavBar()
+            
+            [topCardView, bottomCardView, mainDetailsCardView].forEach { view in
+                view?.applyDashboardCard()
                 }
             descriptionTextView.delegate = self
 
@@ -125,28 +134,71 @@ class DetailRecordsTableViewController: UITableViewController {
             let secs = Int(seconds) % 60
             return "\(mins) min \(secs) sec"
         }
-    override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        return section == 0 ? 0.1 : 6   // first section + others
+    // MARK: - Section spacing & hiding (clean)
+    private func refreshSectionVisibility(animated: Bool = false) {
+        // If record changed after view loaded, force the table to recompute heights.
+        let sectionSet = IndexSet(integer: 1)
+        if animated {
+            tableView.performBatchUpdates({
+                tableView.reloadSections(sectionSet, with: .automatic)
+            }, completion: nil)
+        } else {
+            tableView.reloadSections(sectionSet, with: .none)
+        }
     }
 
-    override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-        let view = UIView()
-        view.backgroundColor = .clear
-        return view
+    override func tableView(_ tableView: UITableView,
+                            heightForHeaderInSection section: Int) -> CGFloat {
+        // hide section 1 when needed
+        if shouldHideSection1 && section == 1 { return 0.01 }
+        return section == 0 ? 0.01 : 2
     }
 
-    override func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
-        return 2   // space between sections
+    override func tableView(_ tableView: UITableView,
+                            viewForHeaderInSection section: Int) -> UIView? {
+        if shouldHideSection1 && section == 1 { return UIView() }
+        let v = UIView(); v.backgroundColor = .clear; return v
     }
 
-    override func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
-        let view = UIView()
-        view.backgroundColor = .clear
-        return view
+    override func tableView(_ tableView: UITableView,
+                            heightForFooterInSection section: Int) -> CGFloat {
+        if shouldHideSection1 && section == 1 { return 0.01 }
+        return 2
     }
-    override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+
+    override func tableView(_ tableView: UITableView,
+                            viewForFooterInSection section: Int) -> UIView? {
+        if shouldHideSection1 && section == 1 { return UIView() }
+        let v = UIView(); v.backgroundColor = .clear; return v
+    }
+
+    override func tableView(_ tableView: UITableView,
+                            heightForRowAt indexPath: IndexPath) -> CGFloat {
+        if shouldHideSection1 && indexPath.section == 1 { return 0.01 }
+        return UITableView.automaticDimension
+    }
+
+    // keep willDisplay to tweak visual appearance & remove separators when hidden
+    override func tableView(_ tableView: UITableView,
+                            willDisplay cell: UITableViewCell,
+                            forRowAt indexPath: IndexPath) {
+        // content margins + transparent cell background
         cell.contentView.layoutMargins = UIEdgeInsets(top: 2, left: 16, bottom: 2, right: 16)
+        cell.backgroundColor = .clear
+        cell.contentView.backgroundColor = .clear
+
+        if shouldHideSection1 && indexPath.section == 1 {
+            // make sure it doesn't show visual artifacts
+            cell.isHidden = true
+            cell.alpha = 0.0
+            cell.selectionStyle = .none
+        } else {
+            cell.isHidden = false
+            cell.alpha = 1.0
+            cell.selectionStyle = .default
+        }
     }
+
     func refreshUI() {
         guard let record = record else { return }
         descriptionTextView.text = record.description

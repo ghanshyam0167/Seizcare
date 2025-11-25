@@ -22,6 +22,8 @@ class RecordTableViewController: UITableViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        applyDefaultTableBackground()
+        navigationController?.applyWhiteNavBar()
         loadAndGroupRecords()
         setupBottomSearchBar()
     }
@@ -142,6 +144,11 @@ class RecordTableViewController: UITableViewController {
             }
         }
     }
+    @IBAction func unwindToDashboard(_ segue: UIStoryboardSegue) {
+        // You can add logic here if needed
+        print("Returned from Add Record screen")
+    }
+    
 
 
     
