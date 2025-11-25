@@ -24,6 +24,10 @@ class ProfileTableViewController: UITableViewController {
                 profileImageView.clipsToBounds = true
 
             }
+    @objc func imageTapped() {
+        performSegue(withIdentifier: "goToNextScreen", sender: self)
+    }
+
     
 }
 
