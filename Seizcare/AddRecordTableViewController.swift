@@ -44,6 +44,7 @@ class AddRecordTableViewController: UITableViewController {
     @IBOutlet weak var titleTextField: UITextField!
     
     var selectedSymptoms: Set<Symptom> = []
+    var onDismiss: (() -> Void)?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -201,8 +202,9 @@ class AddRecordTableViewController: UITableViewController {
                 symptoms: symptoms
             )
         SeizureRecordDataModel.shared.addManualRecord(newRecord)
-        
+        onDismiss?()
         dismiss(animated: true)
+        
     }
     func validateForm() {
         let isTitleValid = !(titleTextField.text?.isEmpty ?? true)

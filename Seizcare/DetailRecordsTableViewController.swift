@@ -9,6 +9,7 @@ import UIKit
 
 class DetailRecordsTableViewController: UITableViewController {
 
+    @IBOutlet weak var descriptionTextView: UITextView!
     @IBOutlet weak var bottomCardView: UIView!
     @IBOutlet weak var topCardView: UIView!
     @IBOutlet weak var locationValueLabel: UILabel!
@@ -22,6 +23,7 @@ class DetailRecordsTableViewController: UITableViewController {
     @IBOutlet weak var dateLabel: UILabel!
     @IBOutlet weak var seizureLevelLabel: UILabel!
     
+    var onDismiss: (() -> Void)?
     var record: SeizureRecord?
 
         override func viewDidLoad() {
@@ -29,6 +31,8 @@ class DetailRecordsTableViewController: UITableViewController {
             [topCardView, bottomCardView].forEach { view in
                     view?.applyCardStyle()
                 }
+            descriptionTextView.delegate = self
+
 
             guard let record = record else {
                 print("❌ No record passed!")
@@ -45,6 +49,27 @@ class DetailRecordsTableViewController: UITableViewController {
                 configureManual(record)
             }
         }
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        
+        // Force end editing (calls textViewDidEndEditing)
+        view.endEditing(true)
+        
+        // Save description even if delegate didn’t fire
+        if let updatedText = descriptionTextView.text,
+           let record = record {
+            
+            SeizureRecordDataModel.shared.updateRecordDescription(
+                id: record.id,
+                newDescription: updatedText
+            )
+            
+            self.record?.description = updatedText
+            onDismiss?()
+            print("✅ Saved on viewWillDisappear")
+        }
+    }
+
 
         // MARK: - Automatic record display
         func configureAutomatic(_ record: SeizureRecord) {
@@ -62,6 +87,8 @@ class DetailRecordsTableViewController: UITableViewController {
             
             locationTitleLabel.text = "Location"
             locationValueLabel.text = record.location ?? "--"
+            
+            descriptionTextView.text = record.description
         }
 
         // MARK: - Manual record display (same UI, changed meaning)
@@ -89,6 +116,8 @@ class DetailRecordsTableViewController: UITableViewController {
 
             locationTitleLabel.text = "Entry Type"
             locationValueLabel.text = "Manual"
+            
+            descriptionTextView.text = record.description
         }
 
         func formatDuration(_ seconds: TimeInterval) -> String {
@@ -118,4 +147,24 @@ class DetailRecordsTableViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         cell.contentView.layoutMargins = UIEdgeInsets(top: 2, left: 16, bottom: 2, right: 16)
     }
+    func refreshUI() {
+        guard let record = record else { return }
+        descriptionTextView.text = record.description
     }
+
+    }
+
+extension DetailRecordsTableViewController: UITextViewDelegate {
+    func textViewDidEndEditing(_ textView: UITextView) {
+        guard let updatedText = textView.text,
+              let record = record else { return }
+
+        // Update in your data model
+        SeizureRecordDataModel.shared.updateRecordDescription(id: record.id, newDescription: updatedText)
+
+        print("✅ Description updated for record:", record.id)
+        self.record?.description = updatedText
+        refreshUI()
+    }
+
+}

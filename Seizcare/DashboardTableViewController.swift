@@ -19,6 +19,16 @@ class DashboardTableViewController: UITableViewController {
     @IBOutlet weak var currentCardView2: UIView!
     @IBOutlet weak var currentCardView1: UIView!
     @IBOutlet weak var currentCardView0: UIView!
+    
+    
+    @IBOutlet weak var seizureDetectedRecordLabel01: UILabel!
+    @IBOutlet weak var sleepRecordLabel01: UILabel!
+    @IBOutlet weak var spo2RecordLabel01: UILabel!
+    @IBOutlet weak var dateRecordLabel01: UILabel!
+    @IBOutlet weak var seizureDetectedRecordLabel00: UILabel!
+    @IBOutlet weak var sleepRecordLabel00: UILabel!
+    @IBOutlet weak var spo2RecordLabel00: UILabel!
+    @IBOutlet weak var dateRecordLabel00: UILabel!
     override func viewDidLoad() {
         super.viewDidLoad()
         UserDataModel.shared.loginUser(email: "ghanshyam@example.com", password: "password121")
@@ -31,12 +41,14 @@ class DashboardTableViewController: UITableViewController {
                 card?.applyRecordCardStyle()
             }
         styleSegmentControl()
-        // Uncomment the following line to preserve selection between presentations
-        // self.clearsSelectionOnViewWillAppear = false
-
-        // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-        // self.navigationItem.rightBarButtonItem = self.editButtonItem
+        updateRecentRecords()
+      
     }
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        updateRecentRecords()
+    }
+
     func styleSegmentControl() {
         // Background of entire segmented control
         weeklyMonthlySegment.backgroundColor = UIColor(red: 237/255, green: 237/255, blue: 242/255, alpha: 1)
@@ -55,75 +67,89 @@ class DashboardTableViewController: UITableViewController {
         weeklyMonthlySegment.setTitleTextAttributes(normalText, for: .normal)
         weeklyMonthlySegment.setTitleTextAttributes(selectedText, for: .selected)
     }
+    func updateRecentRecords() {
+        let recent = SeizureRecordDataModel.shared.getLatestTwoRecordsForCurrentUser()
+
+        // No records → hide both cards
+        if recent.isEmpty {
+            recordCardView0.isHidden = true
+            recordCardView1.isHidden = true
+            return
+        }
+
+        // If only ONE record
+        if recent.count == 1 {
+            let r0 = recent[0]
+            updateCard(
+                record: r0,
+                seizureLabel: seizureDetectedRecordLabel00,
+                sleepLabel: sleepRecordLabel00,
+                spo2Label: spo2RecordLabel00,
+                dateLabel: dateRecordLabel00
+            )
+            recordCardView0.isHidden = false
+            recordCardView1.isHidden = true
+            return
+        }
+
+        // If TWO records
+        let r0 = recent[0]
+        let r1 = recent[1]
+
+        updateCard(
+            record: r0,
+            seizureLabel: seizureDetectedRecordLabel00,
+            sleepLabel: sleepRecordLabel00,
+            spo2Label: spo2RecordLabel00,
+            dateLabel: dateRecordLabel00
+        )
+
+        updateCard(
+            record: r1,
+            seizureLabel: seizureDetectedRecordLabel01,
+            sleepLabel: sleepRecordLabel01,
+            spo2Label: spo2RecordLabel01,
+            dateLabel: dateRecordLabel01
+        )
+
+        recordCardView0.isHidden = false
+        recordCardView1.isHidden = false
+    }
+
 
     
 
-    // MARK: - Table view data source
+    func updateCard(record: SeizureRecord,
+                    seizureLabel: UILabel,
+                    sleepLabel: UILabel,
+                    spo2Label: UILabel,
+                    dateLabel: UILabel) {
+        
+        // For seizure level:
+        if record.entryType == .automatic {
+            seizureLabel.text = record.type?.rawValue.capitalized ?? "Automatic"
+        } else {
+            seizureLabel.text = record.title ?? "Manual Log"
+        }
 
-//    override func numberOfSections(in tableView: UITableView) -> Int {
-//        // #warning Incomplete implementation, return the number of sections
-//        return 0
-//    }
-//
-//    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-//        // #warning Incomplete implementation, return the number of rows
-//        return 0
-//    }
+        // Duration (sleep label)
+        if let duration = record.duration {
+            let mins = Int(duration) / 60
+            let secs = Int(duration) % 60
+            sleepLabel.text = "Sleep: \(mins)m \(secs)s"
+        } else {
+            sleepLabel.text = "--"
+        }
 
-    /*
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "reuseIdentifier", for: indexPath)
+        // SpO2
+        spo2Label.text = record.spo2 != nil ? "SPO2: \(record.spo2!)%" : "--"
 
-        // Configure the cell...
-
-        return cell
+        // Date
+        let df = DateFormatter()
+        df.dateFormat = "dd MMM yyyy"
+        dateLabel.text = df.string(from: record.dateTime)
     }
-    */
 
-    /*
-    // Override to support conditional editing of the table view.
-    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
-        // Return false if you do not want the specified item to be editable.
-        return true
-    }
-    */
-
-    /*
-    // Override to support editing the table view.
-    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-        if editingStyle == .delete {
-            // Delete the row from the data source
-            tableView.deleteRows(at: [indexPath], with: .fade)
-        } else if editingStyle == .insert {
-            // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-        }    
-    }
-    */
-
-    /*
-    // Override to support rearranging the table view.
-    override func tableView(_ tableView: UITableView, moveRowAt fromIndexPath: IndexPath, to: IndexPath) {
-
-    }
-    */
-
-    /*
-    // Override to support conditional rearranging of the table view.
-    override func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool {
-        // Return false if you do not want the item to be re-orderable.
-        return true
-    }
-    */
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
-    }
-    */
 
 }
 extension UIView {

@@ -10,6 +10,7 @@ import UIKit
 class RecordTableViewCell: UITableViewCell {
 
     
+    @IBOutlet weak var recordIconImageView: UIImageView!
     @IBOutlet weak var cardView: UIView!
     @IBOutlet weak var dateLabel: UILabel!
     @IBOutlet weak var durationLabel: UILabel!
