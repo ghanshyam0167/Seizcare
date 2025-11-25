@@ -9,6 +9,8 @@ import UIKit
 
 class DetailRecordsTableViewController: UITableViewController {
 
+    @IBOutlet weak var bottomCardView: UIView!
+    @IBOutlet weak var topCardView: UIView!
     @IBOutlet weak var locationValueLabel: UILabel!
     @IBOutlet weak var locationTitleLabel: UILabel!
     @IBOutlet weak var heartRateValueLabel: UILabel!
@@ -24,6 +26,9 @@ class DetailRecordsTableViewController: UITableViewController {
 
         override func viewDidLoad() {
             super.viewDidLoad()
+            [topCardView, bottomCardView].forEach { view in
+                    view?.applyCardStyle()
+                }
 
             guard let record = record else {
                 print("❌ No record passed!")
@@ -91,4 +96,26 @@ class DetailRecordsTableViewController: UITableViewController {
             let secs = Int(seconds) % 60
             return "\(mins) min \(secs) sec"
         }
+    override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        return section == 0 ? 0.1 : 6   // first section + others
+    }
+
+    override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        let view = UIView()
+        view.backgroundColor = .clear
+        return view
+    }
+
+    override func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
+        return 2   // space between sections
+    }
+
+    override func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
+        let view = UIView()
+        view.backgroundColor = .clear
+        return view
+    }
+    override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        cell.contentView.layoutMargins = UIEdgeInsets(top: 2, left: 16, bottom: 2, right: 16)
+    }
     }

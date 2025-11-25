@@ -113,7 +113,6 @@ class RecordTableViewController: UITableViewController {
             cell.seizureLevelLabel.text = record.title ?? "Manual Log"
             cell.durationLabel.text = record.description ?? ""
         }
-
         return cell
     }
 
@@ -140,4 +139,8 @@ class RecordTableViewController: UITableViewController {
             }
         }
     }
+
+
+    
 }
+
