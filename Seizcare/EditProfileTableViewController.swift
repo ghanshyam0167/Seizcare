@@ -8,98 +8,101 @@
 import UIKit
 
 class EditProfileTableViewController: UITableViewController {
+    var user: User
+    
+    required init?(coder: NSCoder, user : User?) {
+        guard let user = user else { return nil }
+        self.user = user
+        super.init(coder: coder)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    var onDismiss: (() -> Void)?
 
+    @IBOutlet weak var nameTextField: UITextField!
+    @IBOutlet weak var emailTextField: UITextField!
+    @IBOutlet weak var phoneTextField: UITextField!
+    @IBOutlet weak var dobTextField: UITextField!
+    @IBOutlet weak var heightTextField: UITextField!
+    @IBOutlet weak var weightTextField: UITextField!
     @IBOutlet weak var genderButton: UIButton!
+    @IBOutlet weak var bloodGroupTextField: UITextField!
+    
+    let dateFormatter: DateFormatter = {
+           let df = DateFormatter()
+           df.dateFormat = "yyyy-MM-dd"
+           return df
+       }()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        let menuItems = [
-               UIAction(title: "Male", handler: { _ in self.setGender("Male") }),
-               UIAction(title: "Female", handler: { _ in self.setGender("Female") }),
-               UIAction(title: "Other", handler: { _ in self.setGender("Other") })
-           ]
-           
-           genderButton.menu = UIMenu(title: "", options: .displayInline, children: menuItems)
-           genderButton.showsMenuAsPrimaryAction = true
-           
-           // Default value
-           setGender("Male")
-
-        // Uncomment the following line to preserve selection between presentations
-        // self.clearsSelectionOnViewWillAppear = false
-
-        // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-        // self.navigationItem.rightBarButtonItem = self.editButtonItem
+        
+        prefillUI()
+        setupGenderMenu()
     }
-    func setGender(_ gender: String) {
-        genderButton.setTitle(gender, for: .normal)
+    func prefillUI() {
+           nameTextField.text = user.fullName
+           emailTextField.text = user.email
+           phoneTextField.text = user.contactNumber
+           dobTextField.text = dateFormatter.string(from: user.dateOfBirth)
+           genderButton.setTitle(user.gender.rawValue.capitalized, for: .normal)
+
+           if let h = user.height { heightTextField.text = "\(h)" }
+           if let w = user.weight { weightTextField.text = "\(w)" }
+           bloodGroupTextField.text = user.bloodGroup
+       }
+    func setupGenderMenu() {
+            let selected = user.gender
+
+            genderButton.menu = UIMenu(title: "", options: .displayInline, children: [
+                UIAction(title: "Male",
+                         state: selected == .male ? .on : .off,
+                         handler: { _ in self.setGender(.male) }),
+
+                UIAction(title: "Female",
+                         state: selected == .female ? .on : .off,
+                         handler: { _ in self.setGender(.female) }),
+
+                UIAction(title: "Other",
+                         state: selected == .other ? .on : .off,
+                         handler: { _ in self.setGender(.other) }),
+
+                UIAction(title: "Unspecified",
+                         state: selected == .unspecified ? .on : .off,
+                         handler: { _ in self.setGender(.unspecified) })
+            ])
+
+            genderButton.showsMenuAsPrimaryAction = true
+        }
+
+    func setGender(_ gender: Gender) {
+            user.gender = gender
+            genderButton.setTitle(gender.rawValue.capitalized, for: .normal)
     }
 
+    @IBAction func doneBottonTapped(_ sender: Any) {
+        let updatedUser = User(
+                   id: user.id,
+                   fullName: nameTextField.text ?? "",
+                   email: emailTextField.text ?? "",
+                   contactNumber: phoneTextField.text ?? "",
+                   gender: user.gender,
+                   dateOfBirth: dateFormatter.date(from: dobTextField.text ?? "") ?? user.dateOfBirth,
+                   password: user.password,
+                   height: Double(heightTextField.text ?? ""),
+                   weight: Double(weightTextField.text ?? ""),
+                   bloodGroup: bloodGroupTextField.text
+               )
 
-    // MARK: - Table view data source
-
-//    override func numberOfSections(in tableView: UITableView) -> Int {
-//        // #warning Incomplete implementation, return the number of sections
-//        return 0
-//    }
-//
-//    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-//        // #warning Incomplete implementation, return the number of rows
-//        return 0
-//    }
-
-    /*
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "reuseIdentifier", for: indexPath)
-
-        // Configure the cell...
-
-        return cell
-    }
-    */
-
-    /*
-    // Override to support conditional editing of the table view.
-    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
-        // Return false if you do not want the specified item to be editable.
-        return true
-    }
-    */
-
-    /*
-    // Override to support editing the table view.
-    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-        if editingStyle == .delete {
-            // Delete the row from the data source
-            tableView.deleteRows(at: [indexPath], with: .fade)
-        } else if editingStyle == .insert {
-            // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-        }    
-    }
-    */
-
-    /*
-    // Override to support rearranging the table view.
-    override func tableView(_ tableView: UITableView, moveRowAt fromIndexPath: IndexPath, to: IndexPath) {
+              UserDataModel.shared.updateCurrentUser(updatedUser)
+            onDismiss?()
+            dismiss(animated: true)
 
     }
-    */
-
-    /*
-    // Override to support conditional rearranging of the table view.
-    override func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool {
-        // Return false if you do not want the item to be re-orderable.
-        return true
-    }
-    */
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
-    }
-    */
+    
+   
 
 }

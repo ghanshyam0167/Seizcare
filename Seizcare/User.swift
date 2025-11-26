@@ -85,12 +85,21 @@ class UserDataModel {
         saveUsers()
     }
     
-    func updateUser(_ user: User) {
-        if let index = users.firstIndex(where: { $0.id == user.id }) {
-            users[index] = user
+    func updateCurrentUser(_ updatedUser: User) {
+        // Ensure someone is logged in
+        guard let current = currentUser else { return }
+
+        // Replace the existing user with the updated one
+        if let index = users.firstIndex(where: { $0.id == current.id }) {
+            users[index] = updatedUser
+            currentUser = updatedUser
             saveUsers()
+
+            // Store updated ID just to keep consistency
+            UserDefaults.standard.set(updatedUser.id.uuidString, forKey: currentUserKey)
         }
     }
+
     
     func deleteUser(at index: Int) {
         guard users.indices.contains(index) else { return }
