@@ -22,22 +22,12 @@ class RecordTableViewController: UITableViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        applyDefaultTableBackground()
+        navigationController?.applyWhiteNavBar()
         loadAndGroupRecords()
         setupBottomSearchBar()
     }
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        loadAndGroupRecords()
-    }
-
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        DispatchQueue.main.async {
-            self.loadAndGroupRecords()
-        }
-    }
-
-
+    
     // MARK: - Load + Group
     func loadAndGroupRecords() {
         let records = SeizureRecordDataModel.shared.getRecordsForCurrentUser()
@@ -129,6 +119,17 @@ class RecordTableViewController: UITableViewController {
     }
 
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "addRecord" {
+
+               if let nav = segue.destination as? UINavigationController,
+                  let addVC = nav.topViewController as? AddRecordTableViewController {
+
+                   addVC.onDismiss = { [weak self] in
+                       print("🔥 AddRecord dismissed — refreshing list")
+                       self?.loadAndGroupRecords()
+                   }
+               }
+           }
         if segue.identifier == "showRecordDetails" {
             if let nav = segue.destination as? UINavigationController,
                let detailsVC = nav.topViewController as? DetailRecordsTableViewController,
@@ -136,9 +137,18 @@ class RecordTableViewController: UITableViewController {
 
                 let selectedRecord = recordsBySection[indexPath.section][indexPath.row]
                 detailsVC.record = selectedRecord
+                detailsVC.onDismiss = { [weak self] in
+                          print("🔥 Detail dismissed — refreshing list")
+                          self?.loadAndGroupRecords()
+                      }
             }
         }
     }
+    @IBAction func unwindToDashboard(_ segue: UIStoryboardSegue) {
+        // You can add logic here if needed
+        print("Returned from Add Record screen")
+    }
+    
 
 
     
