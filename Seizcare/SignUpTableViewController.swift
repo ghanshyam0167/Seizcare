@@ -7,14 +7,6 @@
 
 import UIKit
 
-struct User {
-    var fullName: String
-    var email: String
-    var phone: String
-    var dateOfBirth: String
-    var gender: String
-    var password: String
-}
 
 
 class SignUpTableViewController: UITableViewController {
@@ -25,96 +17,121 @@ class SignUpTableViewController: UITableViewController {
     @IBOutlet weak var dobField: UITextField!
     @IBOutlet weak var genderButton: UIButton!
     @IBOutlet weak var passwordField: UITextField!
-    override func viewDidLoad() {
-        super.viewDidLoad()
+    private var selectedDOB: Date?
+       private var selectedGender: Gender = .unspecified
 
-        // Uncomment the following line to preserve selection between presentations
-        // self.clearsSelectionOnViewWillAppear = false
+       let datePicker = UIDatePicker()
 
-        // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-        // self.navigationItem.rightBarButtonItem = self.editButtonItem
-    }
-  //  let gender = genderButton.title(for: .normal) ?? ""
+       // MARK: - View Lifecycle
+       override func viewDidLoad() {
+           super.viewDidLoad()
+           setupDOBPicker()
+       }
 
-    @IBAction func createAccountTapped(_ sender: UIButton) {
-        let gender = genderButton.title(for: .normal) ?? ""
-        let user = User(
-                fullName: fullNameField.text ?? "",
-                email: emailField.text ?? "",
-                phone: phoneField.text ?? "",
-                dateOfBirth: dobField.text ?? "",
-                gender: genderButton.title(for: .normal) ?? "Not Selected",
-                password: passwordField.text ?? ""
-            )
+       // MARK: - Date Picker Setup
+       func setupDOBPicker() {
+           dobField.inputView = datePicker
+           datePicker.preferredDatePickerStyle = .wheels
+           datePicker.datePickerMode = .date
+           datePicker.maximumDate = Date()
 
-            performSegue(withIdentifier: "goToNext", sender: user)
-    }
-    
-//    // MARK: - Table view data source
-//
-//    override func numberOfSections(in tableView: UITableView) -> Int {
-//        // #warning Incomplete implementation, return the number of sections
-//        return 2
-//    }
-//
-//    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-//        // #warning Incomplete implementation, return the number of rows
-//        return 0
-//    }
+           let toolbar = UIToolbar()
+           toolbar.sizeToFit()
+           toolbar.items = [
+               UIBarButtonItem(title: "Done", style: .done, target: self, action: #selector(doneDOB))
+           ]
+           dobField.inputAccessoryView = toolbar
+       }
 
-    /*
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "reuseIdentifier", for: indexPath)
+       @objc func doneDOB() {
+           let formatter = DateFormatter()
+           formatter.dateFormat = "dd-MM-yyyy"
+           dobField.text = formatter.string(from: datePicker.date)
+           selectedDOB = datePicker.date
+           view.endEditing(true)
+       }
 
-        // Configure the cell...
+       // MARK: - Gender Selection
+       @IBAction func genderTapped(_ sender: UIButton) {
+           let alert = UIAlertController(title: "Select Gender", message: nil, preferredStyle: .actionSheet)
 
-        return cell
-    }
-    */
+           alert.addAction(UIAlertAction(title: "Male", style: .default, handler: { _ in
+               self.genderButton.setTitle("Male", for: .normal)
+               self.selectedGender = .male
+           }))
 
-    /*
-    // Override to support conditional editing of the table view.
-    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
-        // Return false if you do not want the specified item to be editable.
-        return true
-    }
-    */
+           alert.addAction(UIAlertAction(title: "Female", style: .default, handler: { _ in
+               self.genderButton.setTitle("Female", for: .normal)
+               self.selectedGender = .female
+           }))
 
-    /*
-    // Override to support editing the table view.
-    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-        if editingStyle == .delete {
-            // Delete the row from the data source
-            tableView.deleteRows(at: [indexPath], with: .fade)
-        } else if editingStyle == .insert {
-            // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-        }    
-    }
-    */
+           alert.addAction(UIAlertAction(title: "Other", style: .default, handler: { _ in
+               self.genderButton.setTitle("Other", for: .normal)
+               self.selectedGender = .other
+           }))
 
-    /*
-    // Override to support rearranging the table view.
-    override func tableView(_ tableView: UITableView, moveRowAt fromIndexPath: IndexPath, to: IndexPath) {
+           alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
 
-    }
-    */
+           present(alert, animated: true)
+       }
 
-    /*
-    // Override to support conditional rearranging of the table view.
-    override func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool {
-        // Return false if you do not want the item to be re-orderable.
-        return true
-    }
-    */
+       // MARK: - Create Account
+       @IBAction func createAccountTapped(_ sender: UIButton) {
 
-    /*
-    // MARK: - Navigation
+           let fullName = fullNameField.text ?? ""
+           let email = emailField.text ?? ""
+           let phone = phoneField.text ?? ""
+           let password = passwordField.text ?? ""
+           let gender = selectedGender
+           let dob = selectedDOB
 
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
-    }
-    */
+           // -------------------------
+           // Validation
+           // -------------------------
+           if fullName.isEmpty || email.isEmpty || phone.isEmpty || password.isEmpty || dob == nil {
+               showAlert("Please fill in all fields.")
+               return
+           }
 
-}
+           if UserDataModel.shared.getAllUsers().contains(where: { $0.email == email }) {
+               showAlert("An account with this email already exists.")
+               return
+           }
+
+           // -------------------------
+           // Create User
+           // -------------------------
+           let newUser = User(
+               fullName: fullName,
+               email: email,
+               contactNumber: phone,
+               gender: gender,
+               dateOfBirth: dob!,
+               password: password
+           )
+
+           UserDataModel.shared.addUser(newUser)
+           let loginSuccess = UserDataModel.shared.loginUser(email: email, password: password)
+               print("Auto-login status → \(loginSuccess)")
+
+           // Navigate after signup
+           performSegue(withIdentifier: "goToSignupSuccess", sender: self)
+       }
+
+       // MARK: - Alert Helper
+       func showAlert(_ msg: String) {
+           let alert = UIAlertController(title: "Error", message: msg, preferredStyle: .alert)
+           alert.addAction(UIAlertAction(title: "OK", style: .default))
+           present(alert, animated: true)
+       }
+
+       // MARK: - Navigation
+       override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+           if segue.identifier == "goToSignupSuccess" {
+               if let nextVC = segue.destination as? DisclaimerViewController {
+                   nextVC.receivedEmail = emailField.text ?? ""
+                   nextVC.receivedPassword = passwordField.text ?? ""
+               }
+           }
+       }
+   }
