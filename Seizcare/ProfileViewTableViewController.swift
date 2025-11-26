@@ -20,44 +20,51 @@ class ProfileViewTableViewController: UITableViewController {
     @IBOutlet weak var weightRightLabel: UILabel!
     @IBOutlet weak var bloodGroupRightLabel: UILabel!
     
-    var user = User(
-        name: "Jasmeen Grewal",
-        email: "jasmeen0614.be23@chitkara.edu.in",
-        phone: "+91 7206306241",
-        dob: "8 Aug 2005",
-        gender: "Female",
-        height: "170cm",
-        weight: "60kg",
-        bloodGroup: "B+"
-    )
-
+    var user: User?
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        // Uncomment the following line to preserve selection between presentations
-        // self.clearsSelectionOnViewWillAppear = false
-
-        // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-        // self.navigationItem.rightBarButtonItem = self.editButtonItem
+       
         updateUI()
     }
+    
+    @IBSegueAction func goToEditScreen(_ coder: NSCoder) -> EditProfileTableViewController? {
+        let controller = EditProfileTableViewController(coder: coder, user: user)
 
-    
-    @IBSegueAction func goToEditProfile(_ coder: NSCoder) -> EditProfileTableViewController? {
-        return EditProfileTableViewController(coder: coder, user : user)
+          controller?.onDismiss = { [weak self] in
+              self?.user = UserDataModel.shared.getCurrentUser()
+              self?.updateUI()
+          }
+
+          return controller
     }
-    
     func updateUI() {
-        nameRightLabel.text = user.name
+        user = UserDataModel.shared.getCurrentUser()
+        guard let user = user else { return }
+
+        nameRightLabel.text = user.fullName
         emailRightLabel.text = user.email
-        phoneRightLabel.text = user.phone
-        dobRightLabel.text = user.dob
-        genderRightLabel.text = user.gender
-        heightRightLabel.text = user.height
-        weightRightLabel.text = user.weight
-        bloodGroupRightLabel.text = user.bloodGroup
+        phoneRightLabel.text = user.contactNumber
+        
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        dobRightLabel.text = formatter.string(from: user.dateOfBirth)
+        
+        genderRightLabel.text = user.gender.rawValue.capitalized
+        
+        if let h = user.height {
+            heightRightLabel.text = "\(h) cm"
+        }
+        if let w = user.weight {
+            weightRightLabel.text = "\(w) kg"
+        }
+        bloodGroupRightLabel.text = user.bloodGroup ?? "-"
     }
+    
+    @IBAction func unwindToProfile(_ segue: UIStoryboardSegue) {
+        updateUI()   // Refresh profile after returning
+    }
+
 
 
 }

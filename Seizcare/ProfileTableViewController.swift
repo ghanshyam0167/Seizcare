@@ -10,22 +10,32 @@ import UIKit
 class ProfileTableViewController: UITableViewController {
 
     @IBOutlet weak var profileImageView: UIImageView!
+    
+    @IBOutlet weak var userNameLabel: UILabel!
+    
+    @IBOutlet weak var userEmailLabel: UILabel!
+    
+    var user : User?
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        // Uncomment the following line to preserve selection between presentations
-        // self.clearsSelectionOnViewWillAppear = false
-
-        // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-        // self.navigationItem.rightBarButtonItem = self.editButtonItem
-        
-        // Make circular profile image
+        UserDataModel.shared.loginUser(email: "ghanshyam@example.com", password: "password121")
                 profileImageView.layer.cornerRadius = profileImageView.frame.width / 2
                 profileImageView.clipsToBounds = true
+        
+        updateUI()
 
             }
+    override func viewWillAppear(_ animated: Bool) {
+        updateUI()
+    }
     @objc func imageTapped() {
         performSegue(withIdentifier: "goToNextScreen", sender: self)
+    }
+    func updateUI(){
+        user = UserDataModel.shared.getCurrentUser()
+        guard let user = user else { return }
+        userNameLabel.text = user.fullName
+        userEmailLabel.text = user.email
     }
 
     
