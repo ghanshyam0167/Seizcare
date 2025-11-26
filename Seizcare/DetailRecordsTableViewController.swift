@@ -9,6 +9,8 @@ import UIKit
 
 class DetailRecordsTableViewController: UITableViewController {
 
+    
+    @IBOutlet weak var mapWrapperView: UIView!
     @IBOutlet weak var mainDetailsCardView: UIView!
     @IBOutlet weak var descriptionTextView: UITextView!
     @IBOutlet weak var bottomCardView: UIView!
@@ -41,8 +43,8 @@ class DetailRecordsTableViewController: UITableViewController {
                 view?.applyDashboardCard()
                 }
             descriptionTextView.delegate = self
-
-
+            mapWrapperView.layer.cornerRadius = 16
+            mapWrapperView.clipsToBounds = true
             guard let record = record else {
                 print("❌ No record passed!")
                 return
