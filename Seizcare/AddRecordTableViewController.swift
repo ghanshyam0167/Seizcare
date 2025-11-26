@@ -24,6 +24,10 @@ enum Symptom: String {
 
 class AddRecordTableViewController: UITableViewController {
 
+    @IBOutlet weak var seizureLevelSegment: UISegmentedControl!
+    @IBOutlet weak var topInputsCardView: UIView!
+    @IBOutlet weak var notesCardView: UIView!
+    @IBOutlet weak var symptompsCardView: UIView!
     @IBOutlet weak var saveButton: UIBarButtonItem!
     @IBOutlet weak var notesTextView: UITextView!
     @IBOutlet weak var memoryLossSymptomButton: UIButton!
@@ -44,15 +48,16 @@ class AddRecordTableViewController: UITableViewController {
     @IBOutlet weak var titleTextField: UITextField!
     
     var selectedSymptoms: Set<Symptom> = []
+    var onDismiss: (() -> Void)?
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        // Uncomment the following line to preserve selection between presentations
-        // self.clearsSelectionOnViewWillAppear = false
-
-        // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-        // self.navigationItem.rightBarButtonItem = self.editButtonItem
+        applyDefaultTableBackground()
+        navigationController?.applyWhiteNavBar()
+        [topInputsCardView, symptompsCardView, notesCardView].forEach {
+            $0?.applyRecordCard()
+        }
+        seizureLevelSegment.applyPrimaryStyle()
         let symptomButtons = [
                 dejavuSymptomButton,
                 anxietySymptomButton,
@@ -201,8 +206,9 @@ class AddRecordTableViewController: UITableViewController {
                 symptoms: symptoms
             )
         SeizureRecordDataModel.shared.addManualRecord(newRecord)
-        
+        onDismiss?()
         dismiss(animated: true)
+        
     }
     func validateForm() {
         let isTitleValid = !(titleTextField.text?.isEmpty ?? true)
@@ -237,7 +243,12 @@ class AddRecordTableViewController: UITableViewController {
 
         return (minutes * 60) + seconds
     }
-
+    override func tableView(_ tableView: UITableView,
+                            willDisplay cell: UITableViewCell,
+                            forRowAt indexPath: IndexPath) {
+        cell.backgroundColor = .clear
+        cell.contentView.backgroundColor = .clear
+    }
 
 
 
