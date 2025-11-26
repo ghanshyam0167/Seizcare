@@ -88,6 +88,7 @@ class SeizureRecordDataModel {
         archiveURL = documentsDirectory
             .appendingPathComponent("seizureRecords")
             .appendingPathExtension("plist")
+        
         loadRecords()
     }
 
@@ -102,8 +103,10 @@ class SeizureRecordDataModel {
             print("⚠️ No user logged in.")
             return []
         }
+        loadRecords()
         return records.filter { $0.userId == currentUser.id }
     }
+
 
     // MARK: - ADD RECORDS
 
@@ -283,12 +286,18 @@ class SeizureRecordDataModel {
 
 // MARK: - Extra Helper
 extension SeizureRecordDataModel {
-    func getRecordForCurrentUser(by id: UUID) -> SeizureRecord? {
-        guard let currentUser = UserDataModel.shared.getCurrentUser() else {
-            print("⚠️ No user is currently logged in.")
-            return nil
-        }
-        return records.first(where: { $0.id == id && $0.userId == currentUser.id })
-    }
+    func getLatestTwoRecordsForCurrentUser() -> [SeizureRecord] {
+          guard let currentUser = UserDataModel.shared.getCurrentUser() else {
+              print("⚠️ No user logged in.")
+              return []
+          }
+
+          loadRecords()
+
+          let userRecords = records
+              .filter { $0.userId == currentUser.id }
+              .sorted { $0.dateTime > $1.dateTime } 
+          return Array(userRecords.prefix(2))
+      }
 }
 

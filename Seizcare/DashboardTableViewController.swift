@@ -8,7 +8,7 @@
 import UIKit
 
 class DashboardTableViewController: UITableViewController {
-
+    
     @IBOutlet weak var weeklyMonthlySegment: UISegmentedControl!
     @IBOutlet weak var recordCardView1: UIView!
     @IBOutlet weak var recordCardView0: UIView!
@@ -19,155 +19,178 @@ class DashboardTableViewController: UITableViewController {
     @IBOutlet weak var currentCardView2: UIView!
     @IBOutlet weak var currentCardView1: UIView!
     @IBOutlet weak var currentCardView0: UIView!
+    
+    
+    @IBOutlet weak var pipeLabel3: UILabel!
+    @IBOutlet weak var pipeLabel2: UILabel!
+    @IBOutlet weak var pipeLabel1: UILabel!
+    @IBOutlet weak var pipeLabel0: UILabel!
+    
+    @IBOutlet weak var seizureDetectedRecordLabel01: UILabel!
+    @IBOutlet weak var sleepRecordLabel01: UILabel!
+    @IBOutlet weak var spo2RecordLabel01: UILabel!
+    @IBOutlet weak var dateRecordLabel01: UILabel!
+    @IBOutlet weak var seizureDetectedRecordLabel00: UILabel!
+    @IBOutlet weak var sleepRecordLabel00: UILabel!
+    @IBOutlet weak var spo2RecordLabel00: UILabel!
+    @IBOutlet weak var dateRecordLabel00: UILabel!
     override func viewDidLoad() {
         super.viewDidLoad()
         UserDataModel.shared.loginUser(email: "ghanshyam@example.com", password: "password121")
         
+        applyDefaultTableBackground()
+        navigationController?.applyWhiteNavBar()
+        applySectionSpacing()
+        
+        pipeLabel0.setContentHuggingPriority(.required, for: .horizontal)
+        pipeLabel1.setContentHuggingPriority(.required, for: .horizontal)
+        
+        pipeLabel2.setContentHuggingPriority(.required, for: .horizontal)
+        pipeLabel3.setContentHuggingPriority(.required, for: .horizontal)
+        
+        
         [currentCardView0, currentCardView1, currentCardView2, currentCardView3,
-             recordsCardView, bottomCardView0, bottomCardView1].forEach { view in
-                view?.applyCardStyle()
+             recordsCardView, bottomCardView0, bottomCardView1].forEach {
+                $0?.applyDashboardCard()
             }
-        [recordCardView0, recordCardView1].forEach { card in
-                card?.applyRecordCardStyle()
+            [recordCardView0, recordCardView1].forEach {
+                $0?.applyRecordCard()
             }
-        styleSegmentControl()
-        // Uncomment the following line to preserve selection between presentations
-        // self.clearsSelectionOnViewWillAppear = false
-
-        // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-        // self.navigationItem.rightBarButtonItem = self.editButtonItem
+        
+        weeklyMonthlySegment.applyPrimaryStyle()
+        updateRecentRecords()
+        
     }
-    func styleSegmentControl() {
-        // Background of entire segmented control
-        weeklyMonthlySegment.backgroundColor = UIColor(red: 237/255, green: 237/255, blue: 242/255, alpha: 1)
-        weeklyMonthlySegment.selectedSegmentTintColor = .white
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        updateRecentRecords()
+    }
+    
+    
+    func updateRecentRecords() {
+        let recent = SeizureRecordDataModel.shared.getLatestTwoRecordsForCurrentUser()
+        
+        // No records → hide both cards
+        if recent.isEmpty {
+            recordCardView0.isHidden = true
+            recordCardView1.isHidden = true
+            return
+        }
+        
+        // If only ONE record
+        if recent.count == 1 {
+            let r0 = recent[0]
+            updateCard(
+                record: r0,
+                seizureLabel: seizureDetectedRecordLabel00,
+                sleepLabel: sleepRecordLabel00,
+                spo2Label: spo2RecordLabel00,
+                dateLabel: dateRecordLabel00
+            )
+            recordCardView0.isHidden = false
+            recordCardView1.isHidden = true
+            return
+        }
+        
+        // If TWO records
+        let r0 = recent[0]
+        let r1 = recent[1]
+        
+        updateCard(
+            record: r0,
+            seizureLabel: seizureDetectedRecordLabel00,
+            sleepLabel: sleepRecordLabel00,
+            spo2Label: spo2RecordLabel00,
+            dateLabel: dateRecordLabel00
+        )
+        
+        updateCard(
+            record: r1,
+            seizureLabel: seizureDetectedRecordLabel01,
+            sleepLabel: sleepRecordLabel01,
+            spo2Label: spo2RecordLabel01,
+            dateLabel: dateRecordLabel01
+        )
+        
+        recordCardView0.isHidden = false
+        recordCardView1.isHidden = false
+    }
+    
+    func updateCard(record: SeizureRecord,
+                    seizureLabel: UILabel,
+                    sleepLabel: UILabel,
+                    spo2Label: UILabel,
+                    dateLabel: UILabel) {
+        
+        // MARK: - Seizure Type
+        seizureLabel.text = "Seizure: " + (record.type?.rawValue.capitalized ?? "-")
+        
+        
+        // MARK: - Duration
+        if let duration = record.duration {
+            let mins = Int(duration) / 60
+            let secs = Int(duration) % 60
+            sleepLabel.text = "Duration: \(mins)m \(secs)s"
+        } else {
+            sleepLabel.text = "Duration: --"
+        }
+        
+        
+        // MARK: - SPO2 OR Title
+        if record.entryType == .automatic {
+            // Automatic record shows SPO2
+            spo2Label.text = "SPO₂: \(record.spo2 ?? 0)%"
+        } else {
+            // Manual record shows Title
+            spo2Label.text = "Title: \(record.title?.capitalized ?? "-")"
+        }
+        
+        
+        // MARK: - Date
+        dateLabel.text = DateFormats.fullDate.string(from: record.dateTime)
 
-        // Corner radius
-        weeklyMonthlySegment.layer.cornerRadius = 16
-        weeklyMonthlySegment.layer.masksToBounds = true
-
-        // Text attributes
-        let normalText = [NSAttributedString.Key.foregroundColor: UIColor.black,
-                          .font: UIFont.systemFont(ofSize: 16, weight: .medium)]
-        let selectedText = [NSAttributedString.Key.foregroundColor: UIColor(red: 36/255, green: 104/255, blue: 244/255, alpha: 1),
-                            .font: UIFont.systemFont(ofSize: 16, weight: .medium)]
-
-        weeklyMonthlySegment.setTitleTextAttributes(normalText, for: .normal)
-        weeklyMonthlySegment.setTitleTextAttributes(selectedText, for: .selected)
     }
 
     
-
-    // MARK: - Table view data source
-
-//    override func numberOfSections(in tableView: UITableView) -> Int {
-//        // #warning Incomplete implementation, return the number of sections
-//        return 0
-//    }
-//
-//    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-//        // #warning Incomplete implementation, return the number of rows
-//        return 0
-//    }
-
-    /*
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "reuseIdentifier", for: indexPath)
-
-        // Configure the cell...
-
-        return cell
+    override func tableView(_ tableView: UITableView,
+                            willDisplay cell: UITableViewCell,
+                            forRowAt indexPath: IndexPath) {
+        cell.backgroundColor = .clear
+        cell.contentView.backgroundColor = .clear
     }
-    */
+    // MARK: - Section Spacing for STATIC TABLE VIEW
+    // SECTION HEADER HEIGHT
+    override func tableView(_ tableView: UITableView,
+                            heightForHeaderInSection section: Int) -> CGFloat {
 
-    /*
-    // Override to support conditional editing of the table view.
-    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
-        // Return false if you do not want the specified item to be editable.
-        return true
-    }
-    */
-
-    /*
-    // Override to support editing the table view.
-    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-        if editingStyle == .delete {
-            // Delete the row from the data source
-            tableView.deleteRows(at: [indexPath], with: .fade)
-        } else if editingStyle == .insert {
-            // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-        }    
-    }
-    */
-
-    /*
-    // Override to support rearranging the table view.
-    override func tableView(_ tableView: UITableView, moveRowAt fromIndexPath: IndexPath, to: IndexPath) {
-
-    }
-    */
-
-    /*
-    // Override to support conditional rearranging of the table view.
-    override func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool {
-        // Return false if you do not want the item to be re-orderable.
-        return true
-    }
-    */
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
-    }
-    */
-
-}
-extension UIView {
-    func applyCardStyle() {
-        self.layer.cornerRadius = 16
-        self.layer.masksToBounds = false
-        self.layer.borderColor = UIColor(white: 0.9, alpha: 1).cgColor
-        self.layer.borderWidth = 0.6
-        self.backgroundColor = .white
-        
-        // Smooth shadow
-        self.layer.shadowColor = UIColor.black.cgColor
-        self.layer.shadowOpacity = 0.08
-        self.layer.shadowRadius = 12
-        self.layer.shadowOffset = CGSize(width: 0, height: 6)
-    }
-    
-    func applyRecordCardStyle() {
-           self.backgroundColor = .white
-           self.layer.cornerRadius = 14
-           self.layer.masksToBounds = false
-
-           // Thin border
-           self.layer.borderWidth = 1.0
-           self.layer.borderColor = UIColor(red: 229/255, green: 231/255, blue: 235/255, alpha: 1.0).cgColor
-           
-           // Very soft shadow
-           self.layer.shadowColor = UIColor.black.cgColor
-           self.layer.shadowOpacity = 0.04
-           self.layer.shadowRadius = 4
-           self.layer.shadowOffset = CGSize(width: 0, height: 2)
-       }
-    func applyRecordGroupedStyle() {
-        self.layer.cornerRadius = 16
-        self.layer.masksToBounds = false
-        self.layer.borderColor = UIColor(white: 0.9, alpha: 1).cgColor
-        self.layer.borderWidth = 0.6
-        self.backgroundColor = .white
-        
-        // Same smooth shadow
-        self.layer.shadowColor = UIColor.black.cgColor
-        self.layer.shadowOpacity = 0.08
-        self.layer.shadowRadius = 12
-        self.layer.shadowOffset = CGSize(width: 0, height: 6)
+        if section == 0 {
+            return UITableView.automaticDimension   // allow “Current Status” to show normally
+        }
+        return 1   // spacing above all other sections
     }
 
+    override func tableView(_ tableView: UITableView,
+                            viewForHeaderInSection section: Int) -> UIView? {
+
+        if section == 0 {
+            return nil   // storyboard header will be shown
+        }
+
+        let spacer = UIView()
+        spacer.backgroundColor = .clear
+        return spacer
+    }
+
+    // FOOTER (space below each section)
+    override func tableView(_ tableView: UITableView,
+                            heightForFooterInSection section: Int) -> CGFloat {
+        return 1
+    }
+
+    override func tableView(_ tableView: UITableView,
+                            viewForFooterInSection section: Int) -> UIView? {
+        let spacer = UIView()
+        spacer.backgroundColor = .clear
+        return spacer
+    }
 }
