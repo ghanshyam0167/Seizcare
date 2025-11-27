@@ -12,6 +12,8 @@ class DisclaimerViewController: UIViewController {
     // ADD THESE TWO PROPERTIES
     var receivedEmail: String?
     var receivedPassword: String?
+    var currentUser: User?
+
 
     override func viewDidLoad() {
         super.viewDidLoad()
