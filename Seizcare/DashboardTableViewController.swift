@@ -34,9 +34,12 @@ class DashboardTableViewController: UITableViewController {
     @IBOutlet weak var sleepRecordLabel00: UILabel!
     @IBOutlet weak var spo2RecordLabel00: UILabel!
     @IBOutlet weak var dateRecordLabel00: UILabel!
+    
+    var user : User?
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        UserDataModel.shared.loginUser(email: "ghanshyam@example.com", password: "password121")
+        updateUI()
         
         applyDefaultTableBackground()
         navigationController?.applyWhiteNavBar()
@@ -60,6 +63,15 @@ class DashboardTableViewController: UITableViewController {
         weeklyMonthlySegment.applyPrimaryStyle()
         updateRecentRecords()
         
+    }
+    func updateUI(){
+        let user = UserDataModel.shared.getCurrentUser()
+        guard let user else {return}
+        
+        let fullName = user.fullName
+        let firstName = fullName.split(separator: " ").first.map(String.init) ?? fullName
+
+        navigationItem.title = "Hey \(firstName)" 
     }
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
