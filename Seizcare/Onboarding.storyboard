@@ -535,13 +535,6 @@ metrics</string>
                         <rect key="frame" x="0.0" y="0.0" width="393" height="783"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Important Medical Notice" textAlignment="center" lineBreakMode="characterWrap" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="54i-L8-JXu">
-                                <rect key="frame" x="79" y="268" width="234" height="65"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <fontDescription key="fontDescription" type="boldSystem" pointSize="22"/>
-                                <nil key="textColor"/>
-                                <nil key="highlightedColor"/>
-                            </label>
                             <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="SeQ-7B-35B">
                                 <rect key="frame" x="46" y="675" width="300" height="35"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
@@ -552,12 +545,12 @@ metrics</string>
                                 </connections>
                             </button>
                             <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="exclamationmark.triangle.fill" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="OS0-4d-SFe">
-                                <rect key="frame" x="130" y="139" width="133" height="121"/>
+                                <rect key="frame" x="130" y="112.33333333333337" width="133" height="121"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <color key="tintColor" systemColor="systemRedColor"/>
                             </imageView>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" textAlignment="center" lineBreakMode="wordWrap" numberOfLines="7" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="eU9-bc-UCU">
-                                <rect key="frame" x="50" y="301.66666666666669" width="293" height="180"/>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" textAlignment="center" lineBreakMode="wordWrap" numberOfLines="7" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="eU9-bc-UCU">
+                                <rect key="frame" x="50" y="315" width="293" height="180"/>
                                 <color key="backgroundColor" red="1" green="0.87487722772535437" blue="0.85981605044468179" alpha="0.84705883264541626" colorSpace="custom" customColorSpace="displayP3"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="180" id="vqg-3u-z7c"/>
@@ -573,24 +566,31 @@ condition.</string>
                                 <rect key="frame" x="50" y="524" width="240" height="128"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <subviews>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" textAlignment="natural" lineBreakMode="wordWrap" numberOfLines="8" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Rw5-zh-VL7">
+                                        <rect key="frame" x="22" y="46" width="256" height="74"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <string key="text">We log detailed seizure data (duration, time, vitals) to provide comprehensive reports for your doctor, improving communication and care.</string>
+                                        <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                        <color key="textColor" white="0.33333333329999998" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="How We Help:" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="WBF-lr-a3U">
-                                        <rect key="frame" x="8" y="8" width="112" height="21"/>
+                                        <rect key="frame" x="22" y="8" width="112" height="21"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="17"/>
                                         <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                         <nil key="highlightedColor"/>
                                     </label>
-                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" textAlignment="natural" lineBreakMode="characterWrap" numberOfLines="7" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Rw5-zh-VL7">
-                                        <rect key="frame" x="8" y="46" width="242" height="37"/>
-                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                        <string key="text">We log detailed seizure data (duration, time, vitals) to provide comprehensive reports for your doctor, improving communication and care.</string>
-                                        <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="14"/>
-                                        <color key="textColor" white="0.33333333329999998" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                        <nil key="highlightedColor"/>
-                                    </label>
                                 </subviews>
                                 <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                             </view>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Important Medical Notice" textAlignment="center" lineBreakMode="wordWrap" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="54i-L8-JXu">
+                                <rect key="frame" x="63" y="242" width="267" height="65"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="boldSystem" pointSize="22"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="5ib-wc-iB8"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
@@ -604,7 +604,7 @@ condition.</string>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="xKF-WN-W8T" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2486" y="-397"/>
+            <point key="canvasLocation" x="2484.7328244274809" y="-397.18309859154931"/>
         </scene>
         <!--Dashboard-->
         <scene sceneID="Qad-s3-JLm">
