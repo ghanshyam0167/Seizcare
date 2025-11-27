@@ -17,9 +17,10 @@ class AlertHistoryTableViewController: UITableViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        let logged = UserDataModel.shared.loginUser(email: "ghanshyam@example.com", password: "Twins241")
+        let logged = UserDataModel.shared.loginUser(email: "ghanshyam@example.com", password: "password121")
 
             print("TEMP LOGIN SUCCESS:", logged)
+        
         AlertHistoryTableView.dataSource = self
         AlertHistoryTableView.delegate = self
         AlertHistoryTableView.separatorStyle = .none

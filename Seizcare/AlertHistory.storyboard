@@ -7,7 +7,7 @@
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
-        <!--Alert History Table View Controller-->
+        <!--Alert History-->
         <scene sceneID="sOG-UZ-ztE">
             <objects>
                 <tableViewController id="LyO-eI-Kam" customClass="AlertHistoryTableViewController" customModule="Seizcare" customModuleProvider="target" sceneMemberID="viewController">
@@ -92,7 +92,7 @@
                             <outlet property="delegate" destination="LyO-eI-Kam" id="qv5-ri-0vz"/>
                         </connections>
                     </tableView>
-                    <navigationItem key="navigationItem" id="geZ-Bb-Mq7"/>
+                    <navigationItem key="navigationItem" title="Alert History" id="geZ-Bb-Mq7"/>
                     <connections>
                         <outlet property="AlertHistoryTableView" destination="39L-fO-TeI" id="R6l-v2-6K3"/>
                     </connections>

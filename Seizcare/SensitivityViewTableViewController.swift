@@ -35,6 +35,8 @@ class SensitivityViewTableViewController: UITableViewController {
            view.backgroundColor = UIColor.systemGray6        // just in case
            tableView.separatorStyle = .none                  // no default lines
            tableView.tableFooterView = UIView()              // removes extra space
+          
+           verticalStack.spacing = 14   // perfect
 
            
            setupCardView()
@@ -120,13 +122,13 @@ class SensitivityViewTableViewController: UITableViewController {
             // Top line just above Medium
             topLine.leadingAnchor.constraint(equalTo: upperCardView.leadingAnchor, constant: 16),
             topLine.trailingAnchor.constraint(equalTo: upperCardView.trailingAnchor, constant: -16),
-            topLine.topAnchor.constraint(equalTo: mediumStackView.topAnchor, constant: -12),
+            topLine.topAnchor.constraint(equalTo: mediumStackView.topAnchor, constant: -5),
             topLine.heightAnchor.constraint(equalToConstant: 1),
             
             // Bottom line just below Medium
             bottomLine.leadingAnchor.constraint(equalTo: upperCardView.leadingAnchor, constant: 16),
             bottomLine.trailingAnchor.constraint(equalTo: upperCardView.trailingAnchor, constant: -16),
-            bottomLine.topAnchor.constraint(equalTo: mediumStackView.bottomAnchor, constant: 12),
+            bottomLine.topAnchor.constraint(equalTo: mediumStackView.bottomAnchor, constant: 5),
             bottomLine.heightAnchor.constraint(equalToConstant: 1)
         ])
     }
@@ -138,25 +140,36 @@ class SensitivityViewTableViewController: UITableViewController {
         bulletLabel.textColor = UIColor.darkGray
 
         // LOW section
-        lowTitleLabel.font = UIFont.systemFont(ofSize: 18, weight: .semibold)
+        lowTitleLabel.font = UIFont.systemFont(ofSize: 15, weight: .semibold)
         lowTitleLabel.textColor = .black
         lowDescriptionLabel.font = UIFont.systemFont(ofSize: 15)
         lowDescriptionLabel.textColor = UIColor.darkGray
         lowDescriptionLabel.numberOfLines = 0
 
         // MEDIUM section
-        mediumTitleLabel.font = UIFont.systemFont(ofSize: 18, weight: .semibold)
+        mediumTitleLabel.font = UIFont.systemFont(ofSize: 15, weight: .semibold)
         mediumTitleLabel.textColor = .black
         mediumDescriptionLabel.font = UIFont.systemFont(ofSize: 15)
         mediumDescriptionLabel.textColor = UIColor.darkGray
         mediumDescriptionLabel.numberOfLines = 0
 
         // HIGH section
-        highTitleLabel.font = UIFont.systemFont(ofSize: 18, weight: .semibold)
+        highTitleLabel.font = UIFont.systemFont(ofSize: 15, weight: .semibold)
         highTitleLabel.textColor = .black
         highDescriptionLabel.font = UIFont.systemFont(ofSize: 15)
         highDescriptionLabel.textColor = UIColor.darkGray
         highDescriptionLabel.numberOfLines = 0
+        
+        // Remove extra padding inside stack views
+        lowStackView.layoutMargins = .zero
+        lowStackView.isLayoutMarginsRelativeArrangement = true
+
+        mediumStackView.layoutMargins = .zero
+        mediumStackView.isLayoutMarginsRelativeArrangement = true
+
+        highStackView.layoutMargins = .zero
+        highStackView.isLayoutMarginsRelativeArrangement = true
+
     }
 
 
