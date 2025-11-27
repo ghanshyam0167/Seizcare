@@ -9,10 +9,6 @@ import UIKit
 import Contacts
 import ContactsUI
 
-struct EmergencyContact {
-    let name: String
-    let phone: String
-}
 
 
 class EmergencyContactsTableViewController: UITableViewController, CNContactPickerDelegate {
@@ -21,13 +17,13 @@ class EmergencyContactsTableViewController: UITableViewController, CNContactPick
     var contacts: [EmergencyContact] = []
     override func viewDidLoad() {
         super.viewDidLoad()
+        loadContacts()
 
-        // Uncomment the following line to preserve selection between presentations
-        // self.clearsSelectionOnViewWillAppear = false
-
-        // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-        // self.navigationItem.rightBarButtonItem = self.editButtonItem
     }
+    private func loadContacts() {
+           contacts = EmergencyContactDataModel.shared.getContactsForCurrentUser()
+           tableView.reloadData()
+       }
 
     // MARK: - Table view data source
 
@@ -38,15 +34,60 @@ class EmergencyContactsTableViewController: UITableViewController, CNContactPick
     }
     func contactPicker(_ picker: CNContactPickerViewController, didSelect contact: CNContact) {
 
-        let name = "\(contact.givenName) \(contact.familyName)".trimmingCharacters(in: .whitespaces)
+        // --- Extract name & phone ---
+        let name = "\(contact.givenName) \(contact.familyName)"
+            .trimmingCharacters(in: .whitespaces)
 
-        let phone = contact.phoneNumbers.first?.value.stringValue ?? ""
+        let phone = contact.phoneNumbers.first?.value.stringValue
+            .trimmingCharacters(in: .whitespaces) ?? ""
 
-        let newContact = EmergencyContact(name: name, phone: phone)
+        // ---- STEP 1: Limit to 3 ----
+        if contacts.count >= 3 {
+            picker.dismiss(animated: true) {
+                let alert = UIAlertController(
+                    title: "Limit Reached",
+                    message: "You can only add up to 3 emergency contacts.Remove any contact first.",
+                    preferredStyle: .alert
+                )
+                alert.addAction(UIAlertAction(title: "OK", style: .cancel))
+                self.present(alert, animated: true)
+            }
+            return
+        }
 
-        contacts.append(newContact)
-        tableView.reloadData()
+        // ---- STEP 2: Duplicate check ----
+        let exists = contacts.contains { existing in
+            existing.name.lowercased() == name.lowercased() &&
+            existing.contactNumber.replacingOccurrences(of: " ", with: "") ==
+            phone.replacingOccurrences(of: " ", with: "")
+        }
+
+        if exists {
+            picker.dismiss(animated: true) {
+                let alert = UIAlertController(
+                    title: "Already Added",
+                    message: "\(name) is already in your emergency contact list.",
+                    preferredStyle: .alert
+                )
+                alert.addAction(UIAlertAction(title: "OK", style: .cancel))
+                self.present(alert, animated: true)
+            }
+            return
+        }
+
+        // ---- STEP 3: Save Contact ----
+        EmergencyContactDataModel.shared.addContact(
+            name: name,
+            contactNumber: phone
+        )
+
+        picker.dismiss(animated: true) {
+            self.loadContacts()
+        }
     }
+
+
+
 
     override func numberOfSections(in tableView: UITableView) -> Int {
         // #warning Incomplete implementation, return the number of sections
@@ -59,21 +100,17 @@ class EmergencyContactsTableViewController: UITableViewController, CNContactPick
     }
     
     override func tableView(_ tableView: UITableView,
-                            trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath)
+        trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath)
         -> UISwipeActionsConfiguration? {
 
         let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { _, _, completion in
             
-            // Remove from array
-            self.contacts.remove(at: indexPath.row)
+            let contactToDelete = self.contacts[indexPath.row]
+            EmergencyContactDataModel.shared.deleteContact(id: contactToDelete.id)
 
-            // Animate deletion
-            tableView.deleteRows(at: [indexPath], with: .automatic)
-            
+            self.loadContacts()
             completion(true)
         }
-
-        deleteAction.backgroundColor = .systemRed
 
         return UISwipeActionsConfiguration(actions: [deleteAction])
     }
@@ -94,49 +131,6 @@ class EmergencyContactsTableViewController: UITableViewController, CNContactPick
     }
 
 
-    /*
-    // Override to support conditional editing of the table view.
-    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
-        // Return false if you do not want the specified item to be editable.
-        return true
-    }
-    */
-
-    /*
-    // Override to support editing the table view.
-    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-        if editingStyle == .delete {
-            // Delete the row from the data source
-            tableView.deleteRows(at: [indexPath], with: .fade)
-        } else if editingStyle == .insert {
-            // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-        }    
-    }
-    */
-
-    /*
-    // Override to support rearranging the table view.
-    override func tableView(_ tableView: UITableView, moveRowAt fromIndexPath: IndexPath, to: IndexPath) {
-
-    }
-    */
-
-    /*
-    // Override to support conditional rearranging of the table view.
-    override func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool {
-        // Return false if you do not want the item to be re-orderable.
-        return true
-    }
-    */
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
-    }
-    */
+    
 
 }

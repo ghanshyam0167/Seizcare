@@ -29,7 +29,7 @@ class EmergencyContactsTableViewCell: UITableViewCell {
 
         func configure(with contact: EmergencyContact) {
             nameLabel.text = contact.name
-            phoneLabel.text = contact.phone
+            phoneLabel.text = contact.contactNumber
 
             initialsLabel.text = initials(from: contact.name)
             avatarView.backgroundColor = colorForName(contact.name)
