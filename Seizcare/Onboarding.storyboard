@@ -71,7 +71,7 @@ metrics</string>
                                 <state key="normal" title="Button"/>
                                 <buttonConfiguration key="configuration" style="filled" title="Start Setup"/>
                                 <connections>
-                                    <segue destination="aCL-ti-tVb" kind="show" id="O4u-d5-hFQ"/>
+                                    <segue destination="aCL-ti-tVb" kind="show" id="xhq-D2-nsp"/>
                                 </connections>
                             </button>
                             <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Pw6-Ex-TL7">
@@ -547,6 +547,9 @@ metrics</string>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <state key="normal" title="Button"/>
                                 <buttonConfiguration key="configuration" style="filled" title="I Understand"/>
+                                <connections>
+                                    <segue destination="LN0-jP-XHT" kind="show" id="bFM-JU-9yG"/>
+                                </connections>
                             </button>
                             <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="exclamationmark.triangle.fill" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="OS0-4d-SFe">
                                 <rect key="frame" x="130" y="139" width="133" height="121"/>
@@ -602,6 +605,16 @@ condition.</string>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="xKF-WN-W8T" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="2486" y="-397"/>
+        </scene>
+        <!--Dashboard-->
+        <scene sceneID="Qad-s3-JLm">
+            <objects>
+                <viewControllerPlaceholder storyboardName="Dashboard" id="LN0-jP-XHT" sceneMemberID="viewController">
+                    <navigationItem key="navigationItem" id="Yk1-Kc-aqj"/>
+                </viewControllerPlaceholder>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="YbI-tq-DIg" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="3338" y="-472"/>
         </scene>
         <!--View Controller-->
         <scene sceneID="MDQ-xI-iDf">
@@ -698,7 +711,7 @@ condition.</string>
         </scene>
     </scenes>
     <inferredMetricsTieBreakers>
-        <segue reference="cWT-Sw-aFO"/>
+        <segue reference="Bhw-Lp-KJy"/>
     </inferredMetricsTieBreakers>
     <resources>
         <image name="checkmark.circle.fill" width="128" height="128"/>
