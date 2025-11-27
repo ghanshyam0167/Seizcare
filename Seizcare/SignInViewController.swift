@@ -10,7 +10,7 @@ class SignInViewController: UIViewController {
     @IBOutlet weak var EmailOrPhNo: UITextField!
     @IBOutlet weak var PasswordTextField: UITextField!
 
-    // MARK: - Sign In Action
+    // Sign In Action
     @IBAction func SignInAction(_ sender: Any) {
         let email = EmailOrPhNo.text ?? ""
         let password = PasswordTextField.text ?? ""
@@ -25,7 +25,7 @@ class SignInViewController: UIViewController {
 
         debugLog("Attempting login with UserDataModel…")
 
-        // MARK: ✨ Use your UserDataModel here
+        // Use your UserDataModel here
         let loginSuccess = UserDataModel.shared.loginUser(email: email, password: password)
 
         if loginSuccess {
@@ -41,17 +41,17 @@ class SignInViewController: UIViewController {
         super.viewDidLoad()
     }
 
-    // MARK: - Navigation
+    //  Navigation
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "goToNextScreen" {
             if let nextVC = segue.destination as? DisclaimerViewController {
-                // Passing the CURRENT LOGGED-IN USER
+               
                 nextVC.currentUser = UserDataModel.shared.getCurrentUser()
             }
         }
     }
 
-    // MARK: - Utility
+    //  Utility
     func showAlert(message: String) {
         let alert = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default))

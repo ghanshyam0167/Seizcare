@@ -7,7 +7,7 @@
 
 import Foundation
 
-// MARK: - Notification Model
+//Notification Model
 struct AppNotification: Identifiable, Codable, Equatable {
     let id: UUID
     let userId: UUID
@@ -32,17 +32,17 @@ struct AppNotification: Identifiable, Codable, Equatable {
 
 class NotificationDataModel {
     
-    // Singleton instance
+    // Single instance
     static let shared = NotificationDataModel()
     
     // File path for storage
     private let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
     private let archiveURL: URL
     
-    // In-memory store
+    // In memory store
     private var notifications: [AppNotification] = []
     
-    // MARK: - Init
+    //Init
     private init() {
         archiveURL = documentsDirectory
             .appendingPathComponent("notifications")
@@ -85,7 +85,7 @@ class NotificationDataModel {
         saveNotifications()
     }
         
-    // MARK: - Private helpers
+    //Private helpers
     
     private func loadNotifications() {
         if let savedNotifications = loadNotificationsFromDisk() {
@@ -126,7 +126,7 @@ class NotificationDataModel {
             )
         }
         
-        // ===== 15 Sample Notifications =====
+        //  15 Sample Notifications 
         
         // Today
         make("Seizure Alert", "bell.fill", -60 * 10, "Strong seizure detected. Contacts notified.")

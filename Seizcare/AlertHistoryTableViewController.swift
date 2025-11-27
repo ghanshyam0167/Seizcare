@@ -29,9 +29,9 @@ class AlertHistoryTableViewController: UITableViewController {
     }
     
     
-    // ========================================================
-    // MARK: LOAD + CONVERT DATA MODEL TO ALERT ITEMS
-    // ========================================================
+
+
+   
     func loadNotificationsFromDataModel() {
         let notifications = NotificationDataModel.shared.getNotificationsForCurrentUser()
         print(notifications)
@@ -51,15 +51,14 @@ class AlertHistoryTableViewController: UITableViewController {
             )
             alertItems.append(item)
         }
-        
-        // Now group them into sections
+    
         buildSections(from: alertItems)
     }
     
     
-    // ========================================================
-    // MARK: GROUPING SECTIONS BASED ON DATE
-    // ========================================================
+    
+    // GROUPING SECTIONS BASED ON DATE
+    
     func buildSections(from alerts: [AlertItem]) {
         let df = DateFormatter()
         df.dateFormat = "dd MMM"
@@ -76,9 +75,7 @@ class AlertHistoryTableViewController: UITableViewController {
     }
     
     
-    // ========================================================
-    // MARK: ICON STYLING
-    // ========================================================
+
     func styleIcon(_ imageView: UIImageView,
                    symbol: String,
                    fg: UIColor,
@@ -98,9 +95,9 @@ class AlertHistoryTableViewController: UITableViewController {
     }
     
     
-    // ========================================================
-    // MARK: TABLE VIEW DATA SOURCE
-    // ========================================================
+   
+    // TABLE VIEW DATA SOURCE
+
     override func tableView(_ tableView: UITableView,
                             numberOfRowsInSection section: Int) -> Int {
         sections[section].items.count
@@ -121,7 +118,7 @@ class AlertHistoryTableViewController: UITableViewController {
         
         let alert = sections[indexPath.section].items[indexPath.row]
         
-        // ICON LOGIC
+    
         if alert.notification.lowercased().contains("seizure") {
             styleIcon(cell.iconImageView,
                       symbol: "exclamationmark.triangle.fill",
@@ -135,7 +132,7 @@ class AlertHistoryTableViewController: UITableViewController {
                       bg: UIColor(red: 0.93, green: 0.96, blue: 1.0, alpha: 1))
             
         } else {
-            // fallback to SF symbol stored in model if any
+        
             styleIcon(cell.iconImageView,
                       symbol: alert.icon,
                       fg: .white,
@@ -153,9 +150,7 @@ class AlertHistoryTableViewController: UITableViewController {
     }
     
     
-    // ========================================================
-    // MARK: SECTION HEADERS
-    // ========================================================
+ 
     override func tableView(_ tableView: UITableView,
                             heightForHeaderInSection section: Int) -> CGFloat {
         45
@@ -183,9 +178,7 @@ class AlertHistoryTableViewController: UITableViewController {
     }
     
     
-    // ========================================================
-    // MARK: FOOTERS
-    // ========================================================
+   
     override func tableView(_ tableView: UITableView,
                             heightForFooterInSection section: Int) -> CGFloat {
         16

@@ -134,11 +134,11 @@ class DashboardTableViewController: UITableViewController {
                     spo2Label: UILabel,
                     dateLabel: UILabel) {
         
-        // MARK: - Seizure Type
+        // Seizure Type
         seizureLabel.text = "Seizure: " + (record.type?.rawValue.capitalized ?? "-")
         
         
-        // MARK: - Duration
+        // Duration
         if let duration = record.duration {
             let mins = Int(duration) / 60
             let secs = Int(duration) % 60
@@ -148,7 +148,7 @@ class DashboardTableViewController: UITableViewController {
         }
         
         
-        // MARK: - SPO2 OR Title
+        // SPO2 OR Title
         if record.entryType == .automatic {
             // Automatic record shows SPO2
             spo2Label.text = "SPO₂: \(record.spo2 ?? 0)%"
@@ -158,7 +158,7 @@ class DashboardTableViewController: UITableViewController {
         }
         
         
-        // MARK: - Date
+        // Date
         dateLabel.text = DateFormats.fullDate.string(from: record.dateTime)
 
     }
@@ -170,22 +170,22 @@ class DashboardTableViewController: UITableViewController {
         cell.backgroundColor = .clear
         cell.contentView.backgroundColor = .clear
     }
-    // MARK: - Section Spacing for STATIC TABLE VIEW
-    // SECTION HEADER HEIGHT
+    // Section Spacing for STATIC TABLE VIEW
+    
     override func tableView(_ tableView: UITableView,
                             heightForHeaderInSection section: Int) -> CGFloat {
 
         if section == 0 {
-            return UITableView.automaticDimension   // allow “Current Status” to show normally
+            return UITableView.automaticDimension
         }
-        return 1   // spacing above all other sections
+        return 1
     }
 
     override func tableView(_ tableView: UITableView,
                             viewForHeaderInSection section: Int) -> UIView? {
 
         if section == 0 {
-            return nil   // storyboard header will be shown
+            return nil
         }
 
         let spacer = UIView()
@@ -193,7 +193,7 @@ class DashboardTableViewController: UITableViewController {
         return spacer
     }
 
-    // FOOTER (space below each section)
+   
     override func tableView(_ tableView: UITableView,
                             heightForFooterInSection section: Int) -> CGFloat {
         return 1

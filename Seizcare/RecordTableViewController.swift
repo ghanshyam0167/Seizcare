@@ -14,10 +14,10 @@ import UIKit
 
 class RecordTableViewController: UITableViewController {
 
-    // Dynamic section titles
+    
     var sectionTitles: [String] = []
     
-    // Grouped records by month
+   
     var recordsBySection: [[SeizureRecord]] = []
 
     override func viewDidLoad() {
@@ -28,7 +28,7 @@ class RecordTableViewController: UITableViewController {
         setupBottomSearchBar()
     }
     
-    // MARK: - Load + Group
+    // Load + Group
     func loadAndGroupRecords() {
         let records = SeizureRecordDataModel.shared.getRecordsForCurrentUser()
         // Group by month
@@ -51,7 +51,7 @@ class RecordTableViewController: UITableViewController {
         tableView.reloadData()
     }
 
-    // MARK: - Search bar stacked (iOS 16)
+    // Search bar stacked (iOS 16)
     func setupBottomSearchBar() {
         let searchController = UISearchController(searchResultsController: nil)
         searchController.searchBar.placeholder = "Search"
@@ -62,7 +62,7 @@ class RecordTableViewController: UITableViewController {
         }
     }
 
-    // MARK: - TableView Sections
+    // TableView Sections
     override func numberOfSections(in tableView: UITableView) -> Int {
         return sectionTitles.count
     }
@@ -71,7 +71,7 @@ class RecordTableViewController: UITableViewController {
         return sectionTitles[section]
     }
 
-    // MARK: - Rows
+    //  Rows
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return recordsBySection[section].count
     }
@@ -82,12 +82,11 @@ class RecordTableViewController: UITableViewController {
         let cell = tableView.dequeueReusableCell(withIdentifier: "RecordCell", for: indexPath) as! RecordTableViewCell
         let record = recordsBySection[indexPath.section][indexPath.row]
 
-        // Format date
+        
         let formatter = DateFormatter()
         formatter.dateFormat = "dd MMM"
         let formattedDate = formatter.string(from: record.dateTime).uppercased()
 
-        // Cell UI
         cell.dateLabel.text = formattedDate
         
         if record.entryType == .automatic {
@@ -99,21 +98,21 @@ class RecordTableViewController: UITableViewController {
                 cell.durationLabel.text = "--"
             }
         } else {
-            // manual record
+            
             cell.seizureLevelLabel.text = record.title ?? "Manual Log"
             cell.durationLabel.text = record.description ?? ""
         }
         return cell
     }
 
-    // Convert seconds → "1 min 45 sec"
+    
     func formatDuration(_ seconds: TimeInterval) -> String {
         let mins = Int(seconds) / 60
         let secs = Int(seconds) % 60
         return "\(mins) min \(secs) sec"
     }
 
-    // MARK: - Row Tap → Detail Screen
+    // Row Tap → Detail Screen
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         performSegue(withIdentifier: "showRecordDetails", sender: indexPath)
     }
@@ -145,7 +144,7 @@ class RecordTableViewController: UITableViewController {
         }
     }
     @IBAction func unwindToDashboard(_ segue: UIStoryboardSegue) {
-        // You can add logic here if needed
+
         print("Returned from Add Record screen")
     }
     

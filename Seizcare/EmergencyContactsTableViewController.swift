@@ -25,7 +25,7 @@ class EmergencyContactsTableViewController: UITableViewController, CNContactPick
            tableView.reloadData()
        }
 
-    // MARK: - Table view data source
+    //  Table view data source
 
     @IBAction func addButtonTapped(_ sender: UIBarButtonItem) {
         let picker = CNContactPickerViewController()
@@ -34,14 +34,14 @@ class EmergencyContactsTableViewController: UITableViewController, CNContactPick
     }
     func contactPicker(_ picker: CNContactPickerViewController, didSelect contact: CNContact) {
 
-        // --- Extract name & phone ---
+        // Extract name & phone
         let name = "\(contact.givenName) \(contact.familyName)"
             .trimmingCharacters(in: .whitespaces)
 
         let phone = contact.phoneNumbers.first?.value.stringValue
             .trimmingCharacters(in: .whitespaces) ?? ""
 
-        // ---- STEP 1: Limit to 3 ----
+        // STEP 1: Limit to 3
         if contacts.count >= 3 {
             picker.dismiss(animated: true) {
                 let alert = UIAlertController(
@@ -55,7 +55,7 @@ class EmergencyContactsTableViewController: UITableViewController, CNContactPick
             return
         }
 
-        // ---- STEP 2: Duplicate check ----
+        // STEP 2: Duplicate check
         let exists = contacts.contains { existing in
             existing.name.lowercased() == name.lowercased() &&
             existing.contactNumber.replacingOccurrences(of: " ", with: "") ==
@@ -75,7 +75,7 @@ class EmergencyContactsTableViewController: UITableViewController, CNContactPick
             return
         }
 
-        // ---- STEP 3: Save Contact ----
+        //STEP 3: Save Contact
         EmergencyContactDataModel.shared.addContact(
             name: name,
             contactNumber: phone
@@ -90,12 +90,12 @@ class EmergencyContactsTableViewController: UITableViewController, CNContactPick
 
 
     override func numberOfSections(in tableView: UITableView) -> Int {
-        // #warning Incomplete implementation, return the number of sections
+        
         return 1
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        // #warning Incomplete implementation, return the number of rows
+        
         return contacts.count
     }
     

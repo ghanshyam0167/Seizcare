@@ -22,13 +22,13 @@ class SignUpTableViewController: UITableViewController {
 
        let datePicker = UIDatePicker()
 
-       // MARK: - View Lifecycle
+       // View Lifecycle
        override func viewDidLoad() {
            super.viewDidLoad()
            setupDOBPicker()
        }
 
-       // MARK: - Date Picker Setup
+       // Date Picker Setup
        func setupDOBPicker() {
            dobField.inputView = datePicker
            datePicker.preferredDatePickerStyle = .wheels
@@ -51,7 +51,7 @@ class SignUpTableViewController: UITableViewController {
            view.endEditing(true)
        }
 
-       // MARK: - Gender Selection
+       // Gender Selection
        @IBAction func genderTapped(_ sender: UIButton) {
            let alert = UIAlertController(title: "Select Gender", message: nil, preferredStyle: .actionSheet)
 
@@ -75,7 +75,7 @@ class SignUpTableViewController: UITableViewController {
            present(alert, animated: true)
        }
 
-       // MARK: - Create Account
+       // Create Account
        @IBAction func createAccountTapped(_ sender: UIButton) {
 
            let fullName = fullNameField.text ?? ""
@@ -85,9 +85,7 @@ class SignUpTableViewController: UITableViewController {
            let gender = selectedGender
            let dob = selectedDOB
 
-           // -------------------------
-           // Validation
-           // -------------------------
+           
            if fullName.isEmpty || email.isEmpty || phone.isEmpty || password.isEmpty || dob == nil {
                showAlert("Please fill in all fields.")
                return
@@ -98,9 +96,7 @@ class SignUpTableViewController: UITableViewController {
                return
            }
 
-           // -------------------------
-           // Create User
-           // -------------------------
+          
            let newUser = User(
                fullName: fullName,
                email: email,
@@ -118,14 +114,14 @@ class SignUpTableViewController: UITableViewController {
            performSegue(withIdentifier: "goToSignupSuccess", sender: self)
        }
 
-       // MARK: - Alert Helper
+       // Alert Helper
        func showAlert(_ msg: String) {
            let alert = UIAlertController(title: "Error", message: msg, preferredStyle: .alert)
            alert.addAction(UIAlertAction(title: "OK", style: .default))
            present(alert, animated: true)
        }
 
-       // MARK: - Navigation
+       // Navigation
        override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
            if segue.identifier == "goToSignupSuccess" {
                if let nextVC = segue.destination as? DisclaimerViewController {

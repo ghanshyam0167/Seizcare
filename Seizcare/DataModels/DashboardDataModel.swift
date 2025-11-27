@@ -1,20 +1,20 @@
 import Foundation
 
-// MARK: - Dashboard Period
+// Dashboard Period
 enum DashboardPeriod: String, Codable {
     case current
     case weekly
     case monthly
 }
 
-// MARK: - Dashboard Metrics
+// Dashboard Calculations
 struct DashboardMetrics: Codable {
     var sleepDuration: TimeInterval   // total sleep duration (seconds)
     var averageRecovery: Double
     var averageSpO2: Double
     var seizureCount: Int
     
-    // Computed readable format
+    
     var formattedSleepDuration: String {
         let hours = Int(sleepDuration) / 3600
         let minutes = (Int(sleepDuration) % 3600) / 60
@@ -22,7 +22,7 @@ struct DashboardMetrics: Codable {
     }
 }
 
-// MARK: - Daily and Monthly Breakdown
+//Daily and Monthly Analysis
 struct DailyMetrics: Codable {
     var date: Date
     var averageSpO2: Double
@@ -30,12 +30,12 @@ struct DailyMetrics: Codable {
 }
 
 struct MonthlyMetrics: Codable {
-    var month: Date   // month start date
+    var month: Date   
     var averageSpO2: Double
     var seizureCount: Int
 }
 
-// MARK: - Dashboard Data Model
+//Dashboard Data Model
 class DashboardDataModel {
     
     static let shared = DashboardDataModel()
@@ -45,7 +45,7 @@ class DashboardDataModel {
     private var weeklyStats: DashboardMetrics?
     private var monthlyStats: DashboardMetrics?
     
-    // MARK: - Public Summary Access
+    //Public Access
     func getCurrentStats() -> DashboardMetrics? {
         calculateCurrentStats()
         return currentStats
@@ -64,7 +64,7 @@ class DashboardDataModel {
         }
     }
     
-    // MARK: - Additional Summary Methods (for upper-half cards)
+
     func getWeeklySummary() -> (avgSleep: TimeInterval, avgRecovery: Double) {
         // Replace these with real HealthKit data later
         let sleepDurations: [TimeInterval] = [7.2, 6.9, 7.1, 6.8, 7.3, 7.0, 7.4].map { $0 * 3600 }
@@ -81,7 +81,7 @@ class DashboardDataModel {
         return (avgSleep, avgRecovery)
     }
     
-    // MARK: - Graph Data
+    //Graph Data
     
     /// Weekly: Monday–Sunday average SpO₂ and seizure count
     func getWeeklyDailyBreakdown() -> [DailyMetrics] {
@@ -130,7 +130,7 @@ class DashboardDataModel {
         return monthlyData.sorted { $0.month < $1.month }
     }
     
-    // MARK: - Private Calculations
+    // Private Calculations
     
     private func calculateCurrentStats() {
         let records = SeizureRecordDataModel.shared.getRecordsForCurrentUser()
@@ -188,7 +188,7 @@ class DashboardDataModel {
     }
 }
 
-// MARK: - Array Extension for Safe Average
+//Array Extension for Safe Average
 extension Array where Element == Double {
     func averageOrZero() -> Double {
         guard !self.isEmpty else { return 0.0 }

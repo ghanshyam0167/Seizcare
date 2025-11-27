@@ -63,10 +63,10 @@ class DetailRecordsTableViewController: UITableViewController {
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         
-        // Force end editing (calls textViewDidEndEditing)
+       
         view.endEditing(true)
         
-        // Save description even if delegate didn’t fire
+      
         if let updatedText = descriptionTextView.text,
            let record = record {
             
@@ -82,7 +82,7 @@ class DetailRecordsTableViewController: UITableViewController {
     }
 
 
-        // MARK: - Automatic record display
+        // Automatic record display
         func configureAutomatic(_ record: SeizureRecord) {
 
             seizureLevelLabel.text = record.type?.rawValue.capitalized
@@ -102,7 +102,7 @@ class DetailRecordsTableViewController: UITableViewController {
             descriptionTextView.text = record.description
         }
 
-        // MARK: - Manual record display (same UI, changed meaning)
+        // Manual record display (same UI, changed meaning)
         func configureManual(_ record: SeizureRecord) {
 
             seizureLevelLabel.text = record.title ?? "Manual Log"
@@ -136,9 +136,9 @@ class DetailRecordsTableViewController: UITableViewController {
             let secs = Int(seconds) % 60
             return "\(mins) min \(secs) sec"
         }
-    // MARK: - Section spacing & hiding (clean)
+    // Section spacing & hiding (clean)
     private func refreshSectionVisibility(animated: Bool = false) {
-        // If record changed after view loaded, force the table to recompute heights.
+       
         let sectionSet = IndexSet(integer: 1)
         if animated {
             tableView.performBatchUpdates({
@@ -151,7 +151,7 @@ class DetailRecordsTableViewController: UITableViewController {
 
     override func tableView(_ tableView: UITableView,
                             heightForHeaderInSection section: Int) -> CGFloat {
-        // hide section 1 when needed
+       
         if shouldHideSection1 && section == 1 { return 0.01 }
         return section == 0 ? 0.01 : 2
     }
@@ -180,17 +180,17 @@ class DetailRecordsTableViewController: UITableViewController {
         return UITableView.automaticDimension
     }
 
-    // keep willDisplay to tweak visual appearance & remove separators when hidden
+    
     override func tableView(_ tableView: UITableView,
                             willDisplay cell: UITableViewCell,
                             forRowAt indexPath: IndexPath) {
-        // content margins + transparent cell background
+        
         cell.contentView.layoutMargins = UIEdgeInsets(top: 2, left: 16, bottom: 2, right: 16)
         cell.backgroundColor = .clear
         cell.contentView.backgroundColor = .clear
 
         if shouldHideSection1 && indexPath.section == 1 {
-            // make sure it doesn't show visual artifacts
+            
             cell.isHidden = true
             cell.alpha = 0.0
             cell.selectionStyle = .none
@@ -213,7 +213,7 @@ extension DetailRecordsTableViewController: UITextViewDelegate {
         guard let updatedText = textView.text,
               let record = record else { return }
 
-        // Update in your data model
+      
         SeizureRecordDataModel.shared.updateRecordDescription(id: record.id, newDescription: updatedText)
 
         print("✅ Description updated for record:", record.id)

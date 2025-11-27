@@ -24,7 +24,7 @@ class RecordTableViewCell: UITableViewCell {
         super.setSelected(selected, animated: animated)
         backgroundColor = .clear
         contentView.backgroundColor = .clear
-        // Configure the view for the selected state
+       
     }
 
 }

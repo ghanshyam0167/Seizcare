@@ -48,7 +48,7 @@ class SensitivityViewTableViewController: UITableViewController {
 
        }
        
-       // MARK: - UI Setup
+       // UI Setup
        
     func setupCardView() {
         upperCardView.backgroundColor = .white
@@ -62,7 +62,7 @@ class SensitivityViewTableViewController: UITableViewController {
        
        
        func setupInitialState() {
-           // Only LOW selected initially
+           
            selectedIndex = 0
            updateCheckmarks()
        }
@@ -83,7 +83,7 @@ class SensitivityViewTableViewController: UITableViewController {
        }
        
        
-       // MARK: - Actions
+       // Actions
        
        @objc func optionTapped(_ sender: UITapGestureRecognizer) {
            guard let view = sender.view else { return }
@@ -119,13 +119,13 @@ class SensitivityViewTableViewController: UITableViewController {
         upperCardView.addSubview(bottomLine)
         
         NSLayoutConstraint.activate([
-            // Top line just above Medium
+            
             topLine.leadingAnchor.constraint(equalTo: upperCardView.leadingAnchor, constant: 16),
             topLine.trailingAnchor.constraint(equalTo: upperCardView.trailingAnchor, constant: -16),
             topLine.topAnchor.constraint(equalTo: mediumStackView.topAnchor, constant: -5),
             topLine.heightAnchor.constraint(equalToConstant: 1),
             
-            // Bottom line just below Medium
+            
             bottomLine.leadingAnchor.constraint(equalTo: upperCardView.leadingAnchor, constant: 16),
             bottomLine.trailingAnchor.constraint(equalTo: upperCardView.trailingAnchor, constant: -16),
             bottomLine.topAnchor.constraint(equalTo: mediumStackView.bottomAnchor, constant: 5),
@@ -134,7 +134,7 @@ class SensitivityViewTableViewController: UITableViewController {
     }
     private func setupView() {
 
-        // Bullet - same for all
+        // Bullet
         bulletLabel.text = "•"
         bulletLabel.font = UIFont.systemFont(ofSize: 22, weight: .regular)
         bulletLabel.textColor = UIColor.darkGray

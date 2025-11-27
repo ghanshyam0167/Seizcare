@@ -16,22 +16,18 @@ class LanguageTableViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         title = "Language"
-        // Uncomment the following line to preserve selection between presentations
-        // self.clearsSelectionOnViewWillAppear = false
-
-        // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-        // self.navigationItem.rightBarButtonItem = self.editButtonItem
+        
     }
 
-    // MARK: - Table view data source
+    // Table view data source
 
     override func numberOfSections(in tableView: UITableView) -> Int {
-        // #warning Incomplete implementation, return the number of sections
+        
         return 1
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        // #warning Incomplete implementation, return the number of rows
+       
         return expanded ? languages.count : 1
     }
 
@@ -43,14 +39,14 @@ class LanguageTableViewController: UITableViewController {
         cell.textLabel?.text = language
         cell.textLabel?.font = .systemFont(ofSize: 16)
         
-        // First row = Header with arrow ↑↓
+       
         if indexPath.row == 0 {
             let arrow = expanded ? "chevron.up" : "chevron.down"
             cell.accessoryView = UIImageView(image: UIImage(systemName: arrow))
             cell.accessoryType = .none
         } else {
             cell.accessoryView = nil
-            // Checkmark for selected language
+         
             cell.accessoryType = (indexPath.row == selectedIndex) ? .checkmark : .none
         }
 
@@ -61,16 +57,16 @@ class LanguageTableViewController: UITableViewController {
 
         tableView.deselectRow(at: indexPath, animated: true)
 
-        // If tapped the top cell
+       
         if indexPath.row == 0 {
             expanded.toggle()
             
-            // collapse animation
+           
             tableView.reloadSections(IndexSet(integer: 0), with: .automatic)
             return
         }
         
-        // Change selected language
+       
         selectedIndex = indexPath.row
         
         tableView.reloadData()

@@ -7,7 +7,7 @@
 
 import Foundation
 
-// MARK: - EmergencyContact Model
+//EmergencyContact Model
 struct EmergencyContact: Equatable, Codable {
     let id: UUID
     let userId: UUID
@@ -81,7 +81,7 @@ class EmergencyContactDataModel {
     }
 
     
-    // MARK: - Private Methods
+    // Private Methods
     
     private func loadContacts() {
         if let savedContacts = loadContactsFromDisk() {
@@ -104,7 +104,7 @@ class EmergencyContactDataModel {
     }
     
     private func loadSampleContacts() -> [EmergencyContact] {
-        // Attach sample contacts to first available user if exists
+        
         let sampleUserId = UserDataModel.shared.getAllUsers().first?.id ?? UUID()
         
         let contact1 = EmergencyContact(userId: sampleUserId, name: "Mom", contactNumber: "+91 9876543210")

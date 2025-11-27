@@ -7,7 +7,7 @@
 
 import Foundation
 
-// MARK: - Enum for Gender
+//  Enum for Gender
 enum Gender: String, Codable {
     case male
     case female
@@ -15,7 +15,7 @@ enum Gender: String, Codable {
     case unspecified
 }
 
-// MARK: - User Model
+// User Model
 struct User: Identifiable, Codable, Equatable {
     let id: UUID
     var fullName: String
@@ -59,7 +59,7 @@ struct User: Identifiable, Codable, Equatable {
     }
 }
 
-// MARK: - User Data Model
+//User Data Model
 class UserDataModel {
     
     static let shared = UserDataModel()
@@ -79,7 +79,7 @@ class UserDataModel {
         loadCurrentUser()
     }
     
-    // MARK: - CRUD
+    //  CRUD
     func addUser(_ user: User) {
         users.append(user)
         saveUsers()
@@ -111,7 +111,7 @@ class UserDataModel {
         return users
     }
     
-    // MARK: - Private Storage Helpers
+    // Private Storage Helpers
     private func loadUsers() {
         if let savedUsers = loadUsersFromDisk() {
             users = savedUsers
@@ -162,7 +162,7 @@ class UserDataModel {
     }
 }
 
-// MARK: - Authentication Extension
+// Authentication Extension
 extension UserDataModel {
     
     func loginUser(email: String, password: String) -> Bool {

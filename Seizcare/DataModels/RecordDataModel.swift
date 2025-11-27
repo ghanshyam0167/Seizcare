@@ -7,20 +7,20 @@
 
 import Foundation
 
-// MARK: - Enum for Seizure Type
+// Enum for Seizure Type
 enum SeizureType: String, Codable {
     case mild
     case moderate
     case severe
 }
 
-// MARK: - Enum for Entry Type (NEW)
+// Enum for Entry Type (NEW)
 enum RecordEntryType: String, Codable {
-    case automatic   // data from app/watch/device
-    case manual      // user manually adds log
+    case automatic
+    case manual
 }
 
-// MARK: - Seizure Record Model
+// Seizure Record Model
 struct SeizureRecord: Identifiable, Codable, Equatable {
     let id: UUID
     let userId: UUID
@@ -73,7 +73,7 @@ struct SeizureRecord: Identifiable, Codable, Equatable {
     }
 }
 
-// MARK: - Data Model Class
+// Data Model Class
 class SeizureRecordDataModel {
 
     static let shared = SeizureRecordDataModel()
@@ -83,7 +83,7 @@ class SeizureRecordDataModel {
 
     private var records: [SeizureRecord] = []
 
-    // MARK: - Init
+    // Init
     private init() {
         archiveURL = documentsDirectory
             .appendingPathComponent("seizureRecords")
@@ -92,7 +92,7 @@ class SeizureRecordDataModel {
         loadRecords()
     }
 
-    // MARK: - Public Methods
+    //Public Methods
 
     func getAllRecords() -> [SeizureRecord] {
         return records
@@ -108,9 +108,9 @@ class SeizureRecordDataModel {
     }
 
 
-    // MARK: - ADD RECORDS
+    // ADD RECORDS
 
-    /// Add AUTOMATIC log
+  
     func addAutomaticRecord(
         type: SeizureType,
         dateTime: Date,
@@ -138,13 +138,13 @@ class SeizureRecordDataModel {
         saveRecords()
     }
 
-    /// Add MANUAL log
+
     func addManualRecord(_ record: SeizureRecord) {
         print("🔥 addManualRecord CALLED")
         records.append(record)
         saveRecords()
     }
-    // MARK: - UPDATE / DELETE
+    // UPDATE / DELETE
 
     func updateRecord(_ record: SeizureRecord) {
         if let index = records.firstIndex(where: { $0.id == record.id }) {
@@ -167,7 +167,7 @@ class SeizureRecordDataModel {
         saveRecords()
     }
 
-    // MARK: - Private Storage Methods
+    //  Private Storage Methods
 
     private func loadRecords() {
         if let saved = loadRecordsFromDisk() {
@@ -203,13 +203,13 @@ class SeizureRecordDataModel {
         try? data?.write(to: archiveURL, options: .noFileProtection)
     }
 
-    // MARK: - Sample Data
+    //Sample Data
     private func loadSampleRecords() -> [SeizureRecord] {
         guard let sampleUserId = UserDataModel.shared.getCurrentUser()?.id else {
             return []
         }
 
-        // MARK: - Automatic Records
+        // Automatic Records
         let automatic1 = SeizureRecord(
             userId: sampleUserId,
             entryType: .automatic,
@@ -246,7 +246,7 @@ class SeizureRecordDataModel {
             location: "Library"
         )
 
-        // MARK: - Manual Records
+        //  Manual Records
         let manual1 = SeizureRecord(
             userId: sampleUserId,
             entryType: .manual,
@@ -284,7 +284,7 @@ class SeizureRecordDataModel {
 
 }
 
-// MARK: - Extra Helper
+// Helper function
 extension SeizureRecordDataModel {
     func getLatestTwoRecordsForCurrentUser() -> [SeizureRecord] {
           guard let currentUser = UserDataModel.shared.getCurrentUser() else {

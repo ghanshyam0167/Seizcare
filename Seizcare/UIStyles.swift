@@ -1,6 +1,6 @@
 import UIKit
 
-// MARK: - Navigation Bar Styles
+// Navigation Bar Styles
 extension UINavigationController {
 
     func applyTransparentNavBar() {
@@ -27,7 +27,7 @@ extension UINavigationController {
 }
 
 
-// MARK: - UIView Card Styles
+// UIView Card Styles
 extension UIView {
 
     func applyDashboardCard() {
@@ -59,7 +59,7 @@ extension UIView {
 }
 
 
-// MARK: - Table View Helpers (NO OVERRIDES!)
+// Table View Helpers (NO OVERRIDES!)
 extension UITableViewController {
 
     func applyDefaultTableBackground() {
@@ -67,13 +67,13 @@ extension UITableViewController {
     }
 
     func applySectionSpacing() {
-        // This DOES NOT override methods — it sets defaults
+       
         tableView.sectionHeaderHeight = 6
         tableView.sectionFooterHeight = 2
     }
 }
 
-// MARK: - Segmented Control Style
+// Segmented Control Style
 extension UISegmentedControl {
 
     func applyPrimaryStyle() {
@@ -101,7 +101,7 @@ extension UISegmentedControl {
 }
 
 
-// MARK: - Date Formats
+//  Date Formats
 struct DateFormats {
 
     static let fullDate: DateFormatter = {
