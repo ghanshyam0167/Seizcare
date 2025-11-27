@@ -18,7 +18,6 @@ class ProfileTableViewController: UITableViewController {
     var user : User?
     override func viewDidLoad() {
         super.viewDidLoad()
-        UserDataModel.shared.loginUser(email: "ghanshyam@example.com", password: "password121")
                 profileImageView.layer.cornerRadius = profileImageView.frame.width / 2
                 profileImageView.clipsToBounds = true
         

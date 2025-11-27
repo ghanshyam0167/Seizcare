@@ -39,7 +39,6 @@ class DashboardTableViewController: UITableViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        UserDataModel.shared.loginUser(email: "ghanshyam@example.com", password: "password121")
         updateUI()
         
         applyDefaultTableBackground()
