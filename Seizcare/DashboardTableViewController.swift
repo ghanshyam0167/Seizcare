@@ -6,8 +6,12 @@
 //
 
 import UIKit
+import DGCharts
 
 class DashboardTableViewController: UITableViewController {
+    var barChart = BarChartView()
+
+    @IBOutlet weak var seizureFrequencyChart: UIView!
     
     @IBOutlet weak var weeklyMonthlySegment: UISegmentedControl!
     @IBOutlet weak var recordCardView1: UIView!
@@ -53,7 +57,7 @@ class DashboardTableViewController: UITableViewController {
         
         
         [currentCardView0, currentCardView1, currentCardView2, currentCardView3,
-             recordsCardView, bottomCardView0, bottomCardView1].forEach {
+             recordsCardView, bottomCardView0, bottomCardView1, seizureFrequencyChart].forEach {
                 $0?.applyDashboardCard()
             }
             [recordCardView0, recordCardView1].forEach {
@@ -63,6 +67,19 @@ class DashboardTableViewController: UITableViewController {
         weeklyMonthlySegment.applyPrimaryStyle()
         updateRecentRecords()
         
+        setupChartContainer()
+        setupChartAppearance()
+        updateChartData()
+        barChart.renderer = RoundedBarChartRenderer(
+            dataProvider: barChart,
+            animator: barChart.chartAnimator,
+            viewPortHandler: barChart.viewPortHandler
+        )
+
+    }
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        barChart.frame = seizureFrequencyChart.bounds
     }
     func updateUI(){
         let user = UserDataModel.shared.getCurrentUser()
@@ -204,5 +221,194 @@ class DashboardTableViewController: UITableViewController {
         let spacer = UIView()
         spacer.backgroundColor = .clear
         return spacer
+    }
+    func setupChartContainer() {
+        barChart.frame = seizureFrequencyChart.bounds
+        barChart.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        seizureFrequencyChart.addSubview(barChart)
+    }
+    func setupChartAppearance() {
+
+        barChart.legend.enabled = false
+        barChart.rightAxis.enabled = false
+        barChart.doubleTapToZoomEnabled = false
+        barChart.pinchZoomEnabled = false
+        barChart.dragEnabled = false
+        barChart.setScaleEnabled(false)
+        barChart.drawBarShadowEnabled = false
+        barChart.drawGridBackgroundEnabled = false
+
+        // X-Axis
+        let xAxis = barChart.xAxis
+        xAxis.labelPosition = .bottom
+        xAxis.drawGridLinesEnabled = false
+        xAxis.drawAxisLineEnabled = false
+        xAxis.valueFormatter = IndexAxisValueFormatter(values: ["Jan","Feb","Mar","Apr","May","Jun"])
+        xAxis.labelFont = UIFont.systemFont(ofSize: 12, weight: .medium)
+        xAxis.labelTextColor = UIColor.darkGray
+        xAxis.granularity = 1
+
+        // Y-Axis
+        let leftAxis = barChart.leftAxis
+        leftAxis.axisMinimum = 0
+        leftAxis.gridColor = UIColor.lightGray.withAlphaComponent(0.2)
+        leftAxis.drawAxisLineEnabled = false
+        leftAxis.labelFont = UIFont.systemFont(ofSize: 12)
+        leftAxis.labelTextColor = UIColor.lightGray
+
+        // Hide right axis
+        barChart.rightAxis.enabled = false
+
+        // Animation
+        barChart.animate(yAxisDuration: 0.7)
+
+    }
+
+    func updateChartData() {
+        let values = [8, 12, 10, 15, 7, 11]
+        var entries: [BarChartDataEntry] = []
+
+        for (i, v) in values.enumerated() {
+            entries.append(BarChartDataEntry(x: Double(i), y: Double(v)))
+        }
+
+        let dataSet = BarChartDataSet(entries: entries)
+
+        // Figma pastel colors
+        dataSet.colors = [
+            UIColor(red: 0.78, green: 0.51, blue: 1.0, alpha: 1.0),
+            UIColor(red: 0.40, green: 0.67, blue: 0.67, alpha: 1.0),
+            UIColor(red: 0.47, green: 0.68, blue: 1.0, alpha: 1.0),
+            UIColor(red: 0.55, green: 0.53, blue: 1.0, alpha: 1.0),
+            UIColor(red: 0.53, green: 0.80, blue: 0.93, alpha: 1.0),
+            UIColor(red: 0.62, green: 0.78, blue: 1.0, alpha: 1.0)
+        ]
+
+        // REMOVE labels above bars
+        dataSet.drawValuesEnabled = false
+
+        let data = BarChartData(dataSet: dataSet)
+        data.barWidth = 0.4
+
+        barChart.data = data
+        barChart.setNeedsLayout()
+        barChart.layoutIfNeeded()
+    }
+
+}
+
+class RoundedBarChartView: BarChartView {
+    var onLayout: (() -> Void)?
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        DispatchQueue.main.async { [weak self] in
+            self?.onLayout?()
+        }
+    }
+}
+
+
+import DGCharts
+import UIKit
+
+final class RoundedBarChartRenderer: BarChartRenderer {
+
+    // Match base initializer isolation
+    nonisolated
+    override init(dataProvider: BarChartDataProvider,
+                  animator: Animator,
+                  viewPortHandler: ViewPortHandler) {
+        super.init(dataProvider: dataProvider,
+                   animator: animator,
+                   viewPortHandler: viewPortHandler)
+    }
+
+    // Override the data-drawing entry point used by Chart library
+    nonisolated
+    override func drawData(context: CGContext) {
+        guard
+            let dataProvider = dataProvider,
+            let barData = dataProvider.barData
+        else { return }
+
+        // Loop datasets and draw rounded bars for bar datasets
+        for dataSetIndex in 0 ..< barData.dataSetCount {
+            guard
+                let dataSet = barData[dataSetIndex] as? BarChartDataSetProtocol,
+                dataSet.entryCount > 0
+            else { continue }
+
+            drawRoundedDataSet(context: context,
+                               dataSet: dataSet,
+                               dataSetIndex: dataSetIndex,
+                               dataProvider: dataProvider,
+                               barData: barData)
+        }
+    }
+
+    private func drawRoundedDataSet(
+        context: CGContext,
+        dataSet: BarChartDataSetProtocol,
+        dataSetIndex: Int,
+        dataProvider: BarChartDataProvider,
+        barData: BarChartData
+    ) {
+        // Transformer for the axis the dataset belongs to
+        let trans = dataProvider.getTransformer(forAxis: dataSet.axisDependency)
+
+        // bar width from barData (DGCharts exposes this)
+        let barWidth = barData.barWidth
+
+        // We'll build a simple buffer [left, top, right, bottom] per bar (in value coords)
+        var valueRect = CGRect.zero
+
+        context.saveGState()
+
+        // iterate entries
+        for entryIndex in 0 ..< dataSet.entryCount {
+            guard let e = dataSet.entryForIndex(entryIndex) as? BarChartDataEntry else { continue }
+
+            // value-space rectangle for the bar (centered at x, extends to y)
+            let x = CGFloat(e.x)
+            let y = CGFloat(e.y)
+
+            // left/right in value coords
+            let left = x - CGFloat(barWidth) / 2.0
+            let right = x + CGFloat(barWidth) / 2.0
+
+            // top/bottom in value coords — chart uses positive/negative y to determine direction
+            // keep bars growing from 0 to y (works for positive-only data; adjust if needed)
+            let topValue = max(y, 0)
+            let bottomValue = min(y, 0)
+
+            valueRect.origin.x = left
+            valueRect.origin.y = topValue
+            valueRect.size.width = right - left
+            valueRect.size.height = bottomValue - topValue
+
+            // Convert value-space rect -> pixels
+            trans.rectValueToPixel(&valueRect)
+
+            // If rect is degenerate, skip
+            if valueRect.isEmpty || valueRect.width.isNaN || valueRect.height.isNaN { continue }
+
+
+            // Top-left & top-right corners rounded
+            let radius: CGFloat = 6.0
+            let path = UIBezierPath(
+                roundedRect: valueRect,
+                byRoundingCorners: [.topLeft, .topRight],
+                cornerRadii: CGSize(width: radius, height: radius)
+            )
+
+            // Obtain color for this entry (dataSet.color(atIndex:) expects an Int index)
+            let color = dataSet.color(atIndex: entryIndex)
+            context.setFillColor(color.cgColor)
+            context.addPath(path.cgPath)
+            context.fillPath()
+        }
+
+        context.restoreGState()
     }
 }
