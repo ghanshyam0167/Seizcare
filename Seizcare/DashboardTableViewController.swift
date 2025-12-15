@@ -6,14 +6,23 @@
 //
 
 import UIKit
-import DGCharts
+import SwiftUI
 
 class DashboardTableViewController: UITableViewController {
-    var barChart = BarChartView()
 
-    @IBOutlet weak var seizureFrequencyChart: UIView!
-    
-    @IBOutlet weak var weeklyMonthlySegment: UISegmentedControl!
+    @IBOutlet weak var TriggerCorrelationChartContainerView: UIView!
+    @IBOutlet weak var triggerCorrelationChart: UIView!
+    @IBOutlet weak var timePatterChartContainerView: UIView!
+    @IBOutlet weak var timePatternChart: UIView!
+    @IBOutlet weak var sleepVsSeizureChartContainerView: UIView!
+    @IBOutlet weak var sleepVsSeizureChart: UIView!
+    @IBOutlet weak var seizureChartBottomMetricsLabel: UILabel!
+    @IBOutlet weak var seizureChartBottomIcon: UIImageView!
+    @IBOutlet weak var seizureChartLabel: UILabel!
+    @IBOutlet weak var periodButton: UIButton!
+    @IBOutlet weak var seizureFrequencyChartContainer: UIView!
+    @IBOutlet weak var spo2ChartView: UIView!
+    @IBOutlet weak var seizureFrequencyChartUpperView: UIView!
     @IBOutlet weak var recordCardView1: UIView!
     @IBOutlet weak var recordCardView0: UIView!
     @IBOutlet weak var bottomCardView1: UIView!
@@ -39,10 +48,19 @@ class DashboardTableViewController: UITableViewController {
     @IBOutlet weak var spo2RecordLabel00: UILabel!
     @IBOutlet weak var dateRecordLabel00: UILabel!
     
+
+
     var user : User?
+    let dashboardModel = DashboardDataModel.shared
+    private var currentPeriod: DashboardPeriod = .current
+
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        
+        UserDataModel.shared.loginUser(email: "ghanshyam@example.com", password: "password121")
+        print(SeizureRecordDataModel.shared.getRecordsForCurrentUser())
         updateUI()
         
         applyDefaultTableBackground()
@@ -57,30 +75,308 @@ class DashboardTableViewController: UITableViewController {
         
         
         [currentCardView0, currentCardView1, currentCardView2, currentCardView3,
-             recordsCardView, bottomCardView0, bottomCardView1, seizureFrequencyChart].forEach {
+             recordsCardView, bottomCardView0, bottomCardView1, seizureFrequencyChartUpperView,sleepVsSeizureChartContainerView,timePatterChartContainerView,TriggerCorrelationChartContainerView].forEach {
                 $0?.applyDashboardCard()
             }
             [recordCardView0, recordCardView1].forEach {
                 $0?.applyRecordCard()
             }
         
-        weeklyMonthlySegment.applyPrimaryStyle()
         updateRecentRecords()
-        
-        setupChartContainer()
-        setupChartAppearance()
-        updateChartData()
-        barChart.renderer = RoundedBarChartRenderer(
-            dataProvider: barChart,
-            animator: barChart.chartAnimator,
-            viewPortHandler: barChart.viewPortHandler
+        addTrendChart()
+        setupPeriodMenu()
+        setupPeriodButton()
+        changePeriod(currentPeriod)
+        setupSeizureChartTitle()
+        setupSeizureChartFooter()
+        addSleepVsSeizureChart()
+        addTimePatternChart()
+        addTriggerCorrelationChart()
+    }
+    func addTriggerCorrelationChart() {
+
+        // 1️⃣ Fetch data from model
+        let triggerData = dashboardModel.getTriggerCorrelation()
+
+        // Safety check
+        guard !triggerData.isEmpty else { return }
+
+        // 2️⃣ Create SwiftUI chart
+        let chartView = TriggerCorrelationChart(data: triggerData)
+
+        // 3️⃣ Embed using UIHostingController
+        let hostingVC = UIHostingController(rootView: chartView)
+
+        addChild(hostingVC)
+        hostingVC.view.translatesAutoresizingMaskIntoConstraints = false
+        triggerCorrelationChart.addSubview(hostingVC.view)
+
+        NSLayoutConstraint.activate([
+            hostingVC.view.leadingAnchor.constraint(equalTo: triggerCorrelationChart.leadingAnchor),
+            hostingVC.view.trailingAnchor.constraint(equalTo: triggerCorrelationChart.trailingAnchor),
+            hostingVC.view.topAnchor.constraint(equalTo: triggerCorrelationChart.topAnchor),
+            hostingVC.view.bottomAnchor.constraint(equalTo: triggerCorrelationChart.bottomAnchor)
+        ])
+
+        hostingVC.didMove(toParent: self)
+    }
+
+    func addTimePatternChart() {
+
+        let data = dashboardModel.getTimeOfDayPattern(months: 3)
+
+        let chart = TimePatternChart(data: data)
+        let hostingVC = UIHostingController(rootView: chart)
+
+        addChild(hostingVC)
+        hostingVC.view.translatesAutoresizingMaskIntoConstraints = false
+        timePatternChart.addSubview(hostingVC.view)
+
+        NSLayoutConstraint.activate([
+            hostingVC.view.leadingAnchor.constraint(equalTo: timePatternChart.leadingAnchor),
+            hostingVC.view.trailingAnchor.constraint(equalTo: timePatternChart.trailingAnchor),
+            hostingVC.view.topAnchor.constraint(equalTo: timePatternChart.topAnchor),
+            hostingVC.view.bottomAnchor.constraint(equalTo: timePatternChart.bottomAnchor)
+        ])
+
+        hostingVC.didMove(toParent: self)
+    }
+
+    func addSleepVsSeizureChart() {
+
+        let data = dashboardModel.getSleepVsSeizure()
+
+        let chart = SleepVsSeizureChart(data: data)
+        let hostingVC = UIHostingController(rootView: chart)
+
+        addChild(hostingVC)
+        hostingVC.view.translatesAutoresizingMaskIntoConstraints = false
+        sleepVsSeizureChart.addSubview(hostingVC.view)
+
+        NSLayoutConstraint.activate([
+            hostingVC.view.leadingAnchor.constraint(equalTo: sleepVsSeizureChart.leadingAnchor),
+            hostingVC.view.trailingAnchor.constraint(equalTo: sleepVsSeizureChart.trailingAnchor),
+            hostingVC.view.topAnchor.constraint(equalTo: sleepVsSeizureChart.topAnchor),
+            hostingVC.view.bottomAnchor.constraint(equalTo: sleepVsSeizureChart.bottomAnchor)
+        ])
+
+        hostingVC.didMove(toParent: self)
+    }
+
+
+    func setupSeizureChartFooter() {
+
+        let currentAvg = dashboardModel.getCurrentPeriodAverage(period: currentPeriod)
+        let previousAvg = dashboardModel.getPreviousPeriodAverage(period: currentPeriod)
+
+        let insight = SeizureInsightGenerator.generate(
+            current: currentAvg,
+            previous: previousAvg,
+            period: currentPeriod
         )
 
+        // ---------- ICON ----------
+        let symbolConfig = UIImage.SymbolConfiguration(
+            pointSize: 14,
+            weight: .semibold,
+            scale: .medium
+        )
+
+        seizureChartBottomIcon.image = UIImage(
+            systemName: insight.iconName,
+            withConfiguration: symbolConfig
+        )?.withRenderingMode(.alwaysTemplate)
+
+        seizureChartBottomIcon.tintColor = insight.color
+        seizureChartBottomIcon.contentMode = .scaleAspectFit
+
+        // ---------- LABEL ----------
+        seizureChartBottomMetricsLabel.text = insight.text
+        seizureChartBottomMetricsLabel.font =
+            UIFont.systemFont(ofSize: 14, weight: .medium)
+        seizureChartBottomMetricsLabel.textColor =
+            UIColor.darkGray.withAlphaComponent(0.9)
+        seizureChartBottomMetricsLabel.numberOfLines = 0
     }
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        barChart.frame = seizureFrequencyChart.bounds
+
+
+    func setupSeizureChartTitle() {
+        seizureChartLabel.text = "Seizure Frequency"
+        seizureChartLabel.font = UIFont.systemFont(ofSize: 20, weight: .semibold)
+        seizureChartLabel.textColor = UIColor.darkGray
+        seizureChartLabel.numberOfLines = 1
     }
+
+    func setupPeriodButton() {
+        periodButton.setTitle(currentPeriod.title, for: .normal)
+        periodButton.setImage(UIImage(systemName: "chevron.down"), for: .normal)
+
+        periodButton.semanticContentAttribute = .forceRightToLeft
+        periodButton.tintColor = .darkGray
+        periodButton.setTitleColor(.darkGray, for: .normal)
+
+        periodButton.titleLabel?.font = UIFont.systemFont(ofSize: 14, weight: .medium)
+
+        periodButton.contentEdgeInsets = UIEdgeInsets(
+            top: 4,
+            left: 8,
+            bottom: 4,
+            right: 8
+        )
+
+        periodButton.showsMenuAsPrimaryAction = true
+    }
+
+
+    func changePeriod(_ period: DashboardPeriod) {
+        currentPeriod = period
+        periodButton.setTitle(period.title, for: .normal)
+        updatePeriod(period)
+        setupPeriodMenu()
+        setupSeizureChartFooter()
+    }
+
+    func setupPeriodMenu() {
+        let daily = UIAction(
+            title: "Daily",
+            state: currentPeriod == .current ? .on : .off
+        ) { _ in
+            self.changePeriod(.current)
+        }
+
+        let weekly = UIAction(
+            title: "Weekly",
+            state: currentPeriod == .weekly ? .on : .off
+        ) { _ in
+            self.changePeriod(.weekly)
+        }
+
+        let monthly = UIAction(
+            title: "Monthly",
+            state: currentPeriod == .monthly ? .on : .off
+        ) { _ in
+            self.changePeriod(.monthly)
+        }
+
+        periodButton.menu = UIMenu(children: [daily, weekly, monthly])
+    }
+
+    
+    func updatePeriod(_ period: DashboardPeriod) {
+
+        // Remove old chart
+        seizureFrequencyChartContainer.subviews.forEach {
+            $0.removeFromSuperview()
+        }
+
+        // Add new chart for selected period
+        addSeizureFrequencyChart(period: period)
+    }
+
+
+
+    func addSeizureFrequencyChart(period: DashboardPeriod) {
+
+        let data = dashboardModel.getSeizureFrequency(period: period)
+        let sortedData = data.sorted { $0.date < $1.date }
+
+        let chartView = SeizureFrequencyChart(
+            data: sortedData,
+            period: period
+        )
+
+        let hostingVC = UIHostingController(rootView: chartView)
+
+        addChild(hostingVC)
+        hostingVC.view.translatesAutoresizingMaskIntoConstraints = false
+        seizureFrequencyChartContainer.addSubview(hostingVC.view)
+
+        NSLayoutConstraint.activate([
+            hostingVC.view.leadingAnchor.constraint(equalTo: seizureFrequencyChartContainer.leadingAnchor),
+            hostingVC.view.trailingAnchor.constraint(equalTo: seizureFrequencyChartContainer.trailingAnchor),
+            hostingVC.view.topAnchor.constraint(equalTo: seizureFrequencyChartContainer.topAnchor),
+            hostingVC.view.bottomAnchor.constraint(equalTo: seizureFrequencyChartContainer.bottomAnchor)
+        ])
+
+        hostingVC.didMove(toParent: self)
+    }
+
+    func debugDashboardData() {
+
+            print("\n================ DASHBOARD DEBUG ================\n")
+
+            // ------------------------------
+            // TOP 4 CARDS
+            // ------------------------------
+            let summary = dashboardModel.getDashboardSummary()
+
+            print("📊 DASHBOARD SUMMARY")
+            print("Avg Monthly Seizures:", summary.avgMonthlySeizures)
+            print("Most Common Time:", summary.mostCommonTime.rawValue)
+            print("Avg Duration (sec):", summary.avgDuration)
+            print("Avg Sleep (hrs):", summary.avgSleepHours)
+
+            print("\n-----------------------------------------------\n")
+
+            // ------------------------------
+            // SEIZURE FREQUENCY
+            // ------------------------------
+            print("📈 DAILY FREQUENCY")
+            dashboardModel.getDailyFrequency().forEach {
+                print("Date:", $0.date, "| Count:", $0.count)
+            }
+
+            print("\n📈 WEEKLY FREQUENCY")
+            dashboardModel.getWeeklyFrequency().forEach {
+                print("Week Start:", $0.date, "| Count:", $0.count)
+            }
+
+            print("\n📈 MONTHLY FREQUENCY")
+            dashboardModel.getMonthlyFrequency().forEach {
+                print("Month Start:", $0.date, "| Count:", $0.count)
+            }
+
+            print("\n-----------------------------------------------\n")
+
+            // ------------------------------
+            // TIME OF DAY PATTERN
+            // ------------------------------
+            print("🕒 TIME OF DAY PATTERN")
+            dashboardModel.getTimeOfDayPattern().forEach {
+                print("Bucket:", $0.bucket.rawValue, "| Count:", $0.count)
+            }
+
+            print("\n-----------------------------------------------\n")
+
+            // ------------------------------
+            // SLEEP VS SEIZURE
+            // ------------------------------
+            print("😴 SLEEP VS SEIZURE")
+            dashboardModel.getSleepVsSeizure().forEach {
+                print(
+                    "Date:", $0.date,
+                    "| Sleep:", String(format: "%.1f", $0.sleepHours),
+                    "| Seizures:", $0.seizureCount
+                )
+            }
+
+            print("\n-----------------------------------------------\n")
+
+            // ------------------------------
+            // TRIGGER CORRELATION
+            // ------------------------------
+            print("⚠️ TRIGGER CORRELATION")
+            dashboardModel.getTriggerCorrelation().forEach {
+                print(
+                    "Trigger:", $0.trigger.rawValue,
+                    "| Percent:", String(format: "%.1f%%", $0.percent)
+                )
+            }
+
+            print("\n=============== END DEBUG =================\n")
+        }
+        
+    
     func updateUI(){
         let user = UserDataModel.shared.getCurrentUser()
         guard let user else {return}
@@ -222,193 +518,47 @@ class DashboardTableViewController: UITableViewController {
         spacer.backgroundColor = .clear
         return spacer
     }
-    func setupChartContainer() {
-        barChart.frame = seizureFrequencyChart.bounds
-        barChart.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        seizureFrequencyChart.addSubview(barChart)
-    }
-    func setupChartAppearance() {
-
-        barChart.legend.enabled = false
-        barChart.rightAxis.enabled = false
-        barChart.doubleTapToZoomEnabled = false
-        barChart.pinchZoomEnabled = false
-        barChart.dragEnabled = false
-        barChart.setScaleEnabled(false)
-        barChart.drawBarShadowEnabled = false
-        barChart.drawGridBackgroundEnabled = false
-
-        // X-Axis
-        let xAxis = barChart.xAxis
-        xAxis.labelPosition = .bottom
-        xAxis.drawGridLinesEnabled = false
-        xAxis.drawAxisLineEnabled = false
-        xAxis.valueFormatter = IndexAxisValueFormatter(values: ["Jan","Feb","Mar","Apr","May","Jun"])
-        xAxis.labelFont = UIFont.systemFont(ofSize: 12, weight: .medium)
-        xAxis.labelTextColor = UIColor.darkGray
-        xAxis.granularity = 1
-
-        // Y-Axis
-        let leftAxis = barChart.leftAxis
-        leftAxis.axisMinimum = 0
-        leftAxis.gridColor = UIColor.lightGray.withAlphaComponent(0.2)
-        leftAxis.drawAxisLineEnabled = false
-        leftAxis.labelFont = UIFont.systemFont(ofSize: 12)
-        leftAxis.labelTextColor = UIColor.lightGray
-
-        // Hide right axis
-        barChart.rightAxis.enabled = false
-
-        // Animation
-        barChart.animate(yAxisDuration: 0.7)
-
-    }
-
-    func updateChartData() {
-        let values = [8, 12, 10, 15, 7, 11]
-        var entries: [BarChartDataEntry] = []
-
-        for (i, v) in values.enumerated() {
-            entries.append(BarChartDataEntry(x: Double(i), y: Double(v)))
-        }
-
-        let dataSet = BarChartDataSet(entries: entries)
-
-        // Figma pastel colors
-        dataSet.colors = [
-            UIColor(red: 0.78, green: 0.51, blue: 1.0, alpha: 1.0),
-            UIColor(red: 0.40, green: 0.67, blue: 0.67, alpha: 1.0),
-            UIColor(red: 0.47, green: 0.68, blue: 1.0, alpha: 1.0),
-            UIColor(red: 0.55, green: 0.53, blue: 1.0, alpha: 1.0),
-            UIColor(red: 0.53, green: 0.80, blue: 0.93, alpha: 1.0),
-            UIColor(red: 0.62, green: 0.78, blue: 1.0, alpha: 1.0)
+    
+    func addTrendChart() {
+        let trendData = [
+            SeizureTrend(day: "Mon", count: 2),
+            SeizureTrend(day: "Tue", count: 1),
+            SeizureTrend(day: "Wed", count: 3),
+            SeizureTrend(day: "Thu", count: 0),
+            SeizureTrend(day: "Fri", count: 1)
         ]
 
-        // REMOVE labels above bars
-        dataSet.drawValuesEnabled = false
+        let chart = SeizureTrendChart(data: trendData)
+        let hostingController = UIHostingController(rootView: chart)
 
-        let data = BarChartData(dataSet: dataSet)
-        data.barWidth = 0.4
+        addChild(hostingController)
+        hostingController.view.translatesAutoresizingMaskIntoConstraints = false
+        spo2ChartView.addSubview(hostingController.view)
 
-        barChart.data = data
-        barChart.setNeedsLayout()
-        barChart.layoutIfNeeded()
+        // constraints so it fills the container
+        NSLayoutConstraint.activate([
+            hostingController.view.leadingAnchor.constraint(equalTo: spo2ChartView.leadingAnchor),
+            hostingController.view.trailingAnchor.constraint(equalTo: spo2ChartView.trailingAnchor),
+            hostingController.view.topAnchor.constraint(equalTo: spo2ChartView.topAnchor),
+            hostingController.view.bottomAnchor.constraint(equalTo: spo2ChartView.bottomAnchor)
+        ])
+
+        hostingController.didMove(toParent: self)
+
+        
     }
 
 }
 
-class RoundedBarChartView: BarChartView {
-    var onLayout: (() -> Void)?
-
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        DispatchQueue.main.async { [weak self] in
-            self?.onLayout?()
+extension DashboardPeriod {
+    var title: String {
+        switch self {
+        case .current:
+            return "Daily"
+        case .weekly:
+            return "Weekly"
+        case .monthly:
+            return "Monthly"
         }
-    }
-}
-
-
-import DGCharts
-import UIKit
-
-final class RoundedBarChartRenderer: BarChartRenderer {
-
-    // Match base initializer isolation
-    nonisolated
-    override init(dataProvider: BarChartDataProvider,
-                  animator: Animator,
-                  viewPortHandler: ViewPortHandler) {
-        super.init(dataProvider: dataProvider,
-                   animator: animator,
-                   viewPortHandler: viewPortHandler)
-    }
-
-    // Override the data-drawing entry point used by Chart library
-    nonisolated
-    override func drawData(context: CGContext) {
-        guard
-            let dataProvider = dataProvider,
-            let barData = dataProvider.barData
-        else { return }
-
-        // Loop datasets and draw rounded bars for bar datasets
-        for dataSetIndex in 0 ..< barData.dataSetCount {
-            guard
-                let dataSet = barData[dataSetIndex] as? BarChartDataSetProtocol,
-                dataSet.entryCount > 0
-            else { continue }
-
-            drawRoundedDataSet(context: context,
-                               dataSet: dataSet,
-                               dataSetIndex: dataSetIndex,
-                               dataProvider: dataProvider,
-                               barData: barData)
-        }
-    }
-
-    private func drawRoundedDataSet(
-        context: CGContext,
-        dataSet: BarChartDataSetProtocol,
-        dataSetIndex: Int,
-        dataProvider: BarChartDataProvider,
-        barData: BarChartData
-    ) {
-        // Transformer for the axis the dataset belongs to
-        let trans = dataProvider.getTransformer(forAxis: dataSet.axisDependency)
-
-        // bar width from barData (DGCharts exposes this)
-        let barWidth = barData.barWidth
-
-        // We'll build a simple buffer [left, top, right, bottom] per bar (in value coords)
-        var valueRect = CGRect.zero
-
-        context.saveGState()
-
-        // iterate entries
-        for entryIndex in 0 ..< dataSet.entryCount {
-            guard let e = dataSet.entryForIndex(entryIndex) as? BarChartDataEntry else { continue }
-
-            // value-space rectangle for the bar (centered at x, extends to y)
-            let x = CGFloat(e.x)
-            let y = CGFloat(e.y)
-
-            // left/right in value coords
-            let left = x - CGFloat(barWidth) / 2.0
-            let right = x + CGFloat(barWidth) / 2.0
-
-            // top/bottom in value coords — chart uses positive/negative y to determine direction
-            // keep bars growing from 0 to y (works for positive-only data; adjust if needed)
-            let topValue = max(y, 0)
-            let bottomValue = min(y, 0)
-
-            valueRect.origin.x = left
-            valueRect.origin.y = topValue
-            valueRect.size.width = right - left
-            valueRect.size.height = bottomValue - topValue
-
-            // Convert value-space rect -> pixels
-            trans.rectValueToPixel(&valueRect)
-
-            // If rect is degenerate, skip
-            if valueRect.isEmpty || valueRect.width.isNaN || valueRect.height.isNaN { continue }
-
-
-            // Top-left & top-right corners rounded
-            let radius: CGFloat = 6.0
-            let path = UIBezierPath(
-                roundedRect: valueRect,
-                byRoundingCorners: [.topLeft, .topRight],
-                cornerRadii: CGSize(width: radius, height: radius)
-            )
-
-            // Obtain color for this entry (dataSet.color(atIndex:) expects an Int index)
-            let color = dataSet.color(atIndex: entryIndex)
-            context.setFillColor(color.cgColor)
-            context.addPath(path.cgPath)
-            context.fillPath()
-        }
-
-        context.restoreGState()
     }
 }
