@@ -26,11 +26,6 @@ struct TriggerCorrelationChart: View {
             chartView
         }
         .padding(20)
-        .background(
-            RoundedRectangle(cornerRadius: 18)
-                .fill(Color(uiColor: .systemBackground))
-        )
-        .shadow(color: .black.opacity(0.04), radius: 8, y: 6)
     }
 
     // MARK: - Subviews

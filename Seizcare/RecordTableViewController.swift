@@ -22,10 +22,14 @@ class RecordTableViewController: UITableViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        tableView.rowHeight = UITableView.automaticDimension
+        tableView.estimatedRowHeight = 300
         applyDefaultTableBackground()
         navigationController?.applyWhiteNavBar()
         loadAndGroupRecords()
         setupBottomSearchBar()
+        tableView.separatorStyle = .none
+        tableView.backgroundColor = UIColor.systemGroupedBackground
     }
     
     // MARK: - Load + Group
@@ -73,36 +77,41 @@ class RecordTableViewController: UITableViewController {
 
     // MARK: - Rows
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return recordsBySection[section].count
+        return 1
     }
 
     override func tableView(_ tableView: UITableView,
                             cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        
-        let cell = tableView.dequeueReusableCell(withIdentifier: "RecordCell", for: indexPath) as! RecordTableViewCell
-        let record = recordsBySection[indexPath.section][indexPath.row]
+        print("🚀 cellForRowAt called for section:", indexPath.section)
+        let cell = tableView.dequeueReusableCell(
+                withIdentifier: "MonthlyRecordsCell",
+                for: indexPath
+            ) as! MonthlyRecordsCell
 
-        // Format date
-        let formatter = DateFormatter()
-        formatter.dateFormat = "dd MMM"
-        let formattedDate = formatter.string(from: record.dateTime).uppercased()
+            let records = recordsBySection[indexPath.section]
+            cell.configure(records: records)
 
-        // Cell UI
-        cell.dateLabel.text = formattedDate
-        
-        if record.entryType == .automatic {
-            cell.seizureLevelLabel.text = record.type?.rawValue.capitalized ?? "Automatic"
-            
-            if let dur = record.duration {
-                cell.durationLabel.text = formatDuration(dur)
-            } else {
-                cell.durationLabel.text = "--"
-            }
-        } else {
-            // manual record
-            cell.seizureLevelLabel.text = record.title ?? "Manual Log"
-            cell.durationLabel.text = record.description ?? ""
-        }
+//        // Format date
+//        let formatter = DateFormatter()
+//        formatter.dateFormat = "dd MMM"
+//        let formattedDate = formatter.string(from: record.dateTime).uppercased()
+//
+//        // Cell UI
+//        cell.dateLabel.text = formattedDate
+//        
+//        if record.entryType == .automatic {
+//            cell.seizureLevelLabel.text = record.type?.rawValue.capitalized ?? "Automatic"
+//            
+//            if let dur = record.duration {
+//                cell.durationLabel.text = formatDuration(dur)
+//            } else {
+//                cell.durationLabel.text = "--"
+//            }
+//        } else {
+//            // manual record
+//            cell.seizureLevelLabel.text = record.title ?? "Manual Log"
+//            cell.durationLabel.text = record.description ?? ""
+//        }
         return cell
     }
 

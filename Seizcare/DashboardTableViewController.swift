@@ -25,8 +25,6 @@ class DashboardTableViewController: UITableViewController {
     @IBOutlet weak var seizureFrequencyChartUpperView: UIView!
     @IBOutlet weak var recordCardView1: UIView!
     @IBOutlet weak var recordCardView0: UIView!
-    @IBOutlet weak var bottomCardView1: UIView!
-    @IBOutlet weak var bottomCardView0: UIView!
     @IBOutlet weak var recordsCardView: UIView!
     @IBOutlet weak var currentCardView3: UIView!
     @IBOutlet weak var currentCardView2: UIView!
@@ -57,10 +55,10 @@ class DashboardTableViewController: UITableViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+
         
         UserDataModel.shared.loginUser(email: "ghanshyam@example.com", password: "password121")
-        print(SeizureRecordDataModel.shared.getRecordsForCurrentUser())
+ 
         updateUI()
         
         applyDefaultTableBackground()
@@ -75,7 +73,7 @@ class DashboardTableViewController: UITableViewController {
         
         
         [currentCardView0, currentCardView1, currentCardView2, currentCardView3,
-             recordsCardView, bottomCardView0, bottomCardView1, seizureFrequencyChartUpperView,sleepVsSeizureChartContainerView,timePatterChartContainerView,TriggerCorrelationChartContainerView].forEach {
+             recordsCardView, seizureFrequencyChartUpperView,sleepVsSeizureChartContainerView,timePatterChartContainerView,TriggerCorrelationChartContainerView].forEach {
                 $0?.applyDashboardCard()
             }
             [recordCardView0, recordCardView1].forEach {
@@ -93,6 +91,8 @@ class DashboardTableViewController: UITableViewController {
         addTimePatternChart()
         addTriggerCorrelationChart()
     }
+    
+    
     func addTriggerCorrelationChart() {
 
         // 1️⃣ Fetch data from model
