@@ -17,16 +17,57 @@ class SignUpTableViewController: UITableViewController {
     @IBOutlet weak var genderButton: UIButton!
     @IBOutlet weak var passwordField: UITextField!
     private var selectedGender: Gender = .male
-
+    @IBOutlet weak var confirmPasswordField: UITextField!
+    
        let datePicker = UIDatePicker()
+    
+    private func configureTextFields() {
+
+        // Full Name
+        fullNameField.keyboardType = .default
+        fullNameField.textContentType = .name
+        fullNameField.autocapitalizationType = .words
+        fullNameField.autocorrectionType = .no
+
+        // Email
+        emailField.keyboardType = .emailAddress
+        emailField.textContentType = .emailAddress
+        emailField.autocapitalizationType = .none
+        emailField.autocorrectionType = .no
+
+        // Phone
+        phoneField.keyboardType = .numberPad
+        phoneField.textContentType = .telephoneNumber
+
+        // Password
+        passwordField.isSecureTextEntry = true
+        passwordField.textContentType = .newPassword
+        passwordField.autocapitalizationType = .none
+        passwordField.autocorrectionType = .no
+
+        // Confirm Password
+        confirmPasswordField.isSecureTextEntry = true
+        confirmPasswordField.textContentType = .password
+        confirmPasswordField.autocapitalizationType = .none
+        confirmPasswordField.autocorrectionType = .no
+    }
+
 
        // MARK: - View Lifecycle
-       override func viewDidLoad() {
-           super.viewDidLoad()
-           setupGenderMenu()
-           configureDatePickerForDOB()  
-     
-       }
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        setupGenderMenu()
+        configureDatePickerForDOB()
+        configureTextFields()
+
+        genderButton.setTitle(selectedGender.rawValue.capitalized, for: .normal)
+
+        tableView.allowsSelection = false
+        tableView.allowsMultipleSelection = false
+    }
+
+
     let dateFormatter: DateFormatter = {
         let df = DateFormatter()
         df.dateFormat = "yyyy-MM-dd"
@@ -60,6 +101,8 @@ class SignUpTableViewController: UITableViewController {
                          state: selected == .unspecified ? .on : .off,
                          handler: { [weak self] _ in self?.setGender(.unspecified) })
             ])
+        genderButton.showsMenuAsPrimaryAction = true
+
         }
 
         private func setGender(_ gender: Gender) {
@@ -100,6 +143,9 @@ class SignUpTableViewController: UITableViewController {
 
        // MARK: - Create Account
        @IBAction func createAccountTapped(_ sender: UIButton) {
+           guard validatePasswords() else {
+                   return
+               }
 
            let fullName = fullNameField.text ?? ""
            let email = emailField.text ?? ""
@@ -144,6 +190,32 @@ class SignUpTableViewController: UITableViewController {
            // Navigate after signup
            performSegue(withIdentifier: "goToSignupSuccess", sender: self)
        }
+    // MARK: - Validate Password
+    
+    func validatePasswords() -> Bool {
+        guard let password = passwordField.text,
+              let confirmPassword = confirmPasswordField.text else {
+            return false
+        }
+
+        if password.isEmpty || confirmPassword.isEmpty {
+            showAlert("Please fill in both password fields.")
+            return false
+        }
+
+        if password.count < 6 {
+            showAlert("Password must be at least 6 characters long.")
+            return false
+        }
+
+        if password != confirmPassword {
+            showAlert("Password and Confirm Password do not match.")
+            return false
+        }
+
+        return true
+    }
+
 
        // MARK: - Alert Helper
        func showAlert(_ msg: String) {
