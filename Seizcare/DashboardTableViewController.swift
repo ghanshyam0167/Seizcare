@@ -491,32 +491,23 @@ class DashboardTableViewController: UITableViewController {
         if section == 0 {
             return UITableView.automaticDimension   // allow “Current Status” to show normally
         }
-        return 1   // spacing above all other sections
+        return 0   // spacing above all other sections
     }
 
     override func tableView(_ tableView: UITableView,
                             viewForHeaderInSection section: Int) -> UIView? {
-
-        if section == 0 {
-            return nil   // storyboard header will be shown
-        }
-
-        let spacer = UIView()
-        spacer.backgroundColor = .clear
-        return spacer
+        return nil
     }
 
     // FOOTER (space below each section)
     override func tableView(_ tableView: UITableView,
                             heightForFooterInSection section: Int) -> CGFloat {
-        return 1
+        return 0
     }
-
+//
     override func tableView(_ tableView: UITableView,
                             viewForFooterInSection section: Int) -> UIView? {
-        let spacer = UIView()
-        spacer.backgroundColor = .clear
-        return spacer
+        return nil
     }
     
     func addTrendChart() {
