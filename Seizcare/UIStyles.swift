@@ -33,15 +33,18 @@ extension UIView {
     func applyDashboardCard() {
         layer.cornerRadius = 16
         layer.masksToBounds = false
-        layer.borderColor = UIColor(white: 0.9, alpha: 1).cgColor
-        layer.borderWidth = 0.6
+
+        layer.borderColor = UIColor(white: 0.92, alpha: 1).cgColor
+        layer.borderWidth = 0.5
         backgroundColor = .white
 
-        layer.shadowColor = UIColor.black.cgColor
-        layer.shadowOpacity = 0.08
-        layer.shadowRadius = 12
-        layer.shadowOffset = CGSize(width: 0, height: 6)
+        // Minimal blue shadow (#3B82F6)
+        layer.shadowColor = UIColor(red: 59/255, green: 130/255, blue: 246/255, alpha: 1).cgColor
+        layer.shadowOpacity = 0.16
+        layer.shadowRadius = 6
+        layer.shadowOffset = CGSize(width: 0, height: 3)
     }
+
 
     func applyRecordCard() {
         backgroundColor = .white
