@@ -42,18 +42,10 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		3F62061A2EEBDAD5001975DA /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = Frameworks;
-			sourceTree = "<group>";
-		};
 		3F9A8C1A2ECD7CB500DF37E6 = {
 			isa = PBXGroup;
 			children = (
 				3F9A8C252ECD7CB500DF37E6 /* Seizcare */,
-				3F62061A2EEBDAD5001975DA /* Frameworks */,
 				3F9A8C242ECD7CB500DF37E6 /* Products */,
 			);
 			sourceTree = "<group>";

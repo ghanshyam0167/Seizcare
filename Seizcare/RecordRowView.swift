@@ -7,9 +7,52 @@
 
 import UIKit
 
+enum RecordIcon {
+
+    case manual
+    case mild
+    case moderate
+    case severe
+
+    var image: UIImage? {
+        switch self {
+        case .manual:
+            return UIImage(systemName: "book.closed.fill")
+
+        case .mild:
+            return UIImage(systemName: "exclamationmark.triangle")
+
+        case .moderate:
+            return UIImage(systemName: "exclamationmark.triangle.fill")
+
+        case .severe:
+            return UIImage(systemName: "exclamationmark.triangle.fill")
+        }
+    }
+
+    var tintColor: UIColor {
+        switch self {
+        case .manual:
+            return UIColor.systemBlue
+
+        case .mild:
+            return UIColor.systemOrange
+
+        case .moderate:
+            return UIColor.systemRed.withAlphaComponent(0.85)
+
+        case .severe:
+            return UIColor.systemRed
+        }
+    }
+}
+
+
 final class RecordRowView: UIView {
 
     private let container = UIView()
+    private weak var iconView: UIImageView?
+
 
     init(record: SeizureRecord) {
         super.init(frame: .zero)
@@ -33,10 +76,12 @@ final class RecordRowView: UIView {
         ])
 
         // Main horizontal row
-        let icon = UIImageView(image: UIImage(systemName: "exclamationmark.triangle.fill"))
-        icon.tintColor = .systemRed
+        let icon = UIImageView()
+        icon.contentMode = .scaleAspectFit
         icon.widthAnchor.constraint(equalToConstant: 28).isActive = true
         icon.heightAnchor.constraint(equalToConstant: 28).isActive = true
+
+        self.iconView = icon
 
         let titleLabel = UILabel()
         titleLabel.font = .systemFont(ofSize: 16, weight: .semibold)
@@ -80,8 +125,7 @@ final class RecordRowView: UIView {
             rowStack.topAnchor.constraint(equalTo: container.topAnchor, constant: 12),
             rowStack.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -12),
         ])
-
-        // 🔥 THIS is the row-height stabilizer
+        
         container.heightAnchor.constraint(greaterThanOrEqualToConstant: 56).isActive = true
 
         // Save refs
@@ -95,6 +139,11 @@ final class RecordRowView: UIView {
     private weak var dateLabel: UILabel?
 
     private func configure(_ record: SeizureRecord) {
+
+        let icon = record.recordIcon
+        iconView?.image = icon.image
+        iconView?.tintColor = icon.tintColor
+
         titleLabel?.text = record.type?.rawValue.capitalized ?? "Manual Log"
 
         if let duration = record.duration {
@@ -108,5 +157,28 @@ final class RecordRowView: UIView {
         let formatter = DateFormatter()
         formatter.dateFormat = "dd MMM"
         dateLabel?.text = formatter.string(from: record.dateTime).uppercased()
+    }
+
+}
+
+extension SeizureRecord {
+
+    var recordIcon: RecordIcon {
+        // Manual entry
+        if entryType == .manual {
+            return .manual
+        }
+
+        // Automatic entry → severity based
+        switch type {
+        case .mild:
+            return .mild
+        case .moderate:
+            return .moderate
+        case .severe:
+            return .severe
+        default:
+            return .moderate
+        }
     }
 }

@@ -762,11 +762,11 @@
                                     <rect key="frame" x="0.0" y="0.0" width="393" height="80"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <subviews>
-                                        <view contentMode="scaleToFill" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="wos-YA-ZdV">
-                                            <rect key="frame" x="12" y="8" width="342.66666666666669" height="64"/>
+                                        <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="wos-YA-ZdV">
+                                            <rect key="frame" x="12" y="8" width="369" height="64"/>
                                             <subviews>
-                                                <stackView opaque="NO" contentMode="scaleToFill" ambiguous="YES" axis="vertical" spacingType="standard" translatesAutoresizingMaskIntoConstraints="NO" id="2Oi-Yx-OQt">
-                                                    <rect key="frame" x="0.0" y="0.0" width="342.66666666666669" height="64"/>
+                                                <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacingType="standard" translatesAutoresizingMaskIntoConstraints="NO" id="2Oi-Yx-OQt">
+                                                    <rect key="frame" x="0.0" y="0.0" width="369" height="64"/>
                                                 </stackView>
                                             </subviews>
                                             <color key="backgroundColor" systemColor="systemBackgroundColor"/>
@@ -781,7 +781,7 @@
                                     <constraints>
                                         <constraint firstItem="wos-YA-ZdV" firstAttribute="top" secondItem="834-Wb-QQD" secondAttribute="top" constant="8" id="0B2-mh-aGW"/>
                                         <constraint firstAttribute="bottom" secondItem="wos-YA-ZdV" secondAttribute="bottom" constant="8" id="Frx-Vi-PLf"/>
-                                        <constraint firstAttribute="trailing" relation="lessThanOrEqual" secondItem="wos-YA-ZdV" secondAttribute="trailing" constant="8" id="hdE-LM-qGp"/>
+                                        <constraint firstAttribute="trailing" secondItem="wos-YA-ZdV" secondAttribute="trailing" constant="12" id="hdE-LM-qGp"/>
                                         <constraint firstItem="wos-YA-ZdV" firstAttribute="leading" secondItem="834-Wb-QQD" secondAttribute="leading" constant="12" id="q7b-Xp-ulh"/>
                                     </constraints>
                                 </tableViewCellContentView>

@@ -25,10 +25,6 @@ class MonthlyRecordsCell: UITableViewCell {
         cardView.layer.cornerRadius = 20
         cardView.layer.masksToBounds = false
 
-        cardView.layer.shadowColor = UIColor.black.cgColor
-        cardView.layer.shadowOpacity = 0.06
-        cardView.layer.shadowRadius = 12
-        cardView.layer.shadowOffset = CGSize(width: 0, height: 8)
         cardView.applyDashboardCard()
     }
 
