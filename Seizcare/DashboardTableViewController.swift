@@ -21,7 +21,7 @@ class DashboardTableViewController: UITableViewController {
     @IBOutlet weak var seizureChartLabel: UILabel!
     @IBOutlet weak var periodButton: UIButton!
     @IBOutlet weak var seizureFrequencyChartContainer: UIView!
-    @IBOutlet weak var spo2ChartView: UIView!
+
     @IBOutlet weak var seizureFrequencyChartUpperView: UIView!
     @IBOutlet weak var recordCardView1: UIView!
     @IBOutlet weak var recordCardView0: UIView!
@@ -56,6 +56,7 @@ class DashboardTableViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
+
         
         UserDataModel.shared.loginUser(email: "ghanshyam@example.com", password: "password121")
  
@@ -81,7 +82,6 @@ class DashboardTableViewController: UITableViewController {
             }
         
         updateRecentRecords()
-        addTrendChart()
         setupPeriodMenu()
         setupPeriodButton()
         changePeriod(currentPeriod)
@@ -378,6 +378,10 @@ class DashboardTableViewController: UITableViewController {
         
     
     func updateUI(){
+        
+//        tableView.estimatedSectionHeaderHeight = 0
+//        tableView.estimatedSectionFooterHeight = 0
+//        tableView.estimatedRowHeight = 200
         let user = UserDataModel.shared.getCurrentUser()
         guard let user else {return}
         
@@ -491,7 +495,7 @@ class DashboardTableViewController: UITableViewController {
         if section == 0 {
             return UITableView.automaticDimension   // allow “Current Status” to show normally
         }
-        return 0   // spacing above all other sections
+        return 2   // spacing above all other sections
     }
 
     override func tableView(_ tableView: UITableView,
@@ -502,43 +506,13 @@ class DashboardTableViewController: UITableViewController {
     // FOOTER (space below each section)
     override func tableView(_ tableView: UITableView,
                             heightForFooterInSection section: Int) -> CGFloat {
-        return 0
+        return 2
     }
 //
     override func tableView(_ tableView: UITableView,
                             viewForFooterInSection section: Int) -> UIView? {
         return nil
     }
-    
-    func addTrendChart() {
-        let trendData = [
-            SeizureTrend(day: "Mon", count: 2),
-            SeizureTrend(day: "Tue", count: 1),
-            SeizureTrend(day: "Wed", count: 3),
-            SeizureTrend(day: "Thu", count: 0),
-            SeizureTrend(day: "Fri", count: 1)
-        ]
-
-        let chart = SeizureTrendChart(data: trendData)
-        let hostingController = UIHostingController(rootView: chart)
-
-        addChild(hostingController)
-        hostingController.view.translatesAutoresizingMaskIntoConstraints = false
-        spo2ChartView.addSubview(hostingController.view)
-
-        // constraints so it fills the container
-        NSLayoutConstraint.activate([
-            hostingController.view.leadingAnchor.constraint(equalTo: spo2ChartView.leadingAnchor),
-            hostingController.view.trailingAnchor.constraint(equalTo: spo2ChartView.trailingAnchor),
-            hostingController.view.topAnchor.constraint(equalTo: spo2ChartView.topAnchor),
-            hostingController.view.bottomAnchor.constraint(equalTo: spo2ChartView.bottomAnchor)
-        ])
-
-        hostingController.didMove(toParent: self)
-
-        
-    }
-
 }
 
 extension DashboardPeriod {

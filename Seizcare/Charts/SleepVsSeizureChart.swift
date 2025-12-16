@@ -160,12 +160,13 @@ struct SleepVsSeizureChart: View {
                         .font(.caption2)
                         .foregroundColor(.secondary)
                 }
+                Spacer()
             }
             .padding(.top, -15)
             .padding(.trailing, 10)
             .allowsHitTesting(false)
         }
-        .padding(10)
+        .padding(20)
     }
 
 
