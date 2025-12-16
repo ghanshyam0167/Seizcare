@@ -12,55 +12,123 @@
 
 import UIKit
 
-class RecordTableViewController: UITableViewController {
+class RecordTableViewController: UITableViewController,UISearchResultsUpdating {
+    func updateSearchResults(for searchController: UISearchController) {
+        let query = searchController.searchBar.text?.lowercased() ?? ""
+
+        if query.isEmpty {
+            isSearching = false
+            groupAndReload(allRecords)
+            return
+        }
+
+        isSearching = true
+
+        let filtered = allRecords.filter { record in
+            let titleMatch = record.title?.lowercased().contains(query) ?? false
+            let typeMatch = record.type?.rawValue.lowercased().contains(query) ?? false
+            let descMatch = record.description?.lowercased().contains(query) ?? false
+
+            let formatter = DateFormatter()
+            formatter.dateFormat = "dd MMMM yyyy"
+            let dateMatch = formatter.string(from: record.dateTime).lowercased().contains(query)
+
+            return titleMatch || typeMatch || descMatch || dateMatch
+        }
+
+        groupAndReload(filtered)
+    }
+
+    
 
     // Dynamic section titles
     var sectionTitles: [String] = []
     
     // Grouped records by month
     var recordsBySection: [[SeizureRecord]] = []
+    
+    private var allRecords: [SeizureRecord] = []
+    private var isSearching = false
+
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        tableView.rowHeight = UITableView.automaticDimension
+        tableView.estimatedRowHeight = 300
         applyDefaultTableBackground()
         navigationController?.applyWhiteNavBar()
         loadAndGroupRecords()
         setupBottomSearchBar()
+        tableView.separatorStyle = .none
+        tableView.backgroundColor = UIColor.systemGroupedBackground
     }
+    
     
     // MARK: - Load + Group
     func loadAndGroupRecords() {
         let records = SeizureRecordDataModel.shared.getRecordsForCurrentUser()
-        // Group by month
-        print(records)
+            allRecords = records
+            groupAndReload(records)
+//        let records = SeizureRecordDataModel.shared.getRecordsForCurrentUser()
+//        // Group by month
+//
+//        let grouped = Dictionary(grouping: records) { record -> String in
+//            let formatter = DateFormatter()
+//            formatter.dateFormat = "MMMM"
+//            return formatter.string(from: record.dateTime).uppercased()
+//        }
+//
+//        // Sort sections by most recent month first
+//        sectionTitles = grouped.keys.sorted { title1, title2 in
+//            let monthsOrder = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"]
+//            return monthsOrder.firstIndex(of: title1)! > monthsOrder.firstIndex(of: title2)!
+//        }
+//
+//        // Fill recordsBySection in the same order
+//        recordsBySection = sectionTitles.map { grouped[$0]!.sorted { $0.dateTime > $1.dateTime } }
+//        
+//        tableView.reloadData()
+    }
+    private func groupAndReload(_ records: [SeizureRecord]) {
         let grouped = Dictionary(grouping: records) { record -> String in
             let formatter = DateFormatter()
             formatter.dateFormat = "MMMM"
             return formatter.string(from: record.dateTime).uppercased()
         }
 
-        // Sort sections by most recent month first
-        sectionTitles = grouped.keys.sorted { title1, title2 in
-            let monthsOrder = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"]
-            return monthsOrder.firstIndex(of: title1)! > monthsOrder.firstIndex(of: title2)!
+        let monthsOrder = [
+            "JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE",
+            "JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"
+        ]
+
+        sectionTitles = grouped.keys.sorted {
+            monthsOrder.firstIndex(of: $0)! > monthsOrder.firstIndex(of: $1)!
         }
 
-        // Fill recordsBySection in the same order
-        recordsBySection = sectionTitles.map { grouped[$0]!.sorted { $0.dateTime > $1.dateTime } }
-        
+        recordsBySection = sectionTitles.map {
+            grouped[$0]!.sorted { $0.dateTime > $1.dateTime }
+        }
+
         tableView.reloadData()
     }
+
 
     // MARK: - Search bar stacked (iOS 16)
     func setupBottomSearchBar() {
         let searchController = UISearchController(searchResultsController: nil)
-        searchController.searchBar.placeholder = "Search"
+        searchController.searchBar.placeholder = "Search records"
+        searchController.obscuresBackgroundDuringPresentation = false
+        searchController.searchResultsUpdater = self
+
         navigationItem.searchController = searchController
-        
+
         if #available(iOS 16.0, *) {
             navigationItem.preferredSearchBarPlacement = .stacked
         }
+
+        definesPresentationContext = true
     }
+
 
     // MARK: - TableView Sections
     override func numberOfSections(in tableView: UITableView) -> Int {
@@ -73,36 +141,19 @@ class RecordTableViewController: UITableViewController {
 
     // MARK: - Rows
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return recordsBySection[section].count
+        return 1
     }
 
     override func tableView(_ tableView: UITableView,
                             cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        
-        let cell = tableView.dequeueReusableCell(withIdentifier: "RecordCell", for: indexPath) as! RecordTableViewCell
-        let record = recordsBySection[indexPath.section][indexPath.row]
+        let cell = tableView.dequeueReusableCell(
+                withIdentifier: "MonthlyRecordsCell",
+                for: indexPath
+            ) as! MonthlyRecordsCell
 
-        // Format date
-        let formatter = DateFormatter()
-        formatter.dateFormat = "dd MMM"
-        let formattedDate = formatter.string(from: record.dateTime).uppercased()
-
-        // Cell UI
-        cell.dateLabel.text = formattedDate
+            let records = recordsBySection[indexPath.section]
+            cell.configure(records: records)
         
-        if record.entryType == .automatic {
-            cell.seizureLevelLabel.text = record.type?.rawValue.capitalized ?? "Automatic"
-            
-            if let dur = record.duration {
-                cell.durationLabel.text = formatDuration(dur)
-            } else {
-                cell.durationLabel.text = "--"
-            }
-        } else {
-            // manual record
-            cell.seizureLevelLabel.text = record.title ?? "Manual Log"
-            cell.durationLabel.text = record.description ?? ""
-        }
         return cell
     }
 
