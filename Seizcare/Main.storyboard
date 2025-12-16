@@ -35,10 +35,10 @@
             </objects>
             <point key="canvasLocation" x="5700" y="132.3943661971831"/>
         </scene>
-        <!--Dashboard-->
+        <!--Onboarding-->
         <scene sceneID="QCk-cv-AIg">
             <objects>
-                <viewControllerPlaceholder storyboardName="Dashboard" id="rlH-Fi-hbR" sceneMemberID="viewController">
+                <viewControllerPlaceholder storyboardName="Onboarding" id="rlH-Fi-hbR" sceneMemberID="viewController">
                     <navigationItem key="navigationItem" id="phk-19-Fqr"/>
                 </viewControllerPlaceholder>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="LqJ-D7-L3J" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
