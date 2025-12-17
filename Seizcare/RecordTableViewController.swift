@@ -69,25 +69,6 @@ class RecordTableViewController: UITableViewController,UISearchResultsUpdating {
         let records = SeizureRecordDataModel.shared.getRecordsForCurrentUser()
             allRecords = records
             groupAndReload(records)
-//        let records = SeizureRecordDataModel.shared.getRecordsForCurrentUser()
-//        // Group by month
-//
-//        let grouped = Dictionary(grouping: records) { record -> String in
-//            let formatter = DateFormatter()
-//            formatter.dateFormat = "MMMM"
-//            return formatter.string(from: record.dateTime).uppercased()
-//        }
-//
-//        // Sort sections by most recent month first
-//        sectionTitles = grouped.keys.sorted { title1, title2 in
-//            let monthsOrder = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"]
-//            return monthsOrder.firstIndex(of: title1)! > monthsOrder.firstIndex(of: title2)!
-//        }
-//
-//        // Fill recordsBySection in the same order
-//        recordsBySection = sectionTitles.map { grouped[$0]!.sorted { $0.dateTime > $1.dateTime } }
-//        
-//        tableView.reloadData()
     }
     private func groupAndReload(_ records: [SeizureRecord]) {
         let grouped = Dictionary(grouping: records) { record -> String in
@@ -152,6 +133,7 @@ class RecordTableViewController: UITableViewController,UISearchResultsUpdating {
             ) as! MonthlyRecordsCell
 
             let records = recordsBySection[indexPath.section]
+            cell.delegate = self
             cell.configure(records: records)
         
         return cell
@@ -164,14 +146,8 @@ class RecordTableViewController: UITableViewController,UISearchResultsUpdating {
         return "\(mins) min \(secs) sec"
     }
 
-    // MARK: - Row Tap → Detail Screen
-    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        performSegue(withIdentifier: "showRecordDetails", sender: indexPath)
-    }
-
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "addRecord" {
-
                if let nav = segue.destination as? UINavigationController,
                   let addVC = nav.topViewController as? AddRecordTableViewController {
 
@@ -181,27 +157,24 @@ class RecordTableViewController: UITableViewController,UISearchResultsUpdating {
                    }
                }
            }
-        if segue.identifier == "showRecordDetails" {
-            if let nav = segue.destination as? UINavigationController,
-               let detailsVC = nav.topViewController as? DetailRecordsTableViewController,
-               let indexPath = sender as? IndexPath {
+        if segue.identifier == "showRecordDetails",
+           let detailsVC = segue.destination as? DetailRecordsTableViewController,
+           let record = sender as? SeizureRecord {
 
-                let selectedRecord = recordsBySection[indexPath.section][indexPath.row]
-                detailsVC.record = selectedRecord
-                detailsVC.onDismiss = { [weak self] in
-                          print("🔥 Detail dismissed — refreshing list")
-                          self?.loadAndGroupRecords()
-                      }
+            detailsVC.record = record
+            detailsVC.onDismiss = { [weak self] in
+
+                self?.loadAndGroupRecords()
             }
         }
     }
     @IBAction func unwindToDashboard(_ segue: UIStoryboardSegue) {
-        // You can add logic here if needed
         print("Returned from Add Record screen")
     }
-    
-
-
-    
 }
 
+extension RecordTableViewController: MonthlyRecordsCellDelegate {
+    func didSelectRecord(_ record: SeizureRecord) {
+        performSegue(withIdentifier: "showRecordDetails", sender: record)
+    }
+}
