@@ -8,7 +8,6 @@
 import UIKit
 
 
-
 class SignUpTableViewController: UITableViewController {
 
     @IBOutlet weak var fullNameField: UITextField!
@@ -17,81 +16,155 @@ class SignUpTableViewController: UITableViewController {
     @IBOutlet weak var dobField: UITextField!
     @IBOutlet weak var genderButton: UIButton!
     @IBOutlet weak var passwordField: UITextField!
-    private var selectedDOB: Date?
-       private var selectedGender: Gender = .unspecified
-
+    private var selectedGender: Gender = .male
+    @IBOutlet weak var confirmPasswordField: UITextField!
+    
        let datePicker = UIDatePicker()
+    
+    private func configureTextFields() {
+
+        // Full Name
+        fullNameField.keyboardType = .default
+        fullNameField.textContentType = .name
+        fullNameField.autocapitalizationType = .words
+        fullNameField.autocorrectionType = .no
+
+        // Email
+        emailField.keyboardType = .emailAddress
+        emailField.textContentType = .emailAddress
+        emailField.autocapitalizationType = .none
+        emailField.autocorrectionType = .no
+
+        // Phone
+        phoneField.keyboardType = .numberPad
+        phoneField.textContentType = .telephoneNumber
+
+        // Password
+        passwordField.isSecureTextEntry = true
+        passwordField.textContentType = .newPassword
+        passwordField.autocapitalizationType = .none
+        passwordField.autocorrectionType = .no
+
+        // Confirm Password
+        confirmPasswordField.isSecureTextEntry = true
+        confirmPasswordField.textContentType = .password
+        confirmPasswordField.autocapitalizationType = .none
+        confirmPasswordField.autocorrectionType = .no
+    }
+
 
        // MARK: - View Lifecycle
-       override func viewDidLoad() {
-           super.viewDidLoad()
-           setupDOBPicker()
-       }
+    override func viewDidLoad() {
+        super.viewDidLoad()
 
-       // MARK: - Date Picker Setup
-       func setupDOBPicker() {
-           dobField.inputView = datePicker
-           datePicker.preferredDatePickerStyle = .wheels
+        setupGenderMenu()
+        configureDatePickerForDOB()
+        configureTextFields()
+
+        genderButton.setTitle(selectedGender.rawValue.capitalized, for: .normal)
+
+        tableView.allowsSelection = false
+        tableView.allowsMultipleSelection = false
+    }
+
+
+    let dateFormatter: DateFormatter = {
+        let df = DateFormatter()
+        df.dateFormat = "yyyy-MM-dd"
+        return df
+    }()
+
+    private func configureInitialUI() {
+           // set initial gender button title (default male)
+           genderButton.setTitle(selectedGender.rawValue.capitalized, for: .normal)
+           // ensure button shows menu on tap
+           genderButton.showsMenuAsPrimaryAction = true
+       }
+    private func setupGenderMenu() {
+            // Use current selectedGender to mark the .on state
+            let selected = selectedGender
+
+            genderButton.menu = UIMenu(title: "", options: .displayInline, children: [
+                UIAction(title: "Male",
+                         state: selected == .male ? .on : .off,
+                         handler: { [weak self] _ in self?.setGender(.male) }),
+
+                UIAction(title: "Female",
+                         state: selected == .female ? .on : .off,
+                         handler: { [weak self] _ in self?.setGender(.female) }),
+
+                UIAction(title: "Other",
+                         state: selected == .other ? .on : .off,
+                         handler: { [weak self] _ in self?.setGender(.other) }),
+
+                UIAction(title: "Unspecified",
+                         state: selected == .unspecified ? .on : .off,
+                         handler: { [weak self] _ in self?.setGender(.unspecified) })
+            ])
+        genderButton.showsMenuAsPrimaryAction = true
+
+        }
+
+        private func setGender(_ gender: Gender) {
+            selectedGender = gender
+            genderButton.setTitle(gender.rawValue.capitalized, for: .normal)
+            // rebuild the menu so checkmarks update
+            setupGenderMenu()
+        }
+    private func configureDatePickerForDOB() {
+           if #available(iOS 13.4, *) {
+               datePicker.preferredDatePickerStyle = .wheels
+           }
            datePicker.datePickerMode = .date
+
+           // Optional: set reasonable range (last 100 years → today)
+           let calendar = Calendar.current
+           if let min = calendar.date(byAdding: .year, value: -100, to: Date()) {
+               datePicker.minimumDate = min
+           }
            datePicker.maximumDate = Date()
 
+           // connect picker as inputView for dobField
+           dobField.inputView = datePicker
+
+           // toolbar with done button for the picker
            let toolbar = UIToolbar()
            toolbar.sizeToFit()
-           toolbar.items = [
-               UIBarButtonItem(title: "Done", style: .done, target: self, action: #selector(doneDOB))
-           ]
+           let done = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(dobDoneTapped))
+           let spacer = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
+           toolbar.setItems([spacer, done], animated: false)
            dobField.inputAccessoryView = toolbar
        }
-
-       @objc func doneDOB() {
-           let formatter = DateFormatter()
-           formatter.dateFormat = "dd-MM-yyyy"
-           dobField.text = formatter.string(from: datePicker.date)
-           selectedDOB = datePicker.date
-           view.endEditing(true)
-       }
-
-       // MARK: - Gender Selection
-       @IBAction func genderTapped(_ sender: UIButton) {
-           let alert = UIAlertController(title: "Select Gender", message: nil, preferredStyle: .actionSheet)
-
-           alert.addAction(UIAlertAction(title: "Male", style: .default, handler: { _ in
-               self.genderButton.setTitle("Male", for: .normal)
-               self.selectedGender = .male
-           }))
-
-           alert.addAction(UIAlertAction(title: "Female", style: .default, handler: { _ in
-               self.genderButton.setTitle("Female", for: .normal)
-               self.selectedGender = .female
-           }))
-
-           alert.addAction(UIAlertAction(title: "Other", style: .default, handler: { _ in
-               self.genderButton.setTitle("Other", for: .normal)
-               self.selectedGender = .other
-           }))
-
-           alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-
-           present(alert, animated: true)
-       }
+    @objc private func dobDoneTapped() {
+            let selectedDate = datePicker.date
+            dobField.text = dateFormatter.string(from: selectedDate)
+            dobField.resignFirstResponder()
+        }
 
        // MARK: - Create Account
        @IBAction func createAccountTapped(_ sender: UIButton) {
+           guard validatePasswords() else {
+                   return
+               }
 
            let fullName = fullNameField.text ?? ""
            let email = emailField.text ?? ""
            let phone = phoneField.text ?? ""
            let password = passwordField.text ?? ""
            let gender = selectedGender
-           let dob = selectedDOB
+           let dobString = dobField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
 
            // -------------------------
            // Validation
            // -------------------------
-           if fullName.isEmpty || email.isEmpty || phone.isEmpty || password.isEmpty || dob == nil {
+           if fullName.isEmpty || email.isEmpty || phone.isEmpty || password.isEmpty || dobString.isEmpty {
                showAlert("Please fill in all fields.")
                return
            }
+           guard let dobDate = dateFormatter.date(from: dobString) else {
+                       showAlert("Please enter date of birth in format yyyy-MM-dd.")
+                       return
+                   }
 
            if UserDataModel.shared.getAllUsers().contains(where: { $0.email == email }) {
                showAlert("An account with this email already exists.")
@@ -106,7 +179,7 @@ class SignUpTableViewController: UITableViewController {
                email: email,
                contactNumber: phone,
                gender: gender,
-               dateOfBirth: dob!,
+               dateOfBirth: dobDate,
                password: password
            )
 
@@ -117,6 +190,32 @@ class SignUpTableViewController: UITableViewController {
            // Navigate after signup
            performSegue(withIdentifier: "goToSignupSuccess", sender: self)
        }
+    // MARK: - Validate Password
+    
+    func validatePasswords() -> Bool {
+        guard let password = passwordField.text,
+              let confirmPassword = confirmPasswordField.text else {
+            return false
+        }
+
+        if password.isEmpty || confirmPassword.isEmpty {
+            showAlert("Please fill in both password fields.")
+            return false
+        }
+
+        if password.count < 6 {
+            showAlert("Password must be at least 6 characters long.")
+            return false
+        }
+
+        if password != confirmPassword {
+            showAlert("Password and Confirm Password do not match.")
+            return false
+        }
+
+        return true
+    }
+
 
        // MARK: - Alert Helper
        func showAlert(_ msg: String) {

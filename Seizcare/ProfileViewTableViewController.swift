@@ -62,7 +62,7 @@ class ProfileViewTableViewController: UITableViewController {
     }
     
     @IBAction func unwindToProfile(_ segue: UIStoryboardSegue) {
-        updateUI()   // Refresh profile after returning
+        updateUI()    
     }
 
 
