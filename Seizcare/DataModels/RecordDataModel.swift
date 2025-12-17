@@ -79,6 +79,7 @@ struct SeizureRecord: Identifiable, Codable, Equatable {
     // MARK: - Init
     //====================================================
     init(
+        id: UUID,
         userId: UUID,
         entryType: RecordEntryType,
         dateTime: Date,
@@ -92,7 +93,7 @@ struct SeizureRecord: Identifiable, Codable, Equatable {
         symptoms: [String]? = nil,
         triggers: [SeizureTrigger]? = nil
     ) {
-        self.id = UUID()
+        self.id = id
         self.userId = userId
         self.entryType = entryType
         self.dateTime = dateTime
@@ -139,6 +140,7 @@ final class SeizureRecordDataModel {
     // MARK: Init
     //====================================================
     private init() {
+        
         archiveURL = documentsDirectory
             .appendingPathComponent("seizureRecords")
             .appendingPathExtension("plist")
@@ -176,6 +178,7 @@ final class SeizureRecordDataModel {
         guard let currentUser = UserDataModel.shared.getCurrentUser() else { return }
 
         let record = SeizureRecord(
+            id : UUID(),
             userId: currentUser.id,
             entryType: .automatic,
             dateTime: dateTime,
@@ -207,6 +210,8 @@ final class SeizureRecordDataModel {
         }
     }
     func updateRecordDescription(id: UUID, newDescription: String) {
+        print("Updating ID:", id)
+
         if let index = records.firstIndex(where: { $0.id == id }) {
             var record = records[index]
             record.description = newDescription
@@ -266,12 +271,13 @@ final class SeizureRecordDataModel {
             "Post Medication Miss",
             "Stress Triggered Episode"
         ]
-        let symptomsPool = [
-            ["Dizziness", "Blurred vision"],
-            ["Confusion", "Headache"],
-            ["Fatigue"],
-            ["Muscle stiffness", "Disorientation"]
+        let symptomsPool: [[Symptom]] = [
+            [.dizziness, .visualChange],
+            [.confused, .headache],
+            [.tired],
+            [.bodyAche, .weakness]
         ]
+
         let triggersPool: [[SeizureTrigger]] = [
             [.stress],
             [.sleepDeprivation],
@@ -291,6 +297,7 @@ final class SeizureRecordDataModel {
             if isAutomatic {
                 records.append(
                     SeizureRecord(
+                        id : UUID(),
                         userId: userId,
                         entryType: .automatic,
                         dateTime: date,
@@ -306,12 +313,13 @@ final class SeizureRecordDataModel {
             } else {
                 records.append(
                     SeizureRecord(
+                        id : UUID(),
                         userId: userId,
                         entryType: .manual,
                         dateTime: date,
                         duration: TimeInterval(Int.random(in: 40...150)),
                         title: manualTitles.randomElement()!,
-                        symptoms: symptomsPool.randomElement()!,
+                        symptoms: (symptomsPool.randomElement() ?? []).map { $0.rawValue },
                         triggers: triggersPool.randomElement()!
                     )
                 )
@@ -333,5 +341,19 @@ extension SeizureRecordDataModel {
             .sorted { $0.dateTime > $1.dateTime }
             .prefix(2)
             .map { $0 }
+    }
+    
+    func getSpO2Timeline(
+        for record: SeizureRecord
+    ) -> [SpO2TimelinePoint] {
+
+        // Only automatic records have SpO2 context
+        guard record.entryType == .automatic else {
+            return []
+        }
+
+        return SpO2TimelineBuilder.generateTimeline(
+            seizureTime: record.dateTime
+        )
     }
 }

@@ -50,6 +50,11 @@ class AddRecordTableViewController: UITableViewController {
     var selectedSymptoms: Set<Symptom> = []
     var onDismiss: (() -> Void)?
 
+    var recordToEdit: SeizureRecord?   // nil = Add, non-nil = Edit
+    var isEditMode: Bool {
+        recordToEdit != nil
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
         applyDefaultTableBackground()
@@ -57,6 +62,12 @@ class AddRecordTableViewController: UITableViewController {
         [topInputsCardView, symptompsCardView, notesCardView].forEach {
             $0?.applyRecordCard()
         }
+
+
+        dateTextField.isUserInteractionEnabled = true
+        let tap = UITapGestureRecognizer(target: self, action: #selector(openDatePicker))
+        dateTextField.addGestureRecognizer(tap)
+
         seizureLevelSegment.applyPrimaryStyle()
         let symptomButtons = [
                 dejavuSymptomButton,
@@ -101,12 +112,81 @@ class AddRecordTableViewController: UITableViewController {
         titleTextField.addTarget(self, action: #selector(textFieldChanged), for: .editingChanged)
         dateTextField.addTarget(self, action: #selector(textFieldChanged), for: .editingChanged)
         durationTextField.addTarget(self, action: #selector(textFieldChanged), for: .editingChanged)
+        
+        if isEditMode {
+            configureForEdit()
+        } else {
+            configureForAdd()
+        }
 
     }
+    private func configureForAdd() {
+        navigationItem.title = "Add Record"
+        saveButton.title = "Save"
+        saveButton.isEnabled = false
+    }
+
+    private func configureForEdit() {
+        navigationItem.title = "Edit Record"
+        saveButton.title = "Update"
+        saveButton.isEnabled = true
+        populateData()
+    }
+    private func populateData() {
+        guard let record = recordToEdit else { return }
+
+        titleTextField.text = record.title
+        notesTextView.text = record.description
+
+        let formatter = DateFormatter()
+        formatter.dateFormat = "dd/MM/yyyy"
+        dateTextField.text = formatter.string(from: record.dateTime)
+
+        if let duration = record.duration {
+            let min = Int(duration) / 60
+            let sec = Int(duration) % 60
+            durationTextField.text = "\(min)min \(sec)sec"
+        }
+
+        switch record.type {
+        case .mild: severitySegment.selectedSegmentIndex = 0
+        case .moderate: severitySegment.selectedSegmentIndex = 1
+        case .severe: severitySegment.selectedSegmentIndex = 2
+        default: break
+        }
+
+        if let symptoms = record.symptoms {
+            for symptom in symptoms {
+                if let s = Symptom(rawValue: symptom),
+                   let btn = button(for: s) {
+                    selectedSymptoms.insert(s)
+                    highlight(button: btn)
+                }
+            }
+        }
+        validateForm()
+    }
+    private func button(for symptom: Symptom) -> UIButton? {
+        switch symptom {
+        case .dejaVu: return dejavuSymptomButton
+        case .anxiety: return anxietySymptomButton
+        case .visualChange: return visualChangeSymptomButton
+        case .oddSmell: return smellSymptomButton
+        case .dizziness: return dizzinesSymptomButton
+        case .nausea: return nauseaSymptomButton
+        case .confused: return confusedSymptomButton
+        case .tired: return tiredSymptomButton
+        case .headache: return headacheSymptomButton
+        case .bodyAche: return bodyacheSymptomButton
+        case .weakness: return weaknessSymptomButton
+        case .memoryLoss: return memoryLossSymptomButton
+        }
+    }
+
     @objc func textFieldChanged() {
         validateForm()
     }
-
+    
     
     @IBAction func symptomTapped(_ sender: UIButton) {
         guard let symptom = Symptom(rawValue: symptomNameFromTag(sender.tag)) else { return }
@@ -165,24 +245,14 @@ class AddRecordTableViewController: UITableViewController {
 
     
     @IBAction func saveRecord(_ sender: UIBarButtonItem) {
-        guard let title = titleTextField.text, !title.isEmpty else { return }
-            guard let dateString = dateTextField.text, !dateString.isEmpty else { return }
-            guard let durationString = durationTextField.text, !durationString.isEmpty else { return }
-
+            guard let title = titleTextField.text, !title.isEmpty,
+                  let dateString = dateTextField.text,
+                  let durationString = durationTextField.text else { return }
 
             let formatter = DateFormatter()
             formatter.dateFormat = "dd/MM/yyyy"
-            guard let date = formatter.date(from: dateString) else { return }
-        print("coming2")
-            // NEW: parse "1min 30sec"
-            guard let durationSeconds = parseDuration(durationString) else {
-                print("❌ Invalid duration")
-                return
-            }
-    
-
-            let symptoms = selectedSymptoms.map { $0.rawValue }
-            let notes = notesTextView.text
+            guard let date = formatter.date(from: dateString),
+                  let durationSeconds = parseDuration(durationString) else { return }
 
             let severity: SeizureType = {
                 switch severitySegment.selectedSegmentIndex {
@@ -192,22 +262,44 @@ class AddRecordTableViewController: UITableViewController {
                 }
             }()
 
-            guard let user = UserDataModel.shared.getCurrentUser() else { return }
-     
+            let symptoms = selectedSymptoms.map { $0.rawValue }
+            let notes = notesTextView.text
 
-            let newRecord = SeizureRecord(
-                userId: user.id,
-                entryType: .manual,
-                dateTime: date,
-                description: notes,
-                type: severity,
-                duration: durationSeconds,
-                title: title,
-                symptoms: symptoms
-            )
-        SeizureRecordDataModel.shared.addManualRecord(newRecord)
-        onDismiss?()
-        dismiss(animated: true)
+            if let oldRecord = recordToEdit {
+                let updatedRecord = SeizureRecord(
+                        id: oldRecord.id,  
+                        userId: oldRecord.userId,
+                        entryType: oldRecord.entryType,
+                        dateTime: date,
+                        description: notes,
+                        type: severity,
+                        duration: durationSeconds,
+                        title: title,
+                        symptoms: selectedSymptoms.map { $0.rawValue }
+                    )
+
+                    SeizureRecordDataModel.shared.updateRecord(updatedRecord)
+            } else {
+                // ➕ ADD
+                guard let user = UserDataModel.shared.getCurrentUser() else { return }
+
+                let newRecord = SeizureRecord(
+                    id : UUID(),
+                    userId: user.id,
+                    entryType: .manual,
+                    dateTime: date,
+                    description: notes,
+                    type: severity,
+                    duration: durationSeconds,
+                    title: title,
+                    symptoms: symptoms
+                )
+
+                SeizureRecordDataModel.shared.addManualRecord(newRecord)
+            }
+
+            onDismiss?()
+            dismiss(animated: true)
         
     }
     func validateForm() {
@@ -250,4 +342,51 @@ class AddRecordTableViewController: UITableViewController {
         cell.contentView.backgroundColor = .clear
     }
 
+    @objc private func openDatePicker() {
+
+        let pickerVC = UIViewController()
+        pickerVC.view.backgroundColor = .systemBackground
+        pickerVC.modalPresentationStyle = .pageSheet
+
+        let datePicker = UIDatePicker()
+        datePicker.datePickerMode = .date
+        datePicker.preferredDatePickerStyle = .inline
+        datePicker.maximumDate = Date()
+
+        datePicker.translatesAutoresizingMaskIntoConstraints = false
+        pickerVC.view.addSubview(datePicker)
+
+        NSLayoutConstraint.activate([
+            datePicker.topAnchor.constraint(equalTo: pickerVC.view.topAnchor, constant: 20),
+            datePicker.leadingAnchor.constraint(equalTo: pickerVC.view.leadingAnchor, constant: 16),
+            datePicker.trailingAnchor.constraint(equalTo: pickerVC.view.trailingAnchor, constant: -16),
+            datePicker.bottomAnchor.constraint(equalTo: pickerVC.view.bottomAnchor, constant: -20)
+        ])
+
+        // Handle selection
+        datePicker.addAction(UIAction { [weak self] _ in
+            guard let self else { return }
+            let formatter = DateFormatter()
+            formatter.dateFormat = "dd/MM/yyyy"
+            self.dateTextField.text = formatter.string(from: datePicker.date)
+            self.validateForm()
+            self.dismiss(animated: true)
+        }, for: .valueChanged)
+
+        // Sheet style (iOS 15+)
+        if let sheet = pickerVC.sheetPresentationController {
+            sheet.detents = [.medium()]
+            sheet.prefersGrabberVisible = true
+            sheet.preferredCornerRadius = 20
+        }
+
+        present(pickerVC, animated: true)
+    }
+
+    @IBAction func cancelButtonTapped(_ sender: Any) {
+        dismiss(animated: true)
+    }
+    
 }
+
+

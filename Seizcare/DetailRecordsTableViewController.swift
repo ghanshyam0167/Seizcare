@@ -6,11 +6,16 @@
 //
 
 import UIKit
+import Charts
+import SwiftUI
 
 class DetailRecordsTableViewController: UITableViewController {
 
-    
-    @IBOutlet weak var mapWrapperView: UIView!
+    @IBOutlet weak var spo2ChartCell: UITableViewCell!
+    @IBOutlet weak var heartRateChartCell: UITableViewCell!
+
+    @IBOutlet weak var heartRateTimelineContainerView: UIView!
+    @IBOutlet weak var spo2ChartContainerView: UIView!
     @IBOutlet weak var mainDetailsCardView: UIView!
     @IBOutlet weak var descriptionTextView: UITextView!
     @IBOutlet weak var bottomCardView: UIView!
@@ -29,57 +34,217 @@ class DetailRecordsTableViewController: UITableViewController {
     var onDismiss: (() -> Void)?
     
     var record: SeizureRecord?
-    var shouldHideSection1: Bool {
+    private var isManualRecord = false
+    var shouldHideSection: Bool {
         return record?.entryType == .manual
     }
 
 
+
+    private var spo2ChartHost: UIHostingController<SpO2TimelineChart>?
+    private var hrChartHost: UIHostingController<HeartRateTimelineChart>?
+
         override func viewDidLoad() {
             super.viewDidLoad()
+            
+            if #available(iOS 15.0, *) {
+                    tableView.sectionHeaderTopPadding = 0
+                }
+            configureNavigationBarButton()
             applyDefaultTableBackground()
             navigationController?.applyWhiteNavBar()
             
-            [topCardView, bottomCardView, mainDetailsCardView].forEach { view in
+            [topCardView, bottomCardView, mainDetailsCardView, spo2ChartContainerView, heartRateTimelineContainerView].forEach { view in
                 view?.applyDashboardCard()
                 }
             descriptionTextView.delegate = self
-            mapWrapperView.layer.cornerRadius = 16
-            mapWrapperView.clipsToBounds = true
-            guard let record = record else {
-                print("❌ No record passed!")
-                return
-            }
+            applyRecord()
 
-            let formatter = DateFormatter()
-            formatter.dateFormat = "dd MMM yyyy, hh:mm a"
-            dateLabel.text = formatter.string(from: record.dateTime)
-
-            if record.entryType == .automatic {
-                configureAutomatic(record)
-            } else {
-                configureManual(record)
-            }
         }
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        
-        // Force end editing (calls textViewDidEndEditing)
-        view.endEditing(true)
-        
-        // Save description even if delegate didn’t fire
-        if let updatedText = descriptionTextView.text,
-           let record = record {
-            
-            SeizureRecordDataModel.shared.updateRecordDescription(
-                id: record.id,
-                newDescription: updatedText
+            view.endEditing(true)
+    }
+    private func applyRecord() {
+        guard let record else { return }
+
+        isManualRecord = (record.entryType == .manual)
+
+        let formatter = DateFormatter()
+        formatter.dateFormat = "dd MMM yyyy, hh:mm a"
+        dateLabel.text = formatter.string(from: record.dateTime)
+
+        configureNavigationBarButton()
+
+        if record.entryType == .automatic {
+            configureAutomatic(record)
+            setupSpO2Chart(for: record)
+            setupHeartRateChart(for: record)
+        } else {
+            configureManual(record)
+            hideSpO2Chart()
+            hideHeartRateChart()
+        }
+
+        tableView.reloadData()
+    }
+
+    private func configureNavigationBarButton() {
+        guard let record else { return }
+
+        if record.entryType == .manual {
+            navigationItem.rightBarButtonItem = UIBarButtonItem(
+                title: "Edit",
+                style: .plain,
+                target: self,
+                action: #selector(editTapped)
             )
-            
-            self.record?.description = updatedText
-            onDismiss?()
-            print("✅ Saved on viewWillDisappear")
+        } else {
+            navigationItem.rightBarButtonItem = UIBarButtonItem(
+                image: UIImage(systemName: "square.and.arrow.up"),
+                style: .plain,
+                target: self,
+                action: #selector(shareTapped)
+            )
         }
     }
+    @objc private func editTapped() {
+        guard let record else { return }
+
+        let storyboard = UIStoryboard(name: "Records", bundle: nil)
+        guard let vc = storyboard.instantiateViewController(
+            withIdentifier: "AddRecordTableViewController"
+        ) as? AddRecordTableViewController else {
+            assertionFailure("AddRecordTableViewController not found in Records.storyboard")
+            return
+        }
+                
+        vc.recordToEdit = record
+        vc.onDismiss = { [weak self] in
+            self?.refreshUI()
+        }
+
+        let nav = UINavigationController(rootViewController: vc)
+        present(nav, animated: true)
+    }
+
+
+    @objc private func shareTapped() {
+        guard let record else { return }
+
+        let summary = """
+        Seizure Record
+        Date: \(dateLabel.text ?? "")
+        Duration: \(formatDuration(record.duration ?? 0))
+        SpO₂: \(record.spo2 ?? 0)%
+        Heart Rate: \(record.heartRate ?? 0) bpm
+        """
+
+        let vc = UIActivityViewController(
+            activityItems: [summary],
+            applicationActivities: nil
+        )
+
+        present(vc, animated: true)
+    }
+
+    private func setupHeartRateChart(for record: SeizureRecord) {
+
+        guard record.entryType == .automatic else {
+            hideHeartRateChart()
+            return
+        }
+
+        let timeline =
+            HeartRateTimelineBuilder.generateTimeline(
+                seizureTime: record.dateTime,
+                seizureDuration: record.duration ?? 60
+            )
+
+        guard !timeline.isEmpty else {
+            hideHeartRateChart()
+            return
+        }
+
+        let chartView = HeartRateTimelineChart(
+            data: timeline,
+            seizureTime: record.dateTime,
+            seizureDuration: record.duration ?? 60
+        )
+
+        let host = UIHostingController(rootView: chartView)
+        host.view.translatesAutoresizingMaskIntoConstraints = false
+        host.view.backgroundColor = .clear
+
+        // Clean previous chart
+        hrChartHost?.view.removeFromSuperview()
+        hrChartHost?.removeFromParent()
+
+        hrChartHost = host
+        addChild(host)
+        heartRateTimelineContainerView.addSubview(host.view)
+
+        NSLayoutConstraint.activate([
+            host.view.topAnchor.constraint(equalTo: heartRateTimelineContainerView.topAnchor),
+            host.view.leadingAnchor.constraint(equalTo: heartRateTimelineContainerView.leadingAnchor),
+            host.view.trailingAnchor.constraint(equalTo: heartRateTimelineContainerView.trailingAnchor),
+            host.view.bottomAnchor.constraint(equalTo: heartRateTimelineContainerView.bottomAnchor)
+        ])
+
+        host.didMove(toParent: self)
+        heartRateTimelineContainerView.isHidden = false
+    }
+    private func hideHeartRateChart() {
+        heartRateTimelineContainerView.isHidden = true
+    }
+
+
+    // MARK: - SpO2 Chart Integration
+    private func setupSpO2Chart(for record: SeizureRecord) {
+
+        // Generate record-specific SpO2 timeline
+        let timeline =
+            SeizureRecordDataModel.shared.getSpO2Timeline(for: record)
+
+        guard !timeline.isEmpty else {
+            hideSpO2Chart()
+            return
+        }
+
+        let chartView = SpO2TimelineChart(
+            data: timeline,
+            seizureTime: record.dateTime,
+            seizureDuration: record.duration ?? 60
+        )
+
+        let host = UIHostingController(rootView: chartView)
+        host.view.translatesAutoresizingMaskIntoConstraints = false
+        host.view.backgroundColor = .clear
+
+        // Clean previous chart if exists
+        spo2ChartHost?.view.removeFromSuperview()
+        spo2ChartHost?.removeFromParent()
+
+        spo2ChartHost = host
+        addChild(host)
+        spo2ChartContainerView.addSubview(host.view)
+
+        NSLayoutConstraint.activate([
+            host.view.topAnchor.constraint(equalTo: spo2ChartContainerView.topAnchor),
+            host.view.leadingAnchor.constraint(equalTo: spo2ChartContainerView.leadingAnchor),
+            host.view.trailingAnchor.constraint(equalTo: spo2ChartContainerView.trailingAnchor),
+            host.view.bottomAnchor.constraint(equalTo: spo2ChartContainerView.bottomAnchor)
+        ])
+
+        host.didMove(toParent: self)
+
+        spo2ChartContainerView.isHidden = false
+        
+    }
+    private func hideSpO2Chart() {
+        spo2ChartContainerView.isHidden = true
+    }
+
 
 
         // MARK: - Automatic record display
@@ -136,89 +301,118 @@ class DetailRecordsTableViewController: UITableViewController {
             let secs = Int(seconds) % 60
             return "\(mins) min \(secs) sec"
         }
-    // MARK: - Section spacing & hiding (clean)
-    private func refreshSectionVisibility(animated: Bool = false) {
-        // If record changed after view loaded, force the table to recompute heights.
-        let sectionSet = IndexSet(integer: 1)
-        if animated {
-            tableView.performBatchUpdates({
-                tableView.reloadSections(sectionSet, with: .automatic)
-            }, completion: nil)
-        } else {
-            tableView.reloadSections(sectionSet, with: .none)
+    // MARK: - Table View Gap Fixes
+
+    override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        // Hide headers for manual records in sections 2 & 3
+        if isManualRecord && (section == 2 || section == 3) {
+            return CGFloat.leastNonzeroMagnitude
         }
+        if !isManualRecord && (section == 5){
+            return CGFloat.leastNonzeroMagnitude
+        }
+        return 3
     }
 
-    override func tableView(_ tableView: UITableView,
-                            heightForHeaderInSection section: Int) -> CGFloat {
-        // hide section 1 when needed
-        if shouldHideSection1 && section == 1 { return 0.01 }
-        return section == 0 ? 0.01 : 2
+    override func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
+        // Hide footers for manual records in sections 2 & 3
+        if isManualRecord && (section == 2 || section == 3) {
+            return CGFloat.leastNonzeroMagnitude
+        }
+        if !isManualRecord && (section == 5){
+            return CGFloat.leastNonzeroMagnitude
+        }
+        return 3
     }
 
-    override func tableView(_ tableView: UITableView,
-                            viewForHeaderInSection section: Int) -> UIView? {
-        if shouldHideSection1 && section == 1 { return UIView() }
-        let v = UIView(); v.backgroundColor = .clear; return v
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        if isManualRecord && (section == 2 || section == 3) {
+            return 0
+        }
+        if !isManualRecord && (section == 5){
+            return 0
+        }
+        return super.tableView(tableView, numberOfRowsInSection: section)
     }
 
-    override func tableView(_ tableView: UITableView,
-                            heightForFooterInSection section: Int) -> CGFloat {
-        if shouldHideSection1 && section == 1 { return 0.01 }
-        return 2
+    // Ensure you aren't accidentally returning views for the hidden sections
+    override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        return nil
     }
 
-    override func tableView(_ tableView: UITableView,
-                            viewForFooterInSection section: Int) -> UIView? {
-        if shouldHideSection1 && section == 1 { return UIView() }
-        let v = UIView(); v.backgroundColor = .clear; return v
+    override func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
+        return nil
     }
-
-    override func tableView(_ tableView: UITableView,
-                            heightForRowAt indexPath: IndexPath) -> CGFloat {
-        if shouldHideSection1 && indexPath.section == 1 { return 0.01 }
-        return UITableView.automaticDimension
-    }
-
-    // keep willDisplay to tweak visual appearance & remove separators when hidden
+    
     override func tableView(_ tableView: UITableView,
                             willDisplay cell: UITableViewCell,
                             forRowAt indexPath: IndexPath) {
-        // content margins + transparent cell background
-        cell.contentView.layoutMargins = UIEdgeInsets(top: 2, left: 16, bottom: 2, right: 16)
         cell.backgroundColor = .clear
         cell.contentView.backgroundColor = .clear
-
-        if shouldHideSection1 && indexPath.section == 1 {
-            // make sure it doesn't show visual artifacts
-            cell.isHidden = true
-            cell.alpha = 0.0
-            cell.selectionStyle = .none
-        } else {
-            cell.isHidden = false
-            cell.alpha = 1.0
-            cell.selectionStyle = .default
-        }
     }
+
 
     func refreshUI() {
-        guard let record = record else { return }
-        descriptionTextView.text = record.description
-    }
+        guard let r = record else { return }
+           record = SeizureRecordDataModel.shared
+               .getAllRecords()
+               .first { $0.id == r.id }
 
+           applyRecord()
     }
+    
+    @IBAction func deleteRecordButtonTapped(_ sender: Any) {
+            guard let record = record else { return }
+
+            let alert = UIAlertController(
+                title: "Delete Record",
+                message: "Are you sure you want to delete this record? This action cannot be undone.",
+                preferredStyle: .alert
+            )
+
+            // ❌ Cancel
+            alert.addAction(UIAlertAction(
+                title: "Cancel",
+                style: .cancel
+            ))
+
+            // 🗑️ Delete
+            alert.addAction(UIAlertAction(
+                title: "Delete",
+                style: .destructive,
+                handler: { [weak self] _ in
+                    guard let self else { return }
+
+                    // Find index safely
+                    let records = SeizureRecordDataModel.shared.getAllRecords()
+                    if let index = records.firstIndex(where: { $0.id == record.id }) {
+                        SeizureRecordDataModel.shared.deleteRecord(at: index)
+                    }
+
+                    // Notify parent (records list)
+                    self.onDismiss?()
+
+                    // Close details screen
+                    self.navigationController?.popViewController(animated: true)
+                }
+            ))
+
+            present(alert, animated: true)
+    }
+    
+}
 
 extension DetailRecordsTableViewController: UITextViewDelegate {
     func textViewDidEndEditing(_ textView: UITextView) {
         guard let updatedText = textView.text,
               let record = record else { return }
 
-        // Update in your data model
-        SeizureRecordDataModel.shared.updateRecordDescription(id: record.id, newDescription: updatedText)
+        SeizureRecordDataModel.shared.updateRecordDescription(
+            id: record.id,
+            newDescription: updatedText
+        )
 
-        print("✅ Description updated for record:", record.id)
         self.record?.description = updatedText
-        refreshUI()
+        onDismiss?()
     }
-
 }
