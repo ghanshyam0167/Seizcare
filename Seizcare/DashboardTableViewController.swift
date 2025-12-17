@@ -8,8 +8,46 @@
 import UIKit
 import SwiftUI
 
-class DashboardTableViewController: UITableViewController {
+enum TrendDirection {
+    case increased
+    case decreased
+    case noChange
 
+    var icon: String {
+        switch self {
+        case .increased: return "↑"
+        case .decreased: return "↓"
+        case .noChange:  return "→"
+        }
+    }
+
+    var text: String {
+        switch self {
+        case .increased: return "increased"
+        case .decreased: return "decreased"
+        case .noChange:  return "no change"
+        }
+    }
+
+    var color: UIColor {
+        switch self {
+        case .increased: return .systemGreen
+        case .decreased: return .systemRed
+        case .noChange:  return .systemGray
+        }
+    }
+}
+
+class DashboardTableViewController: UITableViewController {
+    
+    @IBOutlet weak var mostCommonTimeStatusLabel: UILabel!
+    @IBOutlet weak var avgDurationStatusLabel: UILabel!
+    @IBOutlet weak var avgSeizureStatusLabel: UILabel!
+    @IBOutlet weak var sleepDurationStatusLabel: UILabel!
+    @IBOutlet weak var mostCommonTimeLabel: UILabel!
+    @IBOutlet weak var avgDurationLabel: UILabel!
+    @IBOutlet weak var avgMonthlySeizuresLabel: UILabel!
+    @IBOutlet weak var sleepDurationLabel: UILabel!
     @IBOutlet weak var TriggerCorrelationChartContainerView: UIView!
     @IBOutlet weak var triggerCorrelationChart: UIView!
     @IBOutlet weak var timePatterChartContainerView: UIView!
@@ -55,10 +93,6 @@ class DashboardTableViewController: UITableViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
-
-        
-        UserDataModel.shared.loginUser(email: "ghanshyam@example.com", password: "password121")
  
         updateUI()
         
@@ -80,7 +114,7 @@ class DashboardTableViewController: UITableViewController {
             [recordCardView0, recordCardView1].forEach {
                 $0?.applyRecordCard()
             }
-        
+        setupInsightsCards()
         updateRecentRecords()
         setupPeriodMenu()
         setupPeriodButton()
@@ -92,7 +126,83 @@ class DashboardTableViewController: UITableViewController {
         addTriggerCorrelationChart()
     }
     
+    func trend(current: Double, previous: Double, threshold: Double = 0.01) -> TrendDirection {
+        if abs(current - previous) < threshold {
+            return .noChange
+        }
+        return current > previous ? .increased : .decreased
+    }
     
+    func setupInsightsCards() {
+
+        let current = dashboardModel.getDashboardSummary()
+        let previous = dashboardModel.getDashboardSummary(forPreviousMonth: true)
+
+        // =========================
+        // Sleep Quality
+        // =========================
+        sleepDurationLabel.text =
+            "\(current.avgSleepHours.formatted(1)) hrs"
+
+        let sleepTrend = trend(
+            current: current.avgSleepHours,
+            previous: previous.avgSleepHours
+        )
+
+        sleepDurationStatusLabel.text =
+            "\(sleepTrend.icon) vs last month"
+        sleepDurationStatusLabel.textColor = sleepTrend.color
+
+
+        // =========================
+        // Avg Seizures
+        // =========================
+        avgMonthlySeizuresLabel.text =
+            "\(Int(current.avgMonthlySeizures)) / month"
+
+        let seizureTrend = trend(
+            current: current.avgMonthlySeizures,
+            previous: previous.avgMonthlySeizures
+        )
+
+        avgSeizureStatusLabel.text =
+            "\(seizureTrend.icon) Seizures \(seizureTrend.text)"
+        avgSeizureStatusLabel.textColor = seizureTrend.color
+
+
+        // =========================
+        // Avg Duration
+        // =========================
+        avgDurationLabel.text =
+            formatDuration(current.avgDuration)
+
+        let durationTrend = trend(
+            current: current.avgDuration,
+            previous: previous.avgDuration
+        )
+
+        avgDurationStatusLabel.text =
+            "\(durationTrend.icon) Duration \(durationTrend.text)"
+        avgDurationStatusLabel.textColor = durationTrend.color
+
+
+        // =========================
+        // Most Common Time
+        // =========================
+        mostCommonTimeLabel.text =
+            current.mostCommonTime.displayText
+
+        if current.mostCommonTime != previous.mostCommonTime {
+            mostCommonTimeStatusLabel.text =
+                "Peak time shifted to \(current.mostCommonTime.displayText)"
+            mostCommonTimeStatusLabel.textColor = .systemBlue
+        } else {
+            mostCommonTimeStatusLabel.text =
+                "Peak time unchanged"
+            mostCommonTimeStatusLabel.textColor = .secondaryLabel
+        }
+    }
+
     func addTriggerCorrelationChart() {
 
         // 1️⃣ Fetch data from model
@@ -301,87 +411,7 @@ class DashboardTableViewController: UITableViewController {
         hostingVC.didMove(toParent: self)
     }
 
-    func debugDashboardData() {
-
-            print("\n================ DASHBOARD DEBUG ================\n")
-
-            // ------------------------------
-            // TOP 4 CARDS
-            // ------------------------------
-            let summary = dashboardModel.getDashboardSummary()
-
-            print("📊 DASHBOARD SUMMARY")
-            print("Avg Monthly Seizures:", summary.avgMonthlySeizures)
-            print("Most Common Time:", summary.mostCommonTime.rawValue)
-            print("Avg Duration (sec):", summary.avgDuration)
-            print("Avg Sleep (hrs):", summary.avgSleepHours)
-
-            print("\n-----------------------------------------------\n")
-
-            // ------------------------------
-            // SEIZURE FREQUENCY
-            // ------------------------------
-            print("📈 DAILY FREQUENCY")
-            dashboardModel.getDailyFrequency().forEach {
-                print("Date:", $0.date, "| Count:", $0.count)
-            }
-
-            print("\n📈 WEEKLY FREQUENCY")
-            dashboardModel.getWeeklyFrequency().forEach {
-                print("Week Start:", $0.date, "| Count:", $0.count)
-            }
-
-            print("\n📈 MONTHLY FREQUENCY")
-            dashboardModel.getMonthlyFrequency().forEach {
-                print("Month Start:", $0.date, "| Count:", $0.count)
-            }
-
-            print("\n-----------------------------------------------\n")
-
-            // ------------------------------
-            // TIME OF DAY PATTERN
-            // ------------------------------
-            print("🕒 TIME OF DAY PATTERN")
-            dashboardModel.getTimeOfDayPattern().forEach {
-                print("Bucket:", $0.bucket.rawValue, "| Count:", $0.count)
-            }
-
-            print("\n-----------------------------------------------\n")
-
-            // ------------------------------
-            // SLEEP VS SEIZURE
-            // ------------------------------
-            print("😴 SLEEP VS SEIZURE")
-            dashboardModel.getSleepVsSeizure().forEach {
-                print(
-                    "Date:", $0.date,
-                    "| Sleep:", String(format: "%.1f", $0.sleepHours),
-                    "| Seizures:", $0.seizureCount
-                )
-            }
-
-            print("\n-----------------------------------------------\n")
-
-            // ------------------------------
-            // TRIGGER CORRELATION
-            // ------------------------------
-            print("⚠️ TRIGGER CORRELATION")
-            dashboardModel.getTriggerCorrelation().forEach {
-                print(
-                    "Trigger:", $0.trigger.rawValue,
-                    "| Percent:", String(format: "%.1f%%", $0.percent)
-                )
-            }
-
-            print("\n=============== END DEBUG =================\n")
-        }
-        
-    
     func updateUI(){
-        
-//        tableView.estimatedSectionHeaderHeight = 0
-//        tableView.estimatedSectionFooterHeight = 0
-//        tableView.estimatedRowHeight = 200
         let user = UserDataModel.shared.getCurrentUser()
         guard let user else {return}
         
@@ -513,6 +543,13 @@ class DashboardTableViewController: UITableViewController {
                             viewForFooterInSection section: Int) -> UIView? {
         return nil
     }
+    
+    private func formatDuration(_ seconds: Double) -> String {
+        let mins = Int(seconds) / 60
+        let secs = Int(seconds) % 60
+        return "\(mins)m \(secs)s"
+    }
+
 }
 
 extension DashboardPeriod {
@@ -526,4 +563,14 @@ extension DashboardPeriod {
             return "Monthly"
         }
     }
+
+
+}
+
+extension Double {
+    func formatted(_ decimals: Int = 1) -> String {
+        String(format: "%.\(decimals)f", self)
+    }
+    
+    
 }
