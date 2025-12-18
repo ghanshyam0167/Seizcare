@@ -121,11 +121,6 @@ metrics</string>
                                         </connections>
                                     </button>
                                 </subviews>
-                                <constraints>
-                                    <constraint firstItem="GD1-mb-nCi" firstAttribute="leading" secondItem="YFz-BE-DK2" secondAttribute="leading" constant="20" id="NYX-P2-4Ra"/>
-                                    <constraint firstItem="GD1-mb-nCi" firstAttribute="centerY" secondItem="YFz-BE-DK2" secondAttribute="centerY" id="U0D-vR-oPl"/>
-                                    <constraint firstItem="GD1-mb-nCi" firstAttribute="leading" secondItem="YFz-BE-DK2" secondAttribute="leading" constant="20" id="d4q-Bx-0Pk"/>
-                                </constraints>
                             </stackView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="dKj-kz-ddc"/>
@@ -735,8 +730,8 @@ condition.</string>
                                                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="fju-bX-0ip">
                                                     <rect key="frame" x="12" y="8" width="369" height="228"/>
                                                     <subviews>
-                                                        <stackView opaque="NO" contentMode="scaleToFill" misplaced="YES" axis="vertical" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="m6I-cS-cYP">
-                                                            <rect key="frame" x="13" y="16" width="345" height="196"/>
+                                                        <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="m6I-cS-cYP">
+                                                            <rect key="frame" x="12" y="16" width="345" height="196"/>
                                                             <subviews>
                                                                 <stackView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="O0t-by-jB0">
                                                                     <rect key="frame" x="0.0" y="0.0" width="345" height="23.333333333333332"/>
@@ -1069,7 +1064,7 @@ condition.</string>
                                         <nil key="highlightedColor"/>
                                     </label>
                                     <stackView opaque="NO" contentMode="scaleToFill" fixedFrame="YES" alignment="top" spacing="12" translatesAutoresizingMaskIntoConstraints="NO" id="rQ6-hd-RWJ">
-                                        <rect key="frame" x="76" y="238.00000000000003" width="77.333333333333314" height="40.666666666666657"/>
+                                        <rect key="frame" x="76" y="238.00000000000006" width="77.333333333333314" height="40.666666666666686"/>
                                         <subviews>
                                             <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="heart.circle.fill" translatesAutoresizingMaskIntoConstraints="NO" id="Sak-Iv-sb6">
                                                 <rect key="frame" x="0.0" y="0.0" width="24" height="24"/>
@@ -1154,7 +1149,7 @@ condition.</string>
         </scene>
     </scenes>
     <inferredMetricsTieBreakers>
-        <segue reference="Bhw-Lp-KJy"/>
+        <segue reference="bVQ-Ez-5EB"/>
     </inferredMetricsTieBreakers>
     <resources>
         <image name="checkmark.circle.fill" width="128" height="128"/>
