@@ -10,6 +10,8 @@ import UIKit
 
 class SignUpTableViewController: UITableViewController {
 
+    @IBOutlet weak var section1CardContainer: UIView!
+    @IBOutlet weak var section0CardContainer: UIView!
     @IBOutlet weak var fullNameField: UITextField!
     @IBOutlet weak var emailField: UITextField!
     @IBOutlet weak var phoneField: UITextField!
@@ -56,7 +58,12 @@ class SignUpTableViewController: UITableViewController {
        // MARK: - View Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        
+        applyDefaultTableBackground()
+        navigationController?.applyWhiteNavBar()
+        
+        [section0CardContainer, section1CardContainer].forEach { $0.applyDashboardCard() }
+        
         setupGenderMenu()
         configureDatePickerForDOB()
         configureTextFields()
@@ -233,4 +240,10 @@ class SignUpTableViewController: UITableViewController {
                }
            }
        }
+    override func tableView(_ tableView: UITableView,
+                            willDisplay cell: UITableViewCell,
+                            forRowAt indexPath: IndexPath) {
+        cell.backgroundColor = .clear
+        cell.contentView.backgroundColor = .clear
+    }
    }

@@ -20,11 +20,17 @@ class ProfileViewTableViewController: UITableViewController {
     @IBOutlet weak var weightRightLabel: UILabel!
     @IBOutlet weak var bloodGroupRightLabel: UILabel!
     
+    @IBOutlet weak var section1CardContainer: UIView!
+    @IBOutlet weak var section0CardContainer: UIView!
     var user: User?
 
     override func viewDidLoad() {
         super.viewDidLoad()
-       
+        applyDefaultTableBackground()
+        navigationController?.applyWhiteNavBar()
+        [section1CardContainer, section0CardContainer].forEach {
+            $0?.applyDashboardCard()
+        }
         updateUI()
     }
     
@@ -65,6 +71,11 @@ class ProfileViewTableViewController: UITableViewController {
         updateUI()    
     }
 
-
+    override func tableView(_ tableView: UITableView,
+                            willDisplay cell: UITableViewCell,
+                            forRowAt indexPath: IndexPath) {
+        cell.backgroundColor = .clear
+        cell.contentView.backgroundColor = .clear
+    }
 
 }

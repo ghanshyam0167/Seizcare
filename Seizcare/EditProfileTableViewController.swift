@@ -31,6 +31,8 @@ class EditProfileTableViewController: UITableViewController {
     @IBOutlet weak var genderButton: UIButton!
     @IBOutlet weak var bloodGroupTextField: UITextField!
     
+    @IBOutlet weak var section1CardContainer: UIView!
+    @IBOutlet weak var section0CardContainer: UIView!
     let dateFormatter: DateFormatter = {
            let df = DateFormatter()
            df.dateFormat = "yyyy-MM-dd"
@@ -39,7 +41,12 @@ class EditProfileTableViewController: UITableViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+        title = "Edit Profile"
+        applyDefaultTableBackground()
+        navigationController?.applyWhiteNavBar()
+        [section1CardContainer, section0CardContainer].forEach {
+            $0?.applyDashboardCard()
+        }
         prefillUI()
         setupGenderMenu()
     }
@@ -103,6 +110,11 @@ class EditProfileTableViewController: UITableViewController {
 
     }
     
-   
+    override func tableView(_ tableView: UITableView,
+                            willDisplay cell: UITableViewCell,
+                            forRowAt indexPath: IndexPath) {
+        cell.backgroundColor = .clear
+        cell.contentView.backgroundColor = .clear
+    }
 
 }
