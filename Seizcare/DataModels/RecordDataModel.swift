@@ -37,6 +37,16 @@ enum SeizureTimeBucket: String, Codable, CaseIterable {
     case evening
     case night
     case unknown
+    
+    var displayText: String {
+           switch self {
+           case .morning: return "Morning"
+           case .afternoon: return "Afternoon"
+           case .evening: return "Evening"
+           case .night: return "Night"
+           case .unknown: return "Unknown"
+           }
+       }
 }
 
 //====================================================

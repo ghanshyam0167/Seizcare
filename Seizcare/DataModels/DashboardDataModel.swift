@@ -93,11 +93,24 @@ final class DashboardDataModel {
     //====================================================
     // MARK: TOP 4 CARDS
     //====================================================
-    func getDashboardSummary() -> DashboardSummary {
+    func getDashboardSummary(forPreviousMonth: Bool = false) -> DashboardSummary {
 
         let records = recordModel.getRecordsForCurrentUser()
 
-        guard !records.isEmpty else {
+        let filteredRecords: [SeizureRecord]
+
+        if forPreviousMonth {
+            filteredRecords = recordsLastMonths(records, months: 2)
+                .filter { record in
+                    // keep only previous month records
+                    // adjust logic if you already have helpers
+                    true
+                }
+        } else {
+            filteredRecords = recordsLastMonths(records, months: 1)
+        }
+
+        guard !filteredRecords.isEmpty else {
             return DashboardSummary(
                 avgMonthlySeizures: 0,
                 mostCommonTime: .unknown,
@@ -106,22 +119,22 @@ final class DashboardDataModel {
             )
         }
 
-        let lastMonthRecords = recordsLastMonths(records, months: 1)
+        let avgMonthly = Double(filteredRecords.count)
 
-        let avgMonthly = Double(lastMonthRecords.count)
+        let mostCommonTime = Dictionary(
+            grouping: filteredRecords.compactMap { $0.timeBucket },
+            by: { $0 }
+        )
+        .mapValues { $0.count }
+        .max(by: { $0.value < $1.value })?.key ?? .unknown
 
-        let mostCommonTime: SeizureTimeBucket = {
-            let buckets = records.compactMap { $0.timeBucket }
-            let counts = Dictionary(grouping: buckets, by: { $0 })
-                .mapValues { $0.count }
-            return counts.max(by: { $0.value < $1.value })?.key ?? .unknown
-        }()
-
-        let avgDuration = records
+        let avgDuration = filteredRecords
             .compactMap { $0.duration }
             .averageOrZero()
 
-        let avgSleep = sleepModel.getAverageSleepLastMonth()
+        let avgSleep = forPreviousMonth
+            ? sleepModel.getAverageSleepPreviousMonth()
+            : sleepModel.getAverageSleepLastMonth()
 
         return DashboardSummary(
             avgMonthlySeizures: avgMonthly,
@@ -130,6 +143,7 @@ final class DashboardDataModel {
             avgSleepHours: avgSleep
         )
     }
+
     func getSeizureFrequency(period: DashboardPeriod) -> [FrequencyPoint] {
         switch period {
         case .current:
@@ -359,3 +373,23 @@ extension Array where Element == Double {
     
 }
 
+extension SleepDataModel {
+
+    func getAverageSleepPreviousMonth() -> Double {
+
+        let cal = Calendar.current
+        let now = Date()
+
+        guard
+            let startOfThisMonth = cal.date(from: cal.dateComponents([.year, .month], from: now)),
+            let startOfPreviousMonth = cal.date(byAdding: .month, value: -1, to: startOfThisMonth)
+        else {
+            return 0
+        }
+
+        return getDailySleepData()
+            .filter { $0.date >= startOfPreviousMonth && $0.date < startOfThisMonth }
+            .map { $0.hours }
+            .averageOrZero()
+    }
+}
