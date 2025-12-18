@@ -5,7 +5,7 @@
 
 import UIKit
 
-class SignInViewController: UIViewController {
+class SignInViewController: UIViewController,UITextFieldDelegate {
 
     @IBOutlet weak var EmailOrPhNo: UITextField!
     @IBOutlet weak var PasswordTextField: UITextField!
@@ -39,6 +39,8 @@ class SignInViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        EmailOrPhNo.delegate = self
+        PasswordTextField.delegate = self
     }
 
     // MARK: - Navigation
@@ -61,5 +63,16 @@ class SignInViewController: UIViewController {
     func debugLog(_ message: String) {
         print("[DEBUG] \(message)")
     }
+    
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        if textField == EmailOrPhNo {
+            PasswordTextField.becomeFirstResponder()
+        } else if textField == PasswordTextField {
+            textField.resignFirstResponder()
+            SignInAction(textField) // trigger sign in
+        }
+        return true
+    }
+
 }
 

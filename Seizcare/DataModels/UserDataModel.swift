@@ -175,10 +175,13 @@ extension UserDataModel {
         return false
     }
     
-    func logoutUser() {
-        currentUser = nil
-        UserDefaults.standard.removeObject(forKey: currentUserKey)
+    func logoutUser(completion: @escaping (Bool) -> Void) {
+        // Clear stored user data
+        UserDefaults.standard.removeObject(forKey: "loggedInUser")
+
+        completion(true)
     }
+
     
     func getCurrentUser() -> User? {
         return currentUser

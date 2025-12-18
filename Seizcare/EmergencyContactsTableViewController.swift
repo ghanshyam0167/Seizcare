@@ -17,6 +17,8 @@ class EmergencyContactsTableViewController: UITableViewController, CNContactPick
     var contacts: [EmergencyContact] = []
     override func viewDidLoad() {
         super.viewDidLoad()
+        applyDefaultTableBackground()
+        navigationController?.applyWhiteNavBar()
         loadContacts()
 
     }
