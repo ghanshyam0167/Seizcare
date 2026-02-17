@@ -72,6 +72,47 @@ class SignUpTableViewController: UITableViewController {
 
         tableView.allowsSelection = false
         tableView.allowsMultipleSelection = false
+        
+        // Custom Navigation: Hide default back button & add footer
+        navigationItem.setHidesBackButton(true, animated: false)
+        self.title = "Sign Up"
+        setupSignInFooter()
+    }
+    
+    // MARK: - Custom Footer (Sign In)
+    private func setupSignInFooter() {
+        let FooterView = UIView(frame: CGRect(x: 0, y: 0, width: view.frame.width, height: 60))
+        let stackView = UIStackView()
+        stackView.axis = .horizontal
+        stackView.alignment = .center
+        stackView.spacing = 4
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        
+        let label = UILabel()
+        label.text = "Already have an account?"
+        label.font = UIFont.systemFont(ofSize: 14)
+        label.textColor = .secondaryLabel
+        
+        let button = UIButton(type: .system)
+        button.setTitle("Sign In", for: .normal)
+        button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 14)
+        button.addTarget(self, action: #selector(backToSignIn), for: .touchUpInside)
+        
+        stackView.addArrangedSubview(label)
+        stackView.addArrangedSubview(button)
+        
+        FooterView.addSubview(stackView)
+        
+        NSLayoutConstraint.activate([
+            stackView.centerXAnchor.constraint(equalTo: FooterView.centerXAnchor),
+            stackView.centerYAnchor.constraint(equalTo: FooterView.centerYAnchor)
+        ])
+        
+        tableView.tableFooterView = FooterView
+    }
+
+    @objc private func backToSignIn() {
+        navigationController?.popViewController(animated: true)
     }
 
 
@@ -164,10 +205,35 @@ class SignUpTableViewController: UITableViewController {
            // -------------------------
            // Validation
            // -------------------------
-           if fullName.isEmpty || email.isEmpty || phone.isEmpty || password.isEmpty || dobString.isEmpty {
-               showAlert("Please fill in all fields.")
-               return
-           }
+        // -------------------------
+        // Validation
+        // -------------------------
+        
+        // 1. Name (Simple non-empty check)
+        if fullName.isEmpty {
+            showAlert("Please enter your full name.")
+            return
+        }
+        
+        // 2. Email (Regex)
+        if email.isEmpty || !isValidEmail(email) {
+            showAlert("Please enter a valid email address.")
+            return
+        }
+        
+        // 3. Phone (10 digits)
+        if phone.isEmpty || !isValidPhone(phone) {
+            showAlert("Please enter a valid 10-digit phone number.")
+            return
+        }
+        
+        // 4. Date of Birth
+        if dobString.isEmpty {
+            showAlert("Please enter your date of birth.")
+            return
+        }
+    
+
            guard let dobDate = dateFormatter.date(from: dobString) else {
                        showAlert("Please enter date of birth in format yyyy-MM-dd.")
                        return
@@ -245,5 +311,18 @@ class SignUpTableViewController: UITableViewController {
                             forRowAt indexPath: IndexPath) {
         cell.backgroundColor = .clear
         cell.contentView.backgroundColor = .clear
+    }
+    
+    // MARK: - Validation Helpers
+    func isValidEmail(_ email: String) -> Bool {
+        let emailRegEx = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
+        let emailPred = NSPredicate(format:"SELF MATCHES %@", emailRegEx)
+        return emailPred.evaluate(with: email)
+    }
+
+    func isValidPhone(_ phone: String) -> Bool {
+        let phoneRegEx = "^[0-9]{10}$"
+        let phonePred = NSPredicate(format:"SELF MATCHES %@", phoneRegEx)
+        return phonePred.evaluate(with: phone)
     }
    }
