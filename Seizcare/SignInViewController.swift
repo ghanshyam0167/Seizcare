@@ -41,6 +41,10 @@ class SignInViewController: UIViewController,UITextFieldDelegate {
         super.viewDidLoad()
         EmailOrPhNo.delegate = self
         PasswordTextField.delegate = self
+        PasswordTextField.isSecureTextEntry = true
+        
+        // Hide back button
+        navigationItem.setHidesBackButton(true, animated: false)
     }
 
     // MARK: - Navigation
