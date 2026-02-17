@@ -257,7 +257,7 @@ class SignUpTableViewController: UITableViewController {
            )
 
            UserDataModel.shared.addUser(newUser)
-           let loginSuccess = UserDataModel.shared.loginUser(email: email, password: password)
+           let loginSuccess = UserDataModel.shared.loginUser(emailOrPhone: email, password: password)
                print("Auto-login status → \(loginSuccess)")
 
            // Navigate after signup
