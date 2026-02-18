@@ -43,7 +43,7 @@
         <scene sceneID="aFv-L1-wy9">
             <objects>
                 <tableViewController id="70s-GZ-ryd" sceneMemberID="viewController">
-                    <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="static" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" id="n36-BV-69F">
+                    <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="static" style="grouped" separatorStyle="none" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="18" estimatedSectionHeaderHeight="-1" sectionFooterHeight="18" estimatedSectionFooterHeight="-1" id="n36-BV-69F">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
@@ -106,12 +106,22 @@
                                                         </label>
                                                     </subviews>
                                                 </stackView>
+                                                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Sep-Name-001">
+                                                    <rect key="frame" x="12" y="36.666666666666664" width="369" height="0.6666666666666643"/>
+                                                    <color key="backgroundColor" systemColor="opaqueSeparatorColor"/>
+                                                    <constraints>
+                                                        <constraint firstAttribute="height" constant="0.5" id="Hgt-Name-001"/>
+                                                    </constraints>
+                                                </view>
                                             </subviews>
                                             <constraints>
                                                 <constraint firstItem="eYA-jG-VeA" firstAttribute="top" secondItem="AUK-NF-dYK" secondAttribute="top" constant="8" id="cuM-uL-51j"/>
                                                 <constraint firstAttribute="trailing" secondItem="eYA-jG-VeA" secondAttribute="trailing" constant="12" id="dAd-81-hPk"/>
                                                 <constraint firstAttribute="bottom" secondItem="eYA-jG-VeA" secondAttribute="bottom" constant="8" id="hLt-yr-Cr7"/>
                                                 <constraint firstItem="eYA-jG-VeA" firstAttribute="leading" secondItem="AUK-NF-dYK" secondAttribute="leading" constant="12" id="wew-b8-Pa6"/>
+                                                <constraint firstAttribute="trailing" secondItem="Sep-Name-001" secondAttribute="trailing" constant="12" id="Trl-Name-001"/>
+                                                <constraint firstAttribute="bottom" secondItem="Sep-Name-001" secondAttribute="bottom" constant="0" id="Btm-Name-001"/>
+                                                <constraint firstItem="Sep-Name-001" firstAttribute="leading" secondItem="AUK-NF-dYK" secondAttribute="leading" constant="12" id="Led-Name-001"/>
                                             </constraints>
                                         </tableViewCellContentView>
                                     </tableViewCell>
@@ -139,12 +149,22 @@
                                                         </label>
                                                     </subviews>
                                                 </stackView>
+                                                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Sep-Email-002">
+                                                    <rect key="frame" x="12" y="36.666666666666664" width="369" height="0.6666666666666643"/>
+                                                    <color key="backgroundColor" systemColor="opaqueSeparatorColor"/>
+                                                    <constraints>
+                                                        <constraint firstAttribute="height" constant="0.5" id="Hgt-Email-002"/>
+                                                    </constraints>
+                                                </view>
                                             </subviews>
                                             <constraints>
                                                 <constraint firstItem="Dhg-hf-Syd" firstAttribute="top" secondItem="yHX-ta-CaQ" secondAttribute="top" constant="8" id="C0P-Aa-tK3"/>
                                                 <constraint firstAttribute="bottom" secondItem="Dhg-hf-Syd" secondAttribute="bottom" constant="8" id="f43-RO-TUM"/>
                                                 <constraint firstItem="Dhg-hf-Syd" firstAttribute="leading" secondItem="yHX-ta-CaQ" secondAttribute="leading" constant="12" id="wfi-NS-EcE"/>
                                                 <constraint firstAttribute="trailing" secondItem="Dhg-hf-Syd" secondAttribute="trailing" constant="12" id="zrX-SC-kIK"/>
+                                                <constraint firstAttribute="trailing" secondItem="Sep-Email-002" secondAttribute="trailing" constant="12" id="Trl-Email-002"/>
+                                                <constraint firstAttribute="bottom" secondItem="Sep-Email-002" secondAttribute="bottom" constant="0" id="Btm-Email-002"/>
+                                                <constraint firstItem="Sep-Email-002" firstAttribute="leading" secondItem="yHX-ta-CaQ" secondAttribute="leading" constant="12" id="Led-Email-002"/>
                                             </constraints>
                                         </tableViewCellContentView>
                                     </tableViewCell>
@@ -172,12 +192,22 @@
                                                         </label>
                                                     </subviews>
                                                 </stackView>
+                                                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Sep-Phone-003">
+                                                    <rect key="frame" x="12" y="36.666666666666664" width="369" height="0.6666666666666643"/>
+                                                    <color key="backgroundColor" systemColor="opaqueSeparatorColor"/>
+                                                    <constraints>
+                                                        <constraint firstAttribute="height" constant="0.5" id="Hgt-Phone-003"/>
+                                                    </constraints>
+                                                </view>
                                             </subviews>
                                             <constraints>
                                                 <constraint firstItem="uFA-zL-XCY" firstAttribute="top" secondItem="408-ht-vU0" secondAttribute="top" constant="8" id="E0P-XL-9Cq"/>
                                                 <constraint firstItem="uFA-zL-XCY" firstAttribute="leading" secondItem="408-ht-vU0" secondAttribute="leading" constant="12" id="Qac-UR-sQw"/>
                                                 <constraint firstAttribute="trailing" secondItem="uFA-zL-XCY" secondAttribute="trailing" constant="12" id="dgP-nx-xzd"/>
                                                 <constraint firstAttribute="bottom" secondItem="uFA-zL-XCY" secondAttribute="bottom" constant="8" id="ljr-4L-5iE"/>
+                                                <constraint firstAttribute="trailing" secondItem="Sep-Phone-003" secondAttribute="trailing" constant="12" id="Trl-Phone-003"/>
+                                                <constraint firstAttribute="bottom" secondItem="Sep-Phone-003" secondAttribute="bottom" constant="0" id="Btm-Phone-003"/>
+                                                <constraint firstItem="Sep-Phone-003" firstAttribute="leading" secondItem="408-ht-vU0" secondAttribute="leading" constant="12" id="Led-Phone-003"/>
                                             </constraints>
                                         </tableViewCellContentView>
                                     </tableViewCell>
@@ -205,12 +235,22 @@
                                                         </label>
                                                     </subviews>
                                                 </stackView>
+                                                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Sep-DOB-004">
+                                                    <rect key="frame" x="12" y="36.666666666666664" width="369" height="0.6666666666666643"/>
+                                                    <color key="backgroundColor" systemColor="opaqueSeparatorColor"/>
+                                                    <constraints>
+                                                        <constraint firstAttribute="height" constant="0.5" id="Hgt-DOB-004"/>
+                                                    </constraints>
+                                                </view>
                                             </subviews>
                                             <constraints>
                                                 <constraint firstItem="iD1-uK-Na1" firstAttribute="top" secondItem="g97-Qn-ZHq" secondAttribute="top" constant="8" id="V4l-gt-Xsm"/>
                                                 <constraint firstAttribute="bottom" secondItem="iD1-uK-Na1" secondAttribute="bottom" constant="8" id="bm2-6T-CuP"/>
                                                 <constraint firstAttribute="trailing" secondItem="iD1-uK-Na1" secondAttribute="trailing" constant="12" id="fui-SB-foW"/>
                                                 <constraint firstItem="iD1-uK-Na1" firstAttribute="leading" secondItem="g97-Qn-ZHq" secondAttribute="leading" constant="12" id="zC0-kk-iqA"/>
+                                                <constraint firstAttribute="trailing" secondItem="Sep-DOB-004" secondAttribute="trailing" constant="12" id="Trl-DOB-004"/>
+                                                <constraint firstAttribute="bottom" secondItem="Sep-DOB-004" secondAttribute="bottom" constant="0" id="Btm-DOB-004"/>
+                                                <constraint firstItem="Sep-DOB-004" firstAttribute="leading" secondItem="g97-Qn-ZHq" secondAttribute="leading" constant="12" id="Led-DOB-004"/>
                                             </constraints>
                                         </tableViewCellContentView>
                                     </tableViewCell>
@@ -275,12 +315,22 @@
                                                         </label>
                                                     </subviews>
                                                 </stackView>
+                                                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Sep-Height-005">
+                                                    <rect key="frame" x="12" y="36.666666666666664" width="369" height="0.6666666666666643"/>
+                                                    <color key="backgroundColor" systemColor="opaqueSeparatorColor"/>
+                                                    <constraints>
+                                                        <constraint firstAttribute="height" constant="0.5" id="Hgt-Height-005"/>
+                                                    </constraints>
+                                                </view>
                                             </subviews>
                                             <constraints>
                                                 <constraint firstAttribute="trailing" secondItem="CxC-fJ-3ez" secondAttribute="trailing" constant="12" id="K8G-yP-ckC"/>
                                                 <constraint firstItem="CxC-fJ-3ez" firstAttribute="leading" secondItem="zsh-5B-pq4" secondAttribute="leading" constant="12" id="NFA-JH-vbG"/>
                                                 <constraint firstAttribute="bottom" secondItem="CxC-fJ-3ez" secondAttribute="bottom" constant="8" id="gfA-dc-Vp8"/>
                                                 <constraint firstItem="CxC-fJ-3ez" firstAttribute="top" secondItem="zsh-5B-pq4" secondAttribute="top" constant="8" id="tkX-bj-6Kc"/>
+                                                <constraint firstAttribute="trailing" secondItem="Sep-Height-005" secondAttribute="trailing" constant="12" id="Trl-Height-005"/>
+                                                <constraint firstAttribute="bottom" secondItem="Sep-Height-005" secondAttribute="bottom" constant="0" id="Btm-Height-005"/>
+                                                <constraint firstItem="Sep-Height-005" firstAttribute="leading" secondItem="zsh-5B-pq4" secondAttribute="leading" constant="12" id="Led-Height-005"/>
                                             </constraints>
                                         </tableViewCellContentView>
                                     </tableViewCell>
@@ -308,12 +358,22 @@
                                                         </label>
                                                     </subviews>
                                                 </stackView>
+                                                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Sep-Weight-006">
+                                                    <rect key="frame" x="12" y="36.666666666666664" width="369" height="0.6666666666666643"/>
+                                                    <color key="backgroundColor" systemColor="opaqueSeparatorColor"/>
+                                                    <constraints>
+                                                        <constraint firstAttribute="height" constant="0.5" id="Hgt-Weight-006"/>
+                                                    </constraints>
+                                                </view>
                                             </subviews>
                                             <constraints>
                                                 <constraint firstAttribute="trailing" secondItem="cJb-YC-EKj" secondAttribute="trailing" constant="12" id="4tD-nf-k79"/>
                                                 <constraint firstAttribute="bottom" secondItem="cJb-YC-EKj" secondAttribute="bottom" constant="8" id="PdR-0R-yXI"/>
                                                 <constraint firstItem="cJb-YC-EKj" firstAttribute="top" secondItem="1aE-MD-rFA" secondAttribute="top" constant="8" id="fbb-2V-3X6"/>
                                                 <constraint firstItem="cJb-YC-EKj" firstAttribute="leading" secondItem="1aE-MD-rFA" secondAttribute="leading" constant="12" id="gNH-5u-rjn"/>
+                                                <constraint firstAttribute="trailing" secondItem="Sep-Weight-006" secondAttribute="trailing" constant="12" id="Trl-Weight-006"/>
+                                                <constraint firstAttribute="bottom" secondItem="Sep-Weight-006" secondAttribute="bottom" constant="0" id="Btm-Weight-006"/>
+                                                <constraint firstItem="Sep-Weight-006" firstAttribute="leading" secondItem="1aE-MD-rFA" secondAttribute="leading" constant="12" id="Led-Weight-006"/>
                                             </constraints>
                                         </tableViewCellContentView>
                                     </tableViewCell>
@@ -396,7 +456,7 @@
         <scene sceneID="smy-o5-I7D">
             <objects>
                 <tableViewController id="msZ-YG-fgQ" customClass="EditProfileTableViewController" customModule="Seizcare" customModuleProvider="target" sceneMemberID="viewController">
-                    <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="static" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" id="I9v-BC-xRQ">
+                    <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="static" style="grouped" separatorStyle="none" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="18" estimatedSectionHeaderHeight="-1" sectionFooterHeight="18" estimatedSectionFooterHeight="-1" id="I9v-BC-xRQ">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="783"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
@@ -771,7 +831,7 @@
         <scene sceneID="yPD-Ij-G58">
             <objects>
                 <tableViewController id="Uih-d7-lU7" customClass="ProfileViewTableViewController" customModule="Seizcare" customModuleProvider="target" sceneMemberID="viewController">
-                    <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="static" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" id="sfT-ap-nfi">
+                    <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="static" style="grouped" separatorStyle="none" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="18" estimatedSectionHeaderHeight="-1" sectionFooterHeight="18" estimatedSectionFooterHeight="-1" id="sfT-ap-nfi">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="793"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
