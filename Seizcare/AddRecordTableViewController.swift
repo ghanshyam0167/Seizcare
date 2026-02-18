@@ -55,6 +55,8 @@ class AddRecordTableViewController: UITableViewController {
         recordToEdit != nil
     }
 
+    private let placeholderText = "Add your notes here..."
+
     override func viewDidLoad() {
         super.viewDidLoad()
         applyDefaultTableBackground()
@@ -67,6 +69,9 @@ class AddRecordTableViewController: UITableViewController {
         dateTextField.isUserInteractionEnabled = true
         let tap = UITapGestureRecognizer(target: self, action: #selector(openDatePicker))
         dateTextField.addGestureRecognizer(tap)
+        
+        // Delegate for placeholder
+        notesTextView.delegate = self
 
         seizureLevelSegment.applyPrimaryStyle()
         let symptomButtons = [
@@ -118,12 +123,34 @@ class AddRecordTableViewController: UITableViewController {
         } else {
             configureForAdd()
         }
+        
+        fixDateLabel()
 
+    }
+    
+    private func fixDateLabel() {
+        // Recursively find "Date & Time" label and change to "Date"
+        func scan(view: UIView) {
+            if let label = view as? UILabel, label.text == "Date & Time" {
+                label.text = "Date"
+            }
+            view.subviews.forEach { scan(view: $0) }
+        }
+        scan(view: view)
     }
     private func configureForAdd() {
         navigationItem.title = "Add Record"
         saveButton.title = "Save"
         saveButton.isEnabled = false
+        
+        // Set default date to today
+        let formatter = DateFormatter()
+        formatter.dateFormat = "dd/MM/yyyy"
+        dateTextField.text = formatter.string(from: Date())
+        
+        // Initial placeholder
+        notesTextView.text = placeholderText
+        notesTextView.textColor = .tertiaryLabel
     }
 
     private func configureForEdit() {
@@ -136,7 +163,14 @@ class AddRecordTableViewController: UITableViewController {
         guard let record = recordToEdit else { return }
 
         titleTextField.text = record.title
-        notesTextView.text = record.description
+        
+        if let desc = record.description, !desc.isEmpty {
+            notesTextView.text = desc
+            notesTextView.textColor = .label
+        } else {
+            notesTextView.text = placeholderText
+            notesTextView.textColor = .tertiaryLabel
+        }
 
         let formatter = DateFormatter()
         formatter.dateFormat = "dd/MM/yyyy"
@@ -263,7 +297,12 @@ class AddRecordTableViewController: UITableViewController {
             }()
 
             let symptoms = selectedSymptoms.map { $0.rawValue }
-            let notes = notesTextView.text
+//            let symptoms = selectedSymptoms.map { $0.rawValue }
+            
+            var notes = notesTextView.text
+            if notes == placeholderText && notesTextView.textColor == .tertiaryLabel {
+                notes = ""
+            }
 
             if let oldRecord = recordToEdit {
                 let updatedRecord = SeizureRecord(
@@ -312,7 +351,12 @@ class AddRecordTableViewController: UITableViewController {
         saveButton.isEnabled = isTitleValid && isDateValid && isDurationValid && isSymptomsValid
     }
     func parseDuration(_ text: String) -> TimeInterval? {
-        let lower = text.lowercased()
+        let lower = text.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+
+        // 1. Try plain number -> treat as seconds
+        if let value = Double(lower) {
+            return value
+        }
 
         var minutes: Double = 0
         var seconds: Double = 0
@@ -330,6 +374,11 @@ class AddRecordTableViewController: UITableViewController {
             if let lastSpace = before.lastIndex(of: " ") {
                 let secString = before[before.index(after: lastSpace)...]
                 seconds = Double(secString) ?? 0
+            } else {
+                // E.g. "30sec" where no space found, but we know it's seconds because we checked "sec"
+                // Try to parse the whole chunk before "sec" if it's just a number
+                 let num = before.trimmingCharacters(in: .whitespaces)
+                 seconds = Double(num) ?? 0
             }
         }
 
@@ -351,27 +400,44 @@ class AddRecordTableViewController: UITableViewController {
         let datePicker = UIDatePicker()
         datePicker.datePickerMode = .date
         datePicker.preferredDatePickerStyle = .inline
-        datePicker.maximumDate = Date()
+        
+        // Allow all of today by setting max to end of today (23:59:59)
+        let calendar = Calendar.current
+        if let endOfToday = calendar.date(bySettingHour: 23, minute: 59, second: 59, of: Date()) {
+            datePicker.maximumDate = endOfToday
+        } else {
+            datePicker.maximumDate = Date()
+        }
 
         datePicker.translatesAutoresizingMaskIntoConstraints = false
         pickerVC.view.addSubview(datePicker)
+        
+        // Add Done button
+        let doneButton = UIButton(type: .system)
+        doneButton.setTitle("Done", for: .normal)
+        doneButton.titleLabel?.font = .systemFont(ofSize: 17, weight: .semibold)
+        doneButton.translatesAutoresizingMaskIntoConstraints = false
+        pickerVC.view.addSubview(doneButton)
 
         NSLayoutConstraint.activate([
-            datePicker.topAnchor.constraint(equalTo: pickerVC.view.topAnchor, constant: 20),
+            datePicker.topAnchor.constraint(equalTo: pickerVC.view.topAnchor, constant: 60),
             datePicker.leadingAnchor.constraint(equalTo: pickerVC.view.leadingAnchor, constant: 16),
             datePicker.trailingAnchor.constraint(equalTo: pickerVC.view.trailingAnchor, constant: -16),
-            datePicker.bottomAnchor.constraint(equalTo: pickerVC.view.bottomAnchor, constant: -20)
+            datePicker.bottomAnchor.constraint(equalTo: pickerVC.view.bottomAnchor, constant: -20),
+            
+            doneButton.topAnchor.constraint(equalTo: pickerVC.view.topAnchor, constant: 20),
+            doneButton.trailingAnchor.constraint(equalTo: pickerVC.view.trailingAnchor, constant: -20)
         ])
 
-        // Handle selection
-        datePicker.addAction(UIAction { [weak self] _ in
+        // Handle selection with Done button
+        doneButton.addAction(UIAction { [weak self] _ in
             guard let self else { return }
             let formatter = DateFormatter()
             formatter.dateFormat = "dd/MM/yyyy"
             self.dateTextField.text = formatter.string(from: datePicker.date)
             self.validateForm()
             self.dismiss(animated: true)
-        }, for: .valueChanged)
+        }, for: .touchUpInside)
 
         // Sheet style (iOS 15+)
         if let sheet = pickerVC.sheetPresentationController {
@@ -387,6 +453,23 @@ class AddRecordTableViewController: UITableViewController {
         dismiss(animated: true)
     }
     
+    
+}
+
+extension AddRecordTableViewController: UITextViewDelegate {
+    func textViewDidBeginEditing(_ textView: UITextView) {
+        if textView.text == placeholderText && textView.textColor == .tertiaryLabel {
+            textView.text = ""
+            textView.textColor = .label
+        }
+    }
+    
+    func textViewDidEndEditing(_ textView: UITextView) {
+        if textView.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            textView.text = placeholderText
+            textView.textColor = .tertiaryLabel
+        }
+    }
 }
 
 

@@ -71,21 +71,22 @@ class RecordTableViewController: UITableViewController,UISearchResultsUpdating {
             groupAndReload(records)
     }
     private func groupAndReload(_ records: [SeizureRecord]) {
+        // Group by "Month Year" (e.g., "NOVEMBER 2025")
         let grouped = Dictionary(grouping: records) { record -> String in
             let formatter = DateFormatter()
-            formatter.dateFormat = "MMMM"
+            formatter.dateFormat = "MMMM yyyy"
             return formatter.string(from: record.dateTime).uppercased()
         }
 
-        let monthsOrder = [
-            "JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE",
-            "JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"
-        ]
-
-        sectionTitles = grouped.keys.sorted {
-            monthsOrder.firstIndex(of: $0)! > monthsOrder.firstIndex(of: $1)!
+        // Sort section titles by the actual date of the records (Descending: Newest first)
+        sectionTitles = grouped.keys.sorted { title1, title2 in
+            // Get ANY record from the group to representative date
+            let date1 = grouped[title1]?.first?.dateTime ?? Date.distantPast
+            let date2 = grouped[title2]?.first?.dateTime ?? Date.distantPast
+            return date1 > date2
         }
 
+        // Map sorted titles to sorted records
         recordsBySection = sectionTitles.map {
             grouped[$0]!.sorted { $0.dateTime > $1.dateTime }
         }

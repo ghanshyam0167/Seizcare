@@ -58,9 +58,15 @@ struct TimePatternChart: View {
                     Rectangle()
                         .fill(Color.clear)
                         .contentShape(Rectangle())
-                        .onTapGesture { location in
-                            handleTap(location, proxy, geo)
-                        }
+                            .gesture(
+                                DragGesture(minimumDistance: 0)
+                                    .onChanged { value in
+                                        handleTap(value.location, proxy, geo)
+                                    }
+                                    .onEnded { _ in
+                                        selected = nil
+                                    }
+                            )
 
                     if let selected {
                         tooltip(for: selected, in: geo)

@@ -78,9 +78,15 @@ struct TriggerCorrelationChart: View {
                 Rectangle()
                     .fill(.clear)
                     .contentShape(Rectangle())
-                    .onTapGesture { location in
-                        handleTap(location, proxy, geo)
-                    }
+                        .gesture(
+                            DragGesture(minimumDistance: 0)
+                                .onChanged { value in
+                                    handleTap(value.location, proxy, geo)
+                                }
+                                .onEnded { _ in
+                                    selected = nil
+                                }
+                        )
 
                 if let selected {
                     tooltip(selected, geo: geo)

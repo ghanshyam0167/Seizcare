@@ -144,7 +144,11 @@ final class RecordRowView: UIView {
         iconView?.image = icon.image
         iconView?.tintColor = icon.tintColor
 
-        titleLabel?.text = record.type?.rawValue.capitalized ?? "Manual Log"
+        if record.entryType == .manual {
+            titleLabel?.text = record.title ?? "Manual Log"
+        } else {
+            titleLabel?.text = record.type?.rawValue.capitalized ?? "Seizure"
+        }
 
         if let duration = record.duration {
             let mins = Int(duration) / 60

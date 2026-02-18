@@ -155,6 +155,8 @@ final class SeizureRecordDataModel {
             .appendingPathComponent("seizureRecords")
             .appendingPathExtension("plist")
         loadRecords()
+        
+
     }
 
     //====================================================
@@ -327,7 +329,7 @@ final class SeizureRecordDataModel {
                         userId: userId,
                         entryType: .manual,
                         dateTime: date,
-                        duration: TimeInterval(Int.random(in: 40...150)),
+                        type: SeizureType.allCases.randomElement()!, duration: TimeInterval(Int.random(in: 40...150)),
                         title: manualTitles.randomElement()!,
                         symptoms: (symptomsPool.randomElement() ?? []).map { $0.rawValue },
                         triggers: triggersPool.randomElement()!
