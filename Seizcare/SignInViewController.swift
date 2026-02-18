@@ -19,14 +19,14 @@ class SignInViewController: UIViewController,UITextFieldDelegate {
 
         // Empty validation
         if email.isEmpty || password.isEmpty {
-            showAlert(message: "Please enter both email/phone and password.")
+            showAlert(message: "Please enter email or phone and password.")
             return
         }
 
         debugLog("Attempting login with UserDataModel…")
 
         // MARK: ✨ Use your UserDataModel here
-        let loginSuccess = UserDataModel.shared.loginUser(email: email, password: password)
+        let loginSuccess = UserDataModel.shared.loginUser(emailOrPhone: email, password: password)
 
         if loginSuccess {
             debugLog("Login SUCCESS → UserDataModel accepted credentials.")
@@ -43,6 +43,7 @@ class SignInViewController: UIViewController,UITextFieldDelegate {
         PasswordTextField.delegate = self
         PasswordTextField.isSecureTextEntry = true
         
+        navigationController?.applyWhiteNavBar()
         // Hide back button
         navigationItem.setHidesBackButton(true, animated: false)
     }

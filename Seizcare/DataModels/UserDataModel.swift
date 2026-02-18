@@ -165,8 +165,8 @@ class UserDataModel {
 // MARK: - Authentication Extension
 extension UserDataModel {
     
-    func loginUser(email: String, password: String) -> Bool {
-        if let user = validateUser(email: email, password: password) {
+    func loginUser(emailOrPhone: String, password: String) -> Bool {
+        if let user = validateUser(identifier: emailOrPhone, password: password) {
             currentUser = user
             UserDefaults.standard.set(user.id.uuidString, forKey: currentUserKey)
             return true
@@ -195,7 +195,7 @@ extension UserDataModel {
         }
     }
     
-    private func validateUser(email: String, password: String) -> User? {
-        return users.first(where: { $0.email == email && $0.password == password })
+    private func validateUser(identifier: String, password: String) -> User? {
+        return users.first(where: { ($0.email == identifier || $0.contactNumber == identifier) && $0.password == password })
     }
 }

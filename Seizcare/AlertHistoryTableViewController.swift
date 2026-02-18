@@ -41,19 +41,18 @@ class AlertHistoryTableViewController: UITableViewController {
     private func groupAndReload(_ notifications: [AppNotification]) {
 
         let formatter = DateFormatter()
-        formatter.dateFormat = "MMMM"
+        formatter.dateFormat = "MMMM yyyy"
 
         let grouped = Dictionary(grouping: notifications) { notification in
-            formatter.string(from: notification.dateTime).uppercased()
+            formatter.string(from: notification.dateTime)
         }
 
-        let monthsOrder = [
-            "JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE",
-            "JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"
-        ]
-
+        // Sort sections by date: most recent first
+        // Parse each section title back to a date for proper sorting
         sectionTitles = grouped.keys.sorted {
-            monthsOrder.firstIndex(of: $0)! > monthsOrder.firstIndex(of: $1)!
+            let d1 = formatter.date(from: $0) ?? .distantPast
+            let d2 = formatter.date(from: $1) ?? .distantPast
+            return d1 > d2
         }
 
         notificationsBySection = sectionTitles.map {

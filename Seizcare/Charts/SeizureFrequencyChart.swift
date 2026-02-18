@@ -13,129 +13,171 @@ struct SeizureFrequencyChart: View {
     private let haptic = UIImpactFeedbackGenerator(style: .light)
 
     var body: some View {
-
         VStack(alignment: .leading, spacing: 16) {
-
-            // =======================
-            // Header (Title + Avg)
-            // =======================
-            HStack(alignment: .firstTextBaseline) {
-                Text(titleText)
-                    .font(.callout)
-                    .foregroundColor(.secondary)
-
-                Spacer()
-
-                if average > 0 {
-                    Text("Avg \(average)")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-            }
-
-            // =======================
-            // Chart
-            // =======================
-            Chart {
-                ForEach(data) { point in
-                    BarMark(
-                        x: .value("Date", xLabel(for: point.date)),
-                        y: .value("Seizures", point.count)
-                    )
-                    .cornerRadius(8)
-                    .foregroundStyle(barGradient(for: point))
-                    .opacity(
-                        selectedPoint == nil || selectedPoint?.id == point.id ? 1 : 0.45
-                    )
-                }
-                RuleMark(y: .value("Average", average))
-                    .lineStyle(StrokeStyle(lineWidth: 1.2, dash: [6]))
-                    .foregroundStyle(.secondary.opacity(0.5))
-
-            }
-            .chartYAxis {
-                AxisMarks(position: .leading) {
-                    AxisGridLine()
-                        .foregroundStyle(.gray.opacity(0.12))
-                    AxisValueLabel()
-                        .font(.caption2)
-                }
-            }
-            .chartXAxis {
-                AxisMarks(values: .automatic) { value in
-                    AxisValueLabel()
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                }
-            }
-            .chartXScale(range: .plotDimension(padding: 28))
-            .frame(height: 260)
-            .chartOverlay { proxy in
-                GeometryReader { geo in
-                    Rectangle()
-                        .fill(.clear)
-                        .contentShape(Rectangle())
-                        .onTapGesture { location in
-                            handleTap(location, proxy, geo)
-                        }
-
-                    if let point = selectedPoint,
-                       let x = proxy.position(forX: point.date),
-                       let y = proxy.position(forY: point.count) {
-
-                        tooltip(point: point, x: x, y: y, geo: geo)
-                    }
-                }
-            }
+            headerView
+            frequencyChart
         }
-        
-
         // =======================
         // Card Styling (Balanced)
         // =======================
         .padding(20)
+
+    }
+
+    // MARK: - Subviews
+
+    private var headerView: some View {
+        HStack(alignment: .firstTextBaseline) {
+            Text(titleText)
+                .font(.callout)
+                .foregroundColor(.secondary)
+
+            Spacer()
+
+            if average > 0 {
+                Text("Avg \(average)")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+        }
+    }
+
+    private var frequencyChart: some View {
+        Chart {
+            chartContent
+            // Selection highlight only
+            if let selected = selectedPoint {
+                RuleMark(x: .value("Selected", selected.date, unit: xUnit))
+                    .foregroundStyle(.gray.opacity(0.1))
+                    .offset(yStart: -10)
+                    .zIndex(-1)
+            }
+        }
+        .chartYAxis {
+            AxisMarks(position: .leading) {
+                AxisGridLine()
+                    .foregroundStyle(.gray.opacity(0.12))
+                AxisValueLabel()
+                    .font(.caption2)
+            }
+        }
+        .chartXAxis {
+            AxisMarks(values: .stride(by: xUnit)) { value in
+                if let date = value.as(Date.self) {
+                    AxisValueLabel {
+                        Text(xLabel(for: date))
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+        }
+        .chartXScale(range: .plotDimension(padding: 28))
+        .frame(height: 260)
+        .chartOverlay { proxy in
+            GeometryReader { geo in
+                Rectangle()
+                    .fill(.clear)
+                    .contentShape(Rectangle())
+                    .gesture(
+                        DragGesture(minimumDistance: 0)
+                            .onChanged { value in
+                                let origin = geo[proxy.plotAreaFrame].origin
+                                let location = CGPoint(
+                                    x: value.location.x - origin.x,
+                                    y: value.location.y - origin.y
+                                )
+                                // Find date at x
+                                if let date: Date = proxy.value(atX: location.x) {
+                                    // Find nearest point
+                                    if let nearest = nearestPoint(to: date) {
+                                        selectedPoint = nearest
+                                    }
+                                }
+                            }
+                            .onEnded { _ in
+                                // Optional: deselect on end?
+                                selectedPoint = nil
+                            }
+                    )
+                
+                if let point = selectedPoint,
+                   let x = proxy.position(forX: point.date) {
+                    
+                    tooltip(point: point, x: x, geo: geo)
+                }
+            }
+        }
+    }
+
+    @ChartContentBuilder
+    private var chartContent: some ChartContent {
+        ForEach(data) { point in
+            BarMark(
+                x: .value("Date", point.date, unit: xUnit),
+                y: .value("Seizures", point.count)
+            )
+            .cornerRadius(8)
+            .foregroundStyle(barGradient(for: point))
+            .opacity(
+                selectedPoint == nil || selectedPoint?.id == point.id ? 1 : 0.45
+            )
+        }
+        RuleMark(y: .value("Average", average))
+            .lineStyle(StrokeStyle(lineWidth: 1.2, dash: [6]))
+            .foregroundStyle(.secondary.opacity(0.5))
     }
 
     // MARK: - Tooltip
     private func tooltip(
         point: FrequencyPoint,
         x: CGFloat,
-        y: CGFloat,
         geo: GeometryProxy
     ) -> some View {
+        
+        VStack(spacing: 4) {
+            Text(tooltipDateLabel(for: point.date))
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+            
+            Text("\(point.count) \(point.count == 1 ? "seizure" : "seizures")")
+                .font(.caption.bold())
+                .foregroundStyle(.primary)
+        }
+        .padding(8)
+        .background(.ultraThinMaterial)
+        .cornerRadius(10)
+        .shadow(radius: 3)
+        .position(
+            x: min(max(x, 60), geo.size.width - 60),
+            y: 40 // Fixed height from top, similar to other charts
+        )
+    }
 
-        let w: CGFloat = 56
-        let h: CGFloat = 34
 
-        let cx = min(max(x, w / 2 + 8), geo.size.width - w / 2 - 8)
-        let cy = max(y - 26, h)
-
-        return Text("\(point.count)")
-            .font(.headline)
-            .frame(width: w, height: h)
-            .background(.ultraThinMaterial)
-            .cornerRadius(10)
-            .shadow(radius: 3)
-            .position(x: cx, y: cy)
+    // MARK: - Tooltip Date Label
+    private func tooltipDateLabel(for date: Date) -> String {
+        let f = DateFormatter()
+        switch period {
+        case .current:
+            f.dateFormat = "EEEE, MMM d"
+        case .weekly:
+            // Show week range e.g. "Feb 10 – Feb 16"
+            let cal = Calendar.current
+            if let end = cal.date(byAdding: .day, value: 6, to: date) {
+                let f2 = DateFormatter()
+                f.dateFormat = "MMM d"
+                f2.dateFormat = "MMM d"
+                return "\(f.string(from: date)) – \(f2.string(from: end))"
+            }
+            f.dateFormat = "'Week of' MMM d"
+        case .monthly:
+            f.dateFormat = "MMMM yyyy"
+        }
+        return f.string(from: date)
     }
 
     // MARK: - Helpers
-
-    private func handleTap(
-        _ location: CGPoint,
-        _ proxy: ChartProxy,
-        _ geo: GeometryProxy
-    ) {
-        let origin = geo[proxy.plotAreaFrame].origin
-        let x = location.x - origin.x
-
-        guard let date: Date = proxy.value(atX: x),
-              let nearest = nearestPoint(to: date)
-        else { return }
-
-        selectedPoint = nearest
-        haptic.impactOccurred()
-    }
 
     private func nearestPoint(to date: Date) -> FrequencyPoint? {
         data.min {
@@ -191,4 +233,8 @@ struct SeizureFrequencyChart: View {
         }
     }
 }
+
+
+
+
 

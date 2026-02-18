@@ -58,9 +58,77 @@ class DetailRecordsTableViewController: UITableViewController {
                 view?.applyDashboardCard()
                 }
             descriptionTextView.delegate = self
+            
+            // Configure dynamic label sizing
+            configureDynamicLabels()
+            
+            // Enable automatic cell height
+            tableView.rowHeight = UITableView.automaticDimension
+            tableView.estimatedRowHeight = 300
+            
             applyRecord()
 
         }
+    
+    private func configureDynamicLabels() {
+
+        // MARK: - Title Labels (Fixed Width + High Priority)
+        let titleLabels = [
+            durationTitleLabel,
+            spo2TitleLabel,
+            heartRateTitleLabel,
+            locationTitleLabel
+        ]
+
+        titleLabels.forEach { label in
+            guard let label else { return }
+
+            label.numberOfLines = 1
+
+            // 🔥 Give titles a fixed width (critical)
+            if label.constraints.first(where: { $0.firstAttribute == .width }) == nil {
+                label.widthAnchor.constraint(equalToConstant: 120).isActive = true
+            }
+
+            label.setContentCompressionResistancePriority(.required, for: .horizontal)
+            label.setContentHuggingPriority(.required, for: .horizontal)
+        }
+
+
+        // MARK: - Value Labels (Flexible + Multiline)
+        let valueLabels = [
+            durationValueLabel,
+            spo2ValueLabel,
+            heartRateValueLabel,
+            locationValueLabel
+        ]
+
+        valueLabels.forEach { label in
+            guard let label else { return }
+
+            label.numberOfLines = 0
+            label.lineBreakMode = .byWordWrapping
+            label.textAlignment = .right
+
+            // 🔥 Allow horizontal expansion
+            label.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+            label.setContentHuggingPriority(.defaultLow, for: .horizontal)
+
+            // Prevent vertical squishing
+            label.setContentCompressionResistancePriority(.required, for: .vertical)
+        }
+
+        // MARK: - Important: Remove any fixed height constraints
+        (titleLabels + valueLabels).forEach { label in
+            guard let label else { return }
+            label.constraints.forEach { constraint in
+                if constraint.firstAttribute == .height {
+                    label.removeConstraint(constraint)
+                }
+            }
+        }
+    }
+
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
             view.endEditing(true)
@@ -71,7 +139,11 @@ class DetailRecordsTableViewController: UITableViewController {
         isManualRecord = (record.entryType == .manual)
 
         let formatter = DateFormatter()
-        formatter.dateFormat = "dd MMM yyyy, hh:mm a"
+        if record.entryType == .manual {
+            formatter.dateFormat = "dd MMM yyyy"
+        } else {
+            formatter.dateFormat = "dd MMM yyyy, hh:mm a"
+        }
         dateLabel.text = formatter.string(from: record.dateTime)
 
         configureNavigationBarButton()
@@ -264,7 +336,13 @@ class DetailRecordsTableViewController: UITableViewController {
             locationTitleLabel.text = "Location"
             locationValueLabel.text = record.location ?? "--"
             
-            descriptionTextView.text = record.description
+            if let desc = record.description, !desc.isEmpty {
+                descriptionTextView.text = desc
+                descriptionTextView.textColor = .label
+            } else {
+                descriptionTextView.text = placeholderText
+                descriptionTextView.textColor = .tertiaryLabel
+            }
         }
 
         // MARK: - Manual record display (same UI, changed meaning)
@@ -293,7 +371,13 @@ class DetailRecordsTableViewController: UITableViewController {
             locationTitleLabel.text = "Entry Type"
             locationValueLabel.text = "Manual"
             
-            descriptionTextView.text = record.description
+            if let desc = record.description, !desc.isEmpty {
+                descriptionTextView.text = desc
+                descriptionTextView.textColor = .label
+            } else {
+                descriptionTextView.text = placeholderText
+                descriptionTextView.textColor = .tertiaryLabel
+            }
         }
 
         func formatDuration(_ seconds: TimeInterval) -> String {
@@ -402,17 +486,43 @@ class DetailRecordsTableViewController: UITableViewController {
     
 }
 
+    private let placeholderText = "Add your notes here..."
+
+
+
 extension DetailRecordsTableViewController: UITextViewDelegate {
+    
+    func textViewDidBeginEditing(_ textView: UITextView) {
+        if textView.text == placeholderText && textView.textColor == .tertiaryLabel {
+            textView.text = ""
+            textView.textColor = .label
+        }
+    }
+    
     func textViewDidEndEditing(_ textView: UITextView) {
-        guard let updatedText = textView.text,
-              let record = record else { return }
+        guard let record = record else { return }
+        
+        // Trim whitespace
+        let trimmedText = textView.text.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        // Determine what to save
+        // If text is empty OR text is the placeholder, save as empty string/nil logic
+        let finalText: String
+        if trimmedText.isEmpty || (textView.text == placeholderText && textView.textColor == .tertiaryLabel) {
+            finalText = ""
+            // Restore placeholder
+            textView.text = placeholderText
+            textView.textColor = .tertiaryLabel
+        } else {
+            finalText = trimmedText
+        }
 
         SeizureRecordDataModel.shared.updateRecordDescription(
             id: record.id,
-            newDescription: updatedText
+            newDescription: finalText
         )
 
-        self.record?.description = updatedText
+        self.record?.description = finalText
         onDismiss?()
     }
 }

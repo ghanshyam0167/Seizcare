@@ -145,9 +145,9 @@ struct SpO2TimelineChart: View {
                                         plot.origin.y
                                     }
                                 }
-                                .onEnded { _ in
-                                    selected = nil
-                                }
+                            .onEnded { _ in
+                                selected = nil
+                            }
                         )
                     
                     if let selected {
