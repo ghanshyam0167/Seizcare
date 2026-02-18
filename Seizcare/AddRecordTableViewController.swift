@@ -338,7 +338,12 @@ class AddRecordTableViewController: UITableViewController {
             }
 
             onDismiss?()
-            dismiss(animated: true)
+            if let nav = navigationController, nav.viewControllers.count > 1 {
+                nav.popViewController(animated: true)
+            } else {
+                dismiss(animated: true)
+            }
+
         
     }
     func validateForm() {
@@ -450,8 +455,13 @@ class AddRecordTableViewController: UITableViewController {
     }
 
     @IBAction func cancelButtonTapped(_ sender: Any) {
-        dismiss(animated: true)
+        if let nav = navigationController, nav.viewControllers.count > 1 {
+            nav.popViewController(animated: true)
+        } else {
+            dismiss(animated: true)
+        }
     }
+
     
     
 }

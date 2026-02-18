@@ -68,6 +68,8 @@ class DashboardTableViewController: UITableViewController {
     @IBOutlet weak var currentCardView2: UIView!
     @IBOutlet weak var currentCardView1: UIView!
     @IBOutlet weak var currentCardView0: UIView!
+    @IBOutlet weak var viewAllButton: UIButton? // Optional to prevent crash if not connected
+
     
     
     @IBOutlet weak var pipeLabel3: UILabel!
@@ -84,6 +86,17 @@ class DashboardTableViewController: UITableViewController {
     @IBOutlet weak var spo2RecordLabel00: UILabel!
     @IBOutlet weak var dateRecordLabel00: UILabel!
     
+    // MARK: - Records Section — Programmatic Views
+    private let recordsHeaderView   = UIView()
+    private let recordsTitleLabel   = UILabel()
+    private let recordsActionButton = UIButton(type: .system)
+    private let emptyStateView      = UIView()
+    private let emptyTitleLabel     = UILabel()
+    private let emptySubtitleLabel  = UILabel()
+    private let emptyAddButton      = UIButton(type: .system)
+    // Premium programmatic preview cards (replace storyboard recordCardView0/1)
+    private let previewCard0        = UIView()
+    private let previewCard1        = UIView()
 
 
     var user : User?
@@ -107,15 +120,23 @@ class DashboardTableViewController: UITableViewController {
         pipeLabel3.setContentHuggingPriority(.required, for: .horizontal)
         
         
-        [currentCardView0, currentCardView1, currentCardView2, currentCardView3,
-             recordsCardView, seizureFrequencyChartUpperView,sleepVsSeizureChartContainerView,timePatterChartContainerView,TriggerCorrelationChartContainerView].forEach {
-                $0?.applyDashboardCard()
-            }
-            [recordCardView0, recordCardView1].forEach {
-                $0?.applyRecordCard()
-            }
+        // Chart / records cards keep the original dashboard card style
+        [recordsCardView, seizureFrequencyChartUpperView, sleepVsSeizureChartContainerView,
+         timePatterChartContainerView, TriggerCorrelationChartContainerView].forEach {
+            $0?.applyDashboardCard()
+        }
+        [recordCardView0, recordCardView1].forEach {
+            $0?.applyRecordCard()
+        }
+
+        // Four metric cards — each gets a unique subtle tint
+        currentCardView0?.applyMetricCard(tint: .systemIndigo)  // Sleep Quality
+        currentCardView1?.applyMetricCard(tint: .systemOrange)  // Avg Seizures
+        currentCardView2?.applyMetricCard(tint: .systemTeal)    // Avg Duration
+        currentCardView3?.applyMetricCard(tint: .systemPurple)  // Most Common Time
         setupInsightsCards()
-        updateRecentRecords()
+        setupRecordsSection()
+        updateRecordsSection()
         setupPeriodMenu()
         setupPeriodButton()
         changePeriod(currentPeriod)
@@ -135,70 +156,79 @@ class DashboardTableViewController: UITableViewController {
     
     func setupInsightsCards() {
 
-        let current = dashboardModel.getDashboardSummary()
+        let hasRecords = !SeizureRecordDataModel.shared.getLatestTwoRecordsForCurrentUser().isEmpty
+
+        // ── Typography helpers ─────────────────────────────────────────────
+        let titleFont    = UIFont.systemFont(ofSize: 15, weight: .bold)
+        let valueFont    = UIFont.systemFont(ofSize: 21, weight: .regular)
+        let subtitleFont = UIFont.systemFont(ofSize: 13, weight: .regular)
+
+
+        // Apply consistent typography to all title/value/subtitle labels
+        // (pipeLabels are the card titles in storyboard)
+        for label in [sleepDurationLabel, avgMonthlySeizuresLabel,
+                      avgDurationLabel, mostCommonTimeLabel] {
+            label?.font = valueFont
+            label?.textColor = .label
+        }
+        for label in [sleepDurationStatusLabel, avgSeizureStatusLabel,
+                      avgDurationStatusLabel, mostCommonTimeStatusLabel] {
+            label?.font = subtitleFont
+        }
+        for label in [pipeLabel0, pipeLabel1, pipeLabel2, pipeLabel3] {
+            label?.font = titleFont
+            label?.textColor = .secondaryLabel
+        }
+
+        // ── New user: show friendly placeholder state ──────────────────────
+        if !hasRecords {
+            sleepDurationLabel.text        = "—"
+            sleepDurationStatusLabel.text  = "Start tracking to unlock insights"
+            sleepDurationStatusLabel.textColor = .secondaryLabel
+
+            avgMonthlySeizuresLabel.text   = "—"
+            avgSeizureStatusLabel.text     = "Add your first record"
+            avgSeizureStatusLabel.textColor = .secondaryLabel
+
+            avgDurationLabel.text          = "—"
+            avgDurationStatusLabel.text    = "No records yet"
+            avgDurationStatusLabel.textColor = .secondaryLabel
+
+            mostCommonTimeLabel.text       = "—"
+            mostCommonTimeStatusLabel.text = "Track seizures to find patterns"
+            mostCommonTimeStatusLabel.textColor = .secondaryLabel
+            return
+        }
+
+        // ── Existing user: show real data ──────────────────────────────────
+        let current  = dashboardModel.getDashboardSummary()
         let previous = dashboardModel.getDashboardSummary(forPreviousMonth: true)
 
-        // =========================
         // Sleep Quality
-        // =========================
-        sleepDurationLabel.text =
-            "\(current.avgSleepHours.formatted(1)) hrs"
-
-        let sleepTrend = trend(
-            current: current.avgSleepHours,
-            previous: previous.avgSleepHours
-        )
-
-        sleepDurationStatusLabel.text =
-            "\(sleepTrend.icon) vs last month"
+        sleepDurationLabel.text = "\(current.avgSleepHours.formatted(1)) hrs"
+        let sleepTrend = trend(current: current.avgSleepHours, previous: previous.avgSleepHours)
+        sleepDurationStatusLabel.text      = "\(sleepTrend.icon) vs last month"
         sleepDurationStatusLabel.textColor = sleepTrend.color
 
-
-        // =========================
         // Avg Seizures
-        // =========================
-        avgMonthlySeizuresLabel.text =
-            "\(Int(current.avgMonthlySeizures)) / month"
-
-        let seizureTrend = trend(
-            current: current.avgMonthlySeizures,
-            previous: previous.avgMonthlySeizures
-        )
-
-        avgSeizureStatusLabel.text =
-            "\(seizureTrend.icon) Seizures \(seizureTrend.text)"
+        avgMonthlySeizuresLabel.text = "\(Int(current.avgMonthlySeizures)) / month"
+        let seizureTrend = trend(current: current.avgMonthlySeizures, previous: previous.avgMonthlySeizures)
+        avgSeizureStatusLabel.text      = "\(seizureTrend.icon) Seizures \(seizureTrend.text)"
         avgSeizureStatusLabel.textColor = seizureTrend.color
 
-
-        // =========================
         // Avg Duration
-        // =========================
-        avgDurationLabel.text =
-            formatDuration(current.avgDuration)
-
-        let durationTrend = trend(
-            current: current.avgDuration,
-            previous: previous.avgDuration
-        )
-
-        avgDurationStatusLabel.text =
-            "\(durationTrend.icon) Duration \(durationTrend.text)"
+        avgDurationLabel.text = formatDuration(current.avgDuration)
+        let durationTrend = trend(current: current.avgDuration, previous: previous.avgDuration)
+        avgDurationStatusLabel.text      = "\(durationTrend.icon) Duration \(durationTrend.text)"
         avgDurationStatusLabel.textColor = durationTrend.color
 
-
-        // =========================
         // Most Common Time
-        // =========================
-        mostCommonTimeLabel.text =
-            current.mostCommonTime.displayText
-
+        mostCommonTimeLabel.text = current.mostCommonTime.displayText
         if current.mostCommonTime != previous.mostCommonTime {
-            mostCommonTimeStatusLabel.text =
-                "Peak time shifted to \(current.mostCommonTime.displayText)"
+            mostCommonTimeStatusLabel.text      = "Peak time shifted to \(current.mostCommonTime.displayText)"
             mostCommonTimeStatusLabel.textColor = .systemBlue
         } else {
-            mostCommonTimeStatusLabel.text =
-                "Peak time unchanged"
+            mostCommonTimeStatusLabel.text      = "Peak time unchanged"
             mostCommonTimeStatusLabel.textColor = .secondaryLabel
         }
     }
@@ -422,64 +452,303 @@ class DashboardTableViewController: UITableViewController {
     }
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        updateRecentRecords()
+        updateRecordsSection()
+        setupInsightsCards()
     }
+
     
-    
-    func updateRecentRecords() {
+    // MARK: - Records Section Setup
+
+    private func setupRecordsSection() {
+        // Hide ALL storyboard subviews — we take full control programmatically
+        recordsCardView.subviews.forEach { $0.isHidden = true }
+        // Clip so nothing escapes the rounded card
+        recordsCardView.clipsToBounds = true
+
+        buildRecordsLayout()
+        updateRecordsSection()
+    }
+
+    /// Builds the Records card layout as a single outer VStack:
+    ///
+    ///   recordsCardView
+    ///     └── outerVStack  (pinned to all 4 edges with 16pt inset)
+    ///           ├── headerRow  (Records title | +/View all button)
+    ///           └── contentContainer
+    ///                 ├── emptyStateView  (hidden when records exist)
+    ///                 └── cardsStack      (hidden when no records)
+    private func buildRecordsLayout() {
+
+        // ── Header row (22pt semibold, 20pt padding) ──────────────────────
+        recordsTitleLabel.text = "Records"
+        recordsTitleLabel.font = .systemFont(ofSize: 22, weight: .semibold)
+        recordsTitleLabel.textColor = .label
+        recordsTitleLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
+
+        recordsActionButton.titleLabel?.font = .systemFont(ofSize: 15, weight: .medium)
+        recordsActionButton.tintColor = .systemBlue
+        recordsActionButton.setContentHuggingPriority(.required, for: .horizontal)
+        recordsActionButton.setContentCompressionResistancePriority(.required, for: .horizontal)
+
+        let headerRow = UIStackView(arrangedSubviews: [recordsTitleLabel, recordsActionButton])
+        headerRow.axis = .horizontal
+        headerRow.alignment = .center
+        headerRow.distribution = .fill
+
+        // ── Empty state ───────────────────────────────────────────────────
+        let iconConfig = UIImage.SymbolConfiguration(pointSize: 34, weight: .light)
+        let iconView   = UIImageView(image: UIImage(systemName: "doc.text", withConfiguration: iconConfig))
+        iconView.tintColor = .systemBlue.withAlphaComponent(0.45)
+        iconView.contentMode = .scaleAspectFit
+        iconView.heightAnchor.constraint(equalToConstant: 42).isActive = true
+
+        emptyTitleLabel.text = "No Records Yet"
+        emptyTitleLabel.font = .systemFont(ofSize: 17, weight: .semibold)
+        emptyTitleLabel.textColor = .label
+        emptyTitleLabel.textAlignment = .center
+
+        emptySubtitleLabel.text = "Add your first seizure record to start tracking."
+        emptySubtitleLabel.font = .systemFont(ofSize: 14, weight: .regular)
+        emptySubtitleLabel.textColor = .secondaryLabel
+        emptySubtitleLabel.textAlignment = .center
+        emptySubtitleLabel.numberOfLines = 0
+
+        var btnConfig = UIButton.Configuration.filled()
+        btnConfig.title = "+ Add Record"
+        btnConfig.baseForegroundColor = .white
+        btnConfig.baseBackgroundColor = .systemBlue
+        btnConfig.cornerStyle = .capsule
+        btnConfig.contentInsets = NSDirectionalEdgeInsets(top: 10, leading: 24, bottom: 10, trailing: 24)
+        btnConfig.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { a in
+            var b = a; b.font = UIFont.systemFont(ofSize: 15, weight: .semibold); return b
+        }
+        emptyAddButton.configuration = btnConfig
+        emptyAddButton.addTarget(self, action: #selector(addRecordTapped), for: .touchUpInside)
+
+        let emptyVStack = UIStackView(arrangedSubviews: [iconView, emptyTitleLabel, emptySubtitleLabel, emptyAddButton])
+        emptyVStack.axis = .vertical
+        emptyVStack.alignment = .center
+        emptyVStack.spacing = 10
+        emptyVStack.setCustomSpacing(16, after: emptySubtitleLabel)
+
+        emptyStateView.addSubview(emptyVStack)
+        emptyVStack.translatesAutoresizingMaskIntoConstraints = false
+        emptyStateView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            emptyVStack.topAnchor.constraint(equalTo: emptyStateView.topAnchor, constant: 16),
+            emptyVStack.bottomAnchor.constraint(equalTo: emptyStateView.bottomAnchor, constant: -16),
+            emptyVStack.centerXAnchor.constraint(equalTo: emptyStateView.centerXAnchor),
+            emptyVStack.leadingAnchor.constraint(greaterThanOrEqualTo: emptyStateView.leadingAnchor),
+            emptyVStack.trailingAnchor.constraint(lessThanOrEqualTo: emptyStateView.trailingAnchor)
+        ])
+
+        // ── Premium preview cards ─────────────────────────────────────────
+        stylePreviewCard(previewCard0)
+        stylePreviewCard(previewCard1)
+        previewCard0.isHidden = true
+        previewCard1.isHidden = true
+
+        let cardsStack = UIStackView(arrangedSubviews: [previewCard0, previewCard1])
+        cardsStack.axis = .vertical
+        cardsStack.spacing = 10
+
+        // ── Content container ─────────────────────────────────────────────
+        let contentContainer = UIStackView(arrangedSubviews: [emptyStateView, cardsStack])
+        contentContainer.axis = .vertical
+        contentContainer.spacing = 0
+
+        // ── Outer VStack drives card height ───────────────────────────────
+        let outerVStack = UIStackView(arrangedSubviews: [headerRow, contentContainer])
+        outerVStack.axis = .vertical
+        outerVStack.spacing = 16
+        outerVStack.translatesAutoresizingMaskIntoConstraints = false
+
+        recordsCardView.addSubview(outerVStack)
+        NSLayoutConstraint.activate([
+            outerVStack.topAnchor.constraint(equalTo: recordsCardView.topAnchor, constant: 20),
+            outerVStack.leadingAnchor.constraint(equalTo: recordsCardView.leadingAnchor, constant: 20),
+            outerVStack.trailingAnchor.constraint(equalTo: recordsCardView.trailingAnchor, constant: -20),
+            outerVStack.bottomAnchor.constraint(equalTo: recordsCardView.bottomAnchor, constant: -20)
+        ])
+
+        emptyStateView.isHidden = true
+    }
+
+    /// Applies the inner rounded card style (Apple Health aesthetic)
+    private func stylePreviewCard(_ card: UIView) {
+        card.backgroundColor = UIColor.secondarySystemBackground
+        card.layer.cornerRadius = 16
+        card.layer.cornerCurve = .continuous
+        card.layer.shadowColor = UIColor.black.cgColor
+        card.layer.shadowOpacity = 0.06
+        card.layer.shadowRadius = 8
+        card.layer.shadowOffset = CGSize(width: 0, height: 2)
+        card.clipsToBounds = false
+    }
+
+    /// Populates a preview card with record data using stacked date/severity/duration layout.
+    /// Clears previous content each time so it's safe to call repeatedly.
+    private func populatePreviewCard(_ card: UIView, record: SeizureRecord) {
+        // Remove old content
+        card.subviews.forEach { $0.removeFromSuperview() }
+
+        // ── Date label (top, prominent) ───────────────────────────────────
+        let dateLabel = UILabel()
+        let formatter = DateFormatter()
+        formatter.dateFormat = "d MMM yyyy"
+        dateLabel.text = formatter.string(from: record.dateTime)
+        dateLabel.font = .systemFont(ofSize: 17, weight: .medium)
+        dateLabel.textColor = .label
+
+        // ── Title / entry type ────────────────────────────────────────────
+        let titleLabel = UILabel()
+        if record.entryType == .automatic {
+            titleLabel.text = "Automatic Detection"
+        } else {
+            titleLabel.text = record.title?.capitalized ?? "Manual Record"
+        }
+        titleLabel.font = .systemFont(ofSize: 13, weight: .regular)
+        titleLabel.textColor = .secondaryLabel
+
+        // ── Severity row (colored dot + label) ────────────────────────────
+        let severityColor: UIColor
+        let severityText: String
+        switch record.type {
+        case .mild:     severityColor = .systemGreen;  severityText = "Mild"
+        case .moderate: severityColor = .systemOrange; severityText = "Moderate"
+        case .severe:   severityColor = .systemRed;    severityText = "Severe"
+        default:        severityColor = .systemGray;   severityText = "Unknown"
+        }
+
+        let dot = UIView()
+        dot.backgroundColor = severityColor
+        dot.layer.cornerRadius = 5
+        dot.translatesAutoresizingMaskIntoConstraints = false
+        dot.widthAnchor.constraint(equalToConstant: 10).isActive = true
+        dot.heightAnchor.constraint(equalToConstant: 10).isActive = true
+
+        let severityLabel = UILabel()
+        severityLabel.text = severityText
+        severityLabel.font = .systemFont(ofSize: 14, weight: .medium)
+        severityLabel.textColor = severityColor
+
+        let severityRow = UIStackView(arrangedSubviews: [dot, severityLabel])
+        severityRow.axis = .horizontal
+        severityRow.alignment = .center
+        severityRow.spacing = 6
+
+        // ── Duration row ──────────────────────────────────────────────────
+        let durationLabel = UILabel()
+        if let dur = record.duration, dur > 0 {
+            let mins = Int(dur) / 60
+            let secs = Int(dur) % 60
+            durationLabel.text = mins > 0 ? "\(mins)m \(secs)s duration" : "\(secs)s duration"
+        } else {
+            durationLabel.text = "Duration not recorded"
+        }
+        durationLabel.font = .systemFont(ofSize: 13, weight: .regular)
+        durationLabel.textColor = .tertiaryLabel
+
+        // ── Divider ───────────────────────────────────────────────────────
+        let divider = UIView()
+        divider.backgroundColor = UIColor.separator.withAlphaComponent(0.5)
+        divider.heightAnchor.constraint(equalToConstant: 0.5).isActive = true
+
+        // ── Assemble vertical stack ───────────────────────────────────────
+        let vStack = UIStackView(arrangedSubviews: [dateLabel, titleLabel, divider, severityRow, durationLabel])
+        vStack.axis = .vertical
+        vStack.spacing = 6
+        vStack.setCustomSpacing(10, after: titleLabel)
+        vStack.setCustomSpacing(10, after: divider)
+        vStack.translatesAutoresizingMaskIntoConstraints = false
+
+        card.addSubview(vStack)
+        NSLayoutConstraint.activate([
+            vStack.topAnchor.constraint(equalTo: card.topAnchor, constant: 16),
+            vStack.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 16),
+            vStack.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -16),
+            vStack.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -16)
+        ])
+    }
+
+
+
+    // MARK: - Records Section Update
+
+    func updateRecordsSection() {
         let recent = SeizureRecordDataModel.shared.getLatestTwoRecordsForCurrentUser()
-        
-        // No records → hide both cards
+
         if recent.isEmpty {
-            recordCardView0.isHidden = true
-            recordCardView1.isHidden = true
-            return
+            showEmptyState(animated: false)
+        } else {
+            hideEmptyState(animated: false)
+
+            populatePreviewCard(previewCard0, record: recent[0])
+            previewCard0.isHidden = false
+
+            if recent.count >= 2 {
+                populatePreviewCard(previewCard1, record: recent[1])
+                previewCard1.isHidden = false
+            } else {
+                previewCard1.isHidden = true
+            }
         }
-        
-        // If only ONE record
-        if recent.count == 1 {
-            let r0 = recent[0]
-            updateCard(
-                record: r0,
-                seizureLabel: seizureDetectedRecordLabel00,
-                sleepLabel: sleepRecordLabel00,
-                spo2Label: spo2RecordLabel00,
-                dateLabel: dateRecordLabel00
-            )
-            recordCardView0.isHidden = false
-            recordCardView1.isHidden = true
-            return
-        }
-        
-        // If TWO records
-        let r0 = recent[0]
-        let r1 = recent[1]
-        
-        updateCard(
-            record: r0,
-            seizureLabel: seizureDetectedRecordLabel00,
-            sleepLabel: sleepRecordLabel00,
-            spo2Label: spo2RecordLabel00,
-            dateLabel: dateRecordLabel00
-        )
-        
-        updateCard(
-            record: r1,
-            seizureLabel: seizureDetectedRecordLabel01,
-            sleepLabel: sleepRecordLabel01,
-            spo2Label: spo2RecordLabel01,
-            dateLabel: dateRecordLabel01
-        )
-        
-        recordCardView0.isHidden = false
-        recordCardView1.isHidden = false
     }
-    
+
+    private func showEmptyState(animated: Bool = true) {
+        previewCard0.isHidden = true
+        previewCard1.isHidden = true
+
+        // Switch header button to "+"
+        recordsActionButton.removeTarget(nil, action: nil, for: .allEvents)
+        recordsActionButton.setTitle(nil, for: .normal)
+        recordsActionButton.setImage(UIImage(systemName: "plus"), for: .normal)
+        recordsActionButton.addTarget(self, action: #selector(addRecordTapped), for: .touchUpInside)
+
+        let show = { self.emptyStateView.isHidden = false }
+        if animated {
+            UIView.transition(with: recordsCardView, duration: 0.3,
+                              options: .transitionCrossDissolve, animations: show)
+        } else { show() }
+    }
+
+
+    private func hideEmptyState(animated: Bool = true) {
+        // Switch header button to "View all"
+        recordsActionButton.removeTarget(nil, action: nil, for: .allEvents)
+        recordsActionButton.setImage(nil, for: .normal)
+        recordsActionButton.setTitle("View all", for: .normal)
+        recordsActionButton.addTarget(self, action: #selector(viewAllRecordsTapped), for: .touchUpInside)
+
+        let hide = { self.emptyStateView.isHidden = true }
+        if animated {
+            UIView.transition(with: recordsCardView, duration: 0.3,
+                              options: .transitionCrossDissolve, animations: hide)
+        } else { hide() }
+    }
+
+    // MARK: - Button Actions
+
+    @objc private func addRecordTapped() {
+        let storyboard = UIStoryboard(name: "Records", bundle: nil)
+        guard let addRecordVC = storyboard.instantiateViewController(
+            withIdentifier: "AddRecordTableViewController"
+        ) as? AddRecordTableViewController else { return }
+        navigationController?.pushViewController(addRecordVC, animated: true)
+    }
+
+
+    @objc private func viewAllRecordsTapped() {
+        performSegue(withIdentifier: "showRecords", sender: nil)
+    }
+
+    // Legacy updateCard kept for any external callers; new code uses populatePreviewCard.
     func updateCard(record: SeizureRecord,
                     seizureLabel: UILabel,
                     sleepLabel: UILabel,
                     spo2Label: UILabel,
                     dateLabel: UILabel) {
+
         
         // MARK: - Seizure Type
         seizureLabel.text = "Seizure: " + (record.type?.rawValue.capitalized ?? "-")
@@ -518,14 +787,28 @@ class DashboardTableViewController: UITableViewController {
         cell.contentView.backgroundColor = .clear
     }
     // MARK: - Section Spacing for STATIC TABLE VIEW
+
+    // Records cell (section 1, row 0) must self-size to fit empty state
+    override func tableView(_ tableView: UITableView,
+                            heightForRowAt indexPath: IndexPath) -> CGFloat {
+        if indexPath.section == 1 && indexPath.row == 0 {
+            return UITableView.automaticDimension
+        }
+        return UITableView.automaticDimension
+    }
+
+    override func tableView(_ tableView: UITableView,
+                            estimatedHeightForRowAt indexPath: IndexPath) -> CGFloat {
+        return indexPath.section == 1 ? 280 : 44
+    }
+
     // SECTION HEADER HEIGHT
     override func tableView(_ tableView: UITableView,
                             heightForHeaderInSection section: Int) -> CGFloat {
-
         if section == 0 {
-            return UITableView.automaticDimension   // allow “Current Status” to show normally
+            return UITableView.automaticDimension
         }
-        return 2   // spacing above all other sections
+        return 2
     }
 
     override func tableView(_ tableView: UITableView,
