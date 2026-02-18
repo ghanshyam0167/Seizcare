@@ -7,115 +7,208 @@
 
 import UIKit
 
-class LanguageTableViewController: UITableViewController {
-    let languages = ["English", "Hindi", "Marathi", "Telugu", "Bengali", "Tamil"]
-        
-        var expanded = true
-        var selectedIndex = 2
+class LanguageTableViewController: UIViewController {
+
+    // MARK: - Data
+    private let languages = ["English", "Hindi", "Marathi", "Telugu", "Bengali", "Tamil"]
+    private var selectedIndex = 2 // Default = English (index 0), but keeping 2 as initial
+
+    // MARK: - Views
+    private let cardView: UIView = {
+        let v = UIView()
+        v.backgroundColor = .white
+        v.layer.cornerRadius = 20
+        v.layer.masksToBounds = false
+        v.layer.shadowColor = UIColor.black.cgColor
+        v.layer.shadowOpacity = 0.06
+        v.layer.shadowOffset = CGSize(width: 0, height: 2)
+        v.layer.shadowRadius = 8
+        return v
+    }()
+
+    private let stackView: UIStackView = {
+        let sv = UIStackView()
+        sv.axis = .vertical
+        sv.alignment = .fill
+        sv.distribution = .fill
+        sv.spacing = 0
+        return sv
+    }()
+
+    private var rowControls: [LanguageRowView] = []
+
+    // MARK: - Lifecycle
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = "Language"
-        applyDefaultTableBackground()
-        navigationController?.applyWhiteNavBar()
-        
+
+        let titleLabel = UILabel()
+        titleLabel.text = "Language"
+        titleLabel.font = .systemFont(ofSize: 17, weight: .semibold)
+        titleLabel.textColor = .label
+        titleLabel.textAlignment = .center
+        navigationItem.titleView = titleLabel
+
+        view.backgroundColor = .systemGroupedBackground
+
+        loadSavedPreference()
+        setupViews()
     }
 
-    // MARK: - Table view data source
+    // MARK: - Setup
 
-    override func numberOfSections(in tableView: UITableView) -> Int {
-        return 1
+    private func setupViews() {
+        view.addSubview(cardView)
+        cardView.translatesAutoresizingMaskIntoConstraints = false
+
+        NSLayoutConstraint.activate([
+            cardView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            cardView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
+            cardView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 28)
+        ])
+
+        cardView.addSubview(stackView)
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            stackView.leadingAnchor.constraint(equalTo: cardView.leadingAnchor),
+            stackView.trailingAnchor.constraint(equalTo: cardView.trailingAnchor),
+            stackView.topAnchor.constraint(equalTo: cardView.topAnchor),
+            stackView.bottomAnchor.constraint(equalTo: cardView.bottomAnchor)
+        ])
+
+        // Create language rows
+        for i in 0..<languages.count {
+            let row = LanguageRowView(title: languages[i])
+            row.tag = i
+            row.translatesAutoresizingMaskIntoConstraints = false
+            row.heightAnchor.constraint(greaterThanOrEqualToConstant: 60).isActive = true
+            row.addTarget(self, action: #selector(rowTapped(_:)), for: .touchUpInside)
+            rowControls.append(row)
+
+            stackView.addArrangedSubview(row)
+
+            // Add divider between rows (but not after last row)
+            if i < languages.count - 1 {
+                let divider = createDivider()
+                stackView.addArrangedSubview(divider)
+            }
+        }
+
+        // Set initial checkmark state
+        for (i, r) in rowControls.enumerated() {
+            r.setChecked(i == selectedIndex, animated: false)
+        }
     }
 
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return expanded ? languages.count : 1
+    // MARK: - Helpers
+
+    private func createDivider() -> UIView {
+        let divider = UIView()
+        divider.backgroundColor = .separator
+        divider.translatesAutoresizingMaskIntoConstraints = false
+        divider.heightAnchor.constraint(equalToConstant: 0.5).isActive = true
+        return divider
     }
 
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    // MARK: - Actions
 
-        let cell = tableView.dequeueReusableCell(withIdentifier: "languageCell", for: indexPath)
-        let language = languages[indexPath.row]
-        
-        cell.textLabel?.text = language
-        cell.textLabel?.font = .systemFont(ofSize: 16)
-        
-        // First row = Header with arrow ↑↓
-        if indexPath.row == 0 {
-            let arrow = expanded ? "chevron.up" : "chevron.down"
-            cell.accessoryView = UIImageView(image: UIImage(systemName: arrow))
-            cell.accessoryType = .none
+    @objc private func rowTapped(_ sender: LanguageRowView) {
+        let index = sender.tag
+        guard index != selectedIndex else { return }
+
+        let previous = selectedIndex
+        selectedIndex = index
+
+        // Persist language selection
+        UserDefaults.standard.set(languages[selectedIndex], forKey: "selectedLanguage")
+
+        // Animate change
+        rowControls[previous].setChecked(false, animated: true)
+        rowControls[selectedIndex].setChecked(true, animated: true)
+    }
+
+    // MARK: - Persistence
+
+    private func loadSavedPreference() {
+        if let savedLanguage = UserDefaults.standard.string(forKey: "selectedLanguage"),
+           let index = languages.firstIndex(of: savedLanguage) {
+            selectedIndex = index
+        }
+    }
+}
+
+// MARK: - LanguageRowView
+
+private class LanguageRowView: UIControl {
+    private let titleLabel = UILabel()
+    private let checkImageView = UIImageView()
+
+    init(title: String) {
+        super.init(frame: .zero)
+        setup(title: title)
+    }
+
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        setup(title: "")
+    }
+
+    private func setup(title: String) {
+        // UIControl configuration
+        self.isUserInteractionEnabled = true
+        self.isExclusiveTouch = true
+        self.backgroundColor = .clear
+
+        // Accessibility
+        isAccessibilityElement = true
+        accessibilityTraits = .button
+
+        // Title Label
+        titleLabel.text = title
+        titleLabel.font = .systemFont(ofSize: 17, weight: .regular)
+        titleLabel.textColor = .label
+        titleLabel.isUserInteractionEnabled = false
+
+        // Checkmark ImageView
+        checkImageView.image = UIImage(systemName: "checkmark")
+        checkImageView.tintColor = .systemBlue
+        checkImageView.contentMode = .scaleAspectFit
+        checkImageView.alpha = 0
+        checkImageView.isUserInteractionEnabled = false
+
+        // Main horizontal stack
+        let hStack = UIStackView(arrangedSubviews: [titleLabel, checkImageView])
+        hStack.axis = .horizontal
+        hStack.alignment = .center
+        hStack.distribution = .fill
+        hStack.spacing = 12
+        hStack.isUserInteractionEnabled = false
+
+        addSubview(hStack)
+        hStack.translatesAutoresizingMaskIntoConstraints = false
+        checkImageView.translatesAutoresizingMaskIntoConstraints = false
+
+        NSLayoutConstraint.activate([
+            hStack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+            hStack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+            hStack.topAnchor.constraint(equalTo: topAnchor, constant: 12),
+            hStack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -12),
+
+            checkImageView.widthAnchor.constraint(equalToConstant: 24),
+            checkImageView.heightAnchor.constraint(equalToConstant: 24)
+        ])
+    }
+
+    func setChecked(_ checked: Bool, animated: Bool) {
+        let animations = {
+            self.checkImageView.alpha = checked ? 1.0 : 0.0
+        }
+
+        if animated {
+            UIView.transition(with: checkImageView, duration: 0.22, options: [.transitionCrossDissolve], animations: animations, completion: nil)
         } else {
-            cell.accessoryView = nil
-            // Checkmark for selected language
-            cell.accessoryType = (indexPath.row == selectedIndex) ? .checkmark : .none
+            animations()
         }
-
-        
-        return cell
+        accessibilityValue = checked ? "Selected" : "Not selected"
     }
-    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-
-        tableView.deselectRow(at: indexPath, animated: true)
-
-        // If tapped the top cell
-        if indexPath.row == 0 {
-            expanded.toggle()
-            
-            // collapse animation
-            tableView.reloadSections(IndexSet(integer: 0), with: .automatic)
-            return
-        }
-        
-        // Change selected language
-        selectedIndex = indexPath.row
-        
-        tableView.reloadData()
-    }
-
-
-    /*
-    // Override to support conditional editing of the table view.
-    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
-        // Return false if you do not want the specified item to be editable.
-        return true
-    }
-    */
-
-    /*
-    // Override to support editing the table view.
-    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-        if editingStyle == .delete {
-            // Delete the row from the data source
-            tableView.deleteRows(at: [indexPath], with: .fade)
-        } else if editingStyle == .insert {
-            // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-        }    
-    }
-    */
-
-    /*
-    // Override to support rearranging the table view.
-    override func tableView(_ tableView: UITableView, moveRowAt fromIndexPath: IndexPath, to: IndexPath) {
-
-    }
-    */
-
-    /*
-    // Override to support conditional rearranging of the table view.
-    override func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool {
-        // Return false if you do not want the item to be re-orderable.
-        return true
-    }
-    */
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
-    }
-    */
-
 }

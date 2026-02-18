@@ -59,6 +59,21 @@ extension UIView {
         layer.shadowRadius = 4
         layer.shadowOffset = CGSize(width: 0, height: 2)
     }
+
+    /// Metric card style for the four Current Status tiles.
+    /// - Parameter tint: A unique accent colour per card (used at 5% opacity as background).
+    func applyMetricCard(tint: UIColor = .systemBlue) {
+        layer.cornerRadius = 22
+        layer.masksToBounds = false
+
+        backgroundColor = tint.withAlphaComponent(0.05)
+
+        layer.borderWidth = 0
+        layer.shadowColor = UIColor.black.cgColor
+        layer.shadowOpacity = 0.07
+        layer.shadowRadius = 8
+        layer.shadowOffset = CGSize(width: 0, height: 3)
+    }
 }
 
 
