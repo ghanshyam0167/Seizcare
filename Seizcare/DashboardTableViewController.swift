@@ -890,6 +890,7 @@ class DashboardTableViewController: UITableViewController {
         dateLabel.text = formatter.string(from: record.dateTime)
         dateLabel.font = .systemFont(ofSize: 17, weight: .medium)
         dateLabel.textColor = .label
+        dateLabel.setContentCompressionResistancePriority(.required, for: .vertical)
 
         // ── Title / entry type ────────────────────────────────────────────
         let titleLabel = UILabel()
@@ -900,6 +901,7 @@ class DashboardTableViewController: UITableViewController {
         }
         titleLabel.font = .systemFont(ofSize: 13, weight: .regular)
         titleLabel.textColor = .secondaryLabel
+        titleLabel.setContentCompressionResistancePriority(.required, for: .vertical)
 
         // ── Severity row (colored dot + label) ────────────────────────────
         let severityColor: UIColor
@@ -922,11 +924,13 @@ class DashboardTableViewController: UITableViewController {
         severityLabel.text = severityText
         severityLabel.font = .systemFont(ofSize: 14, weight: .medium)
         severityLabel.textColor = severityColor
+        severityLabel.setContentCompressionResistancePriority(.required, for: .vertical)
 
         let severityRow = UIStackView(arrangedSubviews: [dot, severityLabel])
         severityRow.axis = .horizontal
         severityRow.alignment = .center
         severityRow.spacing = 6
+        severityRow.setContentCompressionResistancePriority(.required, for: .vertical)
 
         // ── Duration row ──────────────────────────────────────────────────
         let durationLabel = UILabel()
@@ -939,10 +943,11 @@ class DashboardTableViewController: UITableViewController {
         }
         durationLabel.font = .systemFont(ofSize: 13, weight: .regular)
         durationLabel.textColor = .tertiaryLabel
+        durationLabel.setContentCompressionResistancePriority(.required, for: .vertical)
 
         // ── Divider ───────────────────────────────────────────────────────
         let divider = UIView()
-        divider.backgroundColor = UIColor.separator.withAlphaComponent(0.5)
+        divider.backgroundColor = .systemGray4
         divider.heightAnchor.constraint(equalToConstant: 0.5).isActive = true
 
         // ── Assemble vertical stack ───────────────────────────────────────
@@ -952,7 +957,8 @@ class DashboardTableViewController: UITableViewController {
         vStack.setCustomSpacing(10, after: titleLabel)
         vStack.setCustomSpacing(10, after: divider)
         vStack.translatesAutoresizingMaskIntoConstraints = false
-
+        vStack.distribution = .fill // Ensure it fills the space
+        
         card.addSubview(vStack)
         NSLayoutConstraint.activate([
             vStack.topAnchor.constraint(equalTo: card.topAnchor, constant: 16),
@@ -984,6 +990,10 @@ class DashboardTableViewController: UITableViewController {
                 previewCard1.isHidden = true
             }
         }
+        
+        // Force the table view to fully reload to ensure row heights are correct
+        // This is more reliable than beginUpdates/endUpdates for dynamic content in static table views
+        tableView.reloadData()
     }
 
     private func showEmptyState(animated: Bool = true) {
