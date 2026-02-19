@@ -21,7 +21,7 @@ struct SleepVsSeizureChart: View {
                     .font(.subheadline)
                     .foregroundColor(.secondary)
 
-                Text("Sleep vs Seizures")
+                Text("Sleep vs Seizures".localized())
                     .font(.system(size: 20, weight: .semibold))
                     .foregroundColor(Color(uiColor: .darkGray))
                     .lineLimit(1)
@@ -40,7 +40,7 @@ struct SleepVsSeizureChart: View {
                         .fill(Color.red.opacity(0.5))
                         .frame(width: 8, height: 8)
 
-                    Text("Seizures")
+                    Text("Seizures".localized())
                         .font(.caption2)
                         .foregroundColor(.secondary)
                 }
@@ -50,7 +50,7 @@ struct SleepVsSeizureChart: View {
                         .fill(Color.blue)
                         .frame(width: 8, height: 8)
 
-                    Text("Sleep")
+                    Text("Sleep".localized())
                         .font(.caption2)
                         .foregroundColor(.secondary)
                 }
@@ -70,7 +70,7 @@ struct SleepVsSeizureChart: View {
                         .foregroundColor(.secondary)
 
                     VStack(spacing: 0) {
-                        ForEach(Array("Hours"), id: \.self) { char in
+                        ForEach(Array("Hours".localized()), id: \.self) { char in
                             Text(String(char))
                                 .font(.caption2)
                                 .foregroundColor(.secondary)
@@ -87,8 +87,8 @@ struct SleepVsSeizureChart: View {
                     // ---- Seizure Bars ----
                     ForEach(data) { point in
                         BarMark(
-                            x: .value("Date", point.date),
-                            y: .value("Seizures", point.seizureCount)
+                            x: .value("Date".localized(), point.date),
+                            y: .value("Seizures".localized(), point.seizureCount)
                         )
                         .foregroundStyle(.red.opacity(0.35))
                         .opacity(
@@ -99,15 +99,15 @@ struct SleepVsSeizureChart: View {
                     // ---- Sleep Line ----
                     ForEach(data) { point in
                         LineMark(
-                            x: .value("Date", point.date),
-                            y: .value("Sleep", point.sleepHours)
+                            x: .value("Date".localized(), point.date),
+                            y: .value("Sleep".localized(), point.sleepHours)
                         )
                         .foregroundStyle(.blue)
                         .interpolationMethod(.catmullRom)
 
                         PointMark(
-                            x: .value("Date", point.date),
-                            y: .value("Sleep", point.sleepHours)
+                            x: .value("Date".localized(), point.date),
+                            y: .value("Sleep".localized(), point.sleepHours)
                         )
                         .foregroundStyle(.blue)
                     }
@@ -123,7 +123,7 @@ struct SleepVsSeizureChart: View {
                 }
                 .chartXAxis {
                     AxisMarks(values: .stride(by: .day, count: 5)) { value in
-                        AxisValueLabel(format: .dateTime.day())
+                        AxisValueLabel(format: .dateTime.day().locale(Locale(identifier: LanguageManager.shared.currentLanguage.code)))
                             .font(.caption2)
                             .foregroundStyle(.secondary)
                     }
@@ -158,7 +158,7 @@ struct SleepVsSeizureChart: View {
                 Spacer()
 
                 HStack(spacing: 4) {
-                    Text("Dates")
+                    Text("Dates".localized())
                         .font(.caption2)
                         .foregroundColor(.secondary)
 
@@ -198,12 +198,12 @@ struct SleepVsSeizureChart: View {
                 .frame(width: 60)
 
             // 😴 Sleep
-            Text("\(point.sleepHours, specifier: "%.1f") hrs")
+            Text("\(point.sleepHours, specifier: "%.1f") \("hrs".localized())")
                 .font(.caption)
                 .foregroundColor(.blue)
 
             // 🚨 Seizures
-            Text("\(point.seizureCount) seizures")
+            Text("\(point.seizureCount) \("seizures".localized())")
                 .font(.caption)
                 .foregroundColor(.red)
         }
@@ -243,11 +243,12 @@ struct SleepVsSeizureChart: View {
             abs($1.date.timeIntervalSince(date))
         }
     }
-    private static let tooltipDateFormatter: DateFormatter = {
-        let df = DateFormatter()
-        df.dateFormat = "dd MMM"
-        return df
-    }()
+    private static var tooltipDateFormatter: DateFormatter {
+            let df = DateFormatter()
+            df.dateFormat = "dd MMM"
+            df.locale = Locale(identifier: LanguageManager.shared.currentLanguage.code)
+            return df
+        }
 
 }
 

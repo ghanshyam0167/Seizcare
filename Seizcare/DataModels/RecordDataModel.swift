@@ -13,6 +13,14 @@ enum SeizureType: String, Codable, CaseIterable {
     case mild
     case moderate
     case severe
+    
+    var displayText: String {
+        switch self {
+        case .mild: return "Mild".localized()
+        case .moderate: return "Moderate".localized()
+        case .severe: return "Severe".localized()
+        }
+    }
 }
 
 //====================================================
@@ -26,6 +34,18 @@ enum SeizureTrigger: String, Codable, CaseIterable, Plottable {
     case flashingLights
     case illness
     case unknown
+    
+    var displayText: String {
+        switch self {
+        case .stress: return "Stress".localized()
+        case .sleepDeprivation: return "Sleep Deprivation".localized()
+        case .missedMedication: return "Missed Medication".localized()
+        case .alcohol: return "Alcohol".localized()
+        case .flashingLights: return "Flashing Lights".localized()
+        case .illness: return "Illness".localized()
+        case .unknown: return "Unknown".localized()
+        }
+    }
 }
 
 //====================================================
@@ -39,13 +59,13 @@ enum SeizureTimeBucket: String, Codable, CaseIterable {
     case unknown
     
     var displayText: String {
-           switch self {
-           case .morning: return "Morning"
-           case .afternoon: return "Afternoon"
-           case .evening: return "Evening"
-           case .night: return "Night"
-           case .unknown: return "Unknown"
-           }
+            switch self {
+            case .morning: return "Morning".localized()
+            case .afternoon: return "Afternoon".localized()
+            case .evening: return "Evening".localized()
+            case .night: return "Night".localized()
+            case .unknown: return "Unknown".localized()
+            }
        }
 }
 
@@ -55,6 +75,13 @@ enum SeizureTimeBucket: String, Codable, CaseIterable {
 enum RecordEntryType: String, Codable {
     case automatic
     case manual
+    
+    var displayText: String {
+        switch self {
+        case .automatic: return "Automatic".localized()
+        case .manual: return "Manual".localized()
+        }
+    }
 }
 
 //====================================================
@@ -270,18 +297,18 @@ final class SeizureRecordDataModel {
         let calendar = Calendar.current
         let now = Date()
 
-        let locations = ["Bedroom", "Office", "Living Room", "Bathroom"]
+        let locations = ["Bedroom".localized(), "Office".localized(), "Living Room".localized(), "Bathroom".localized()]
         let autoDescriptions = [
-            "Auto detected during rest",
-            "Detected during sleep",
-            "Detected after physical exertion",
-            "Detected during stress period"
+            "Auto detected during rest".localized(),
+            "Detected during sleep".localized(),
+            "Detected after physical exertion".localized(),
+            "Detected during stress period".localized()
         ]
         let manualTitles = [
-            "Aura Episode",
-            "Night Seizure",
-            "Post Medication Miss",
-            "Stress Triggered Episode"
+            "Aura Episode".localized(),
+            "Night Seizure".localized(),
+            "Post Medication Miss".localized(),
+            "Stress Triggered Episode".localized()
         ]
         let symptomsPool: [[Symptom]] = [
             [.dizziness, .visualChange],

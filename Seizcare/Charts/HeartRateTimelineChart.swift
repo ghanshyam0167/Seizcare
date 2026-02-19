@@ -32,22 +32,18 @@ struct HeartRateTimelineChart: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
 
-            // ======================
             // Header
-            // ======================
             VStack(alignment: .leading, spacing: 4) {
-                Text("Heart Rate Pattern")
+                Text("Heart Rate Pattern".localized())
                     .font(.callout)
                     .foregroundStyle(.secondary)
 
-                Text("2 hours before & after seizure")
+                Text("2 hours before & after seizure".localized())
                     .font(.caption2)
                     .foregroundStyle(.tertiary)
             }
 
-            // ======================
             // Chart + Y label
-            // ======================
             HStack(alignment: .center, spacing: 6) {
 
                 // Y-axis label
@@ -63,6 +59,7 @@ struct HeartRateTimelineChart: View {
                     }
                 }
 
+                // The Chart
                 Chart {
 
                     // DURING PHASE
@@ -101,7 +98,6 @@ struct HeartRateTimelineChart: View {
                         .foregroundStyle(hrColor)
                     }
                 }
-                .frame(height: 220)
                 .chartYAxis {
                     AxisMarks(position: .leading)
                 }
@@ -118,6 +114,7 @@ struct HeartRateTimelineChart: View {
                         }
                     }
                 }
+                .frame(height: 220)
                 .chartOverlay { proxy in
                     GeometryReader { geo in
                         Rectangle()
@@ -167,7 +164,7 @@ struct HeartRateTimelineChart: View {
             HStack {
                 Spacer()
                 HStack(spacing: 4) {
-                    Text("Time")
+                    Text("Time".localized())
                         .font(.caption2)
                         .foregroundColor(.secondary)
 
@@ -203,10 +200,10 @@ extension HeartRateTimelineChart {
         VStack(spacing: 4) {
             Text(
                 point.phase == .during
-                ? "During seizure"
+                ? "During seizure".localized()
                 : point.phase == .before
-                    ? "Before seizure"
-                    : "After seizure"
+                    ? "Before seizure".localized()
+                    : "After seizure".localized()
             )
             .font(.caption2)
             .foregroundColor(.gray)
@@ -221,4 +218,3 @@ extension HeartRateTimelineChart {
         .shadow(radius: 2)
     }
 }
-

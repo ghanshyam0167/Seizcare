@@ -43,21 +43,40 @@ class ProfileTableViewController: UITableViewController {
 
     @IBAction func logoutButtonTapped(_ sender: Any) {
         let alert = UIAlertController(
-                title: "Log Out",
-                message: "Are you sure you want to log out?",
-                preferredStyle: .alert
-            )
+            title: "Log Out".localized(),
+            message: "Are you sure you want to log out?".localized(),
+            preferredStyle: .actionSheet
+        )
 
-            let cancelAction = UIAlertAction(title: "Cancel", style: .cancel)
-
-            let logoutAction = UIAlertAction(title: "Log Out", style: .destructive) { _ in
-                self.performLogout()
+        alert.addAction(UIAlertAction(
+            title: "Log Out".localized(),
+            style: .destructive,
+            handler: { _ in
+                // Clear user session
+                UserDefaults.standard.set(false, forKey: "isLoggedIn")
+                UserDefaults.standard.removeObject(forKey: "currentUserEmail")
+                
+                // Navigate to onboarding
+                let storyboard = UIStoryboard(name: "Main", bundle: nil)
+                let onboardingVC = storyboard.instantiateViewController(withIdentifier: "OnboardingViewController")
+                
+                if let sceneDelegate = self.view.window?.windowScene?.delegate as? SceneDelegate,
+                   let window = sceneDelegate.window {
+                    window.rootViewController = onboardingVC
+                    UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve, animations: nil)
+                }
             }
+        ))
 
-            alert.addAction(cancelAction)
-            alert.addAction(logoutAction)
+        alert.addAction(UIAlertAction(title: "Cancel".localized(), style: .cancel))
 
-            present(alert, animated: true)
+        // iPad support
+        if let popover = alert.popoverPresentationController {
+             popover.sourceView = sender as? UIView
+             popover.sourceRect = (sender as? UIView)?.bounds ?? CGRect.zero
+         }
+
+        present(alert, animated: true)
     }
     func performLogout() {
         UserDataModel.shared.logoutUser { success in

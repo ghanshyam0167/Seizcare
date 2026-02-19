@@ -10,7 +10,7 @@ import UIKit
 class LanguageTableViewController: UIViewController {
 
     // MARK: - Data
-    private let languages = ["English", "Hindi", "Marathi", "Telugu", "Bengali", "Tamil"]
+    private let languages = ["English", "Hindi", "Marathi", "Bengali", "Tamil"] // align with Language enum
     private var selectedIndex = 2 // Default = English (index 0), but keeping 2 as initial
 
     // MARK: - Views
@@ -43,7 +43,7 @@ class LanguageTableViewController: UIViewController {
         super.viewDidLoad()
 
         let titleLabel = UILabel()
-        titleLabel.text = "Language"
+        titleLabel.text = "Language".localized()
         titleLabel.font = .systemFont(ofSize: 17, weight: .semibold)
         titleLabel.textColor = .label
         titleLabel.textAlignment = .center
@@ -118,21 +118,36 @@ class LanguageTableViewController: UIViewController {
 
         let previous = selectedIndex
         selectedIndex = index
-
-        // Persist language selection
-        UserDefaults.standard.set(languages[selectedIndex], forKey: "selectedLanguage")
-
-        // Animate change
+        
+        // Update UI immediately (checkmarks)
         rowControls[previous].setChecked(false, animated: true)
         rowControls[selectedIndex].setChecked(true, animated: true)
+
+        // Set Language via Manager (this triggers root reload)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            let selectedLanguage: Language
+            switch index {
+            case 0: selectedLanguage = .english
+            case 1: selectedLanguage = .hindi
+            case 2: selectedLanguage = .marathi
+            case 3: selectedLanguage = .bengali
+            case 4: selectedLanguage = .tamil
+            default: selectedLanguage = .english
+            }
+            LanguageManager.shared.setLanguage(selectedLanguage)
+        }
     }
 
     // MARK: - Persistence
 
     private func loadSavedPreference() {
-        if let savedLanguage = UserDefaults.standard.string(forKey: "selectedLanguage"),
-           let index = languages.firstIndex(of: savedLanguage) {
-            selectedIndex = index
+        let current = LanguageManager.shared.currentLanguage
+        switch current {
+        case .english: selectedIndex = 0
+        case .hindi: selectedIndex = 1
+        case .marathi: selectedIndex = 2
+        case .bengali: selectedIndex = 3
+        case .tamil: selectedIndex = 4
         }
     }
 }

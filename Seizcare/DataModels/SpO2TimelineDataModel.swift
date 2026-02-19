@@ -17,7 +17,7 @@ enum SpO2Phase: String, Codable {
 }
 
 // MARK: - SpO2 Timeline Point
-struct SpO2TimelinePoint: Identifiable {
+struct SpO2TimelinePoint: Identifiable, Equatable {
     let id = UUID()
 
     let timestamp: Date

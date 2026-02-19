@@ -18,6 +18,79 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
         guard let _ = (scene as? UIWindowScene) else { return }
     }
+    
+    // MARK: - Safe Root Reload
+    
+    func reloadRootViewController() {
+        guard let window = window else { return }
+        
+        // 1. Determine which storyboard to load.
+        // Ideally, check if user is logged in. optimize for your app logic.
+        // For Seizcare, usually starts with "Dashboard" if logged in, or "Main" (Login) if not.
+        // Let's assume user is logged in since they are changing language from settings
+        
+        let storyboardName = "Dashboard" // Adjust this if your entry point varies
+        let storyboard = UIStoryboard(name: storyboardName, bundle: nil)
+        
+        // 2. Instantiate Initial View Controller
+        // Ensure your Dashboard storyboard has an Initial View Controller set
+        let rootVC = storyboard.instantiateInitialViewController()
+        
+        // 3. Ensure it's a Navigation Controller to fix "navbar disappear" issue
+        // If the storyboard's initial VC is NOT a Nav Controller, wrap it.
+        let connectionVC: UIViewController
+        
+        if rootVC is UINavigationController {
+            connectionVC = rootVC!
+        } else {
+            // Check if we need to wrap it
+            // Assuming DashboardVC needs a nav controller
+            let nav = UINavigationController(rootViewController: rootVC!)
+            // Apply white navbar style if needed
+            // nav.applyWhiteNavBar() // usage depends on your extensions
+            connectionVC = nav
+        }
+        
+        // 4. Animate the transition
+        let transition = CATransition()
+        transition.type = .fade // Fade is smoother for language change
+        transition.duration = 0.3
+        transition.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        
+        window.layer.add(transition, forKey: "root-switch")
+        window.rootViewController = connectionVC
+        
+        // 5. Localize TabBar if present
+        if let nav = connectionVC as? UINavigationController,
+           let tabBarVC = nav.viewControllers.first as? UITabBarController {
+            localizeTabBar(tabBarVC)
+        } else if let tabBarVC = connectionVC as? UITabBarController {
+             localizeTabBar(tabBarVC)
+        }
+        
+        window.makeKeyAndVisible()
+    }
+    
+    private func localizeTabBar(_ tabBarVC: UITabBarController) {
+        guard let items = tabBarVC.tabBar.items else { return }
+        
+        // Iterate and localize based on tag or index or fallback to known titles
+        // Since we don't have subclass, we assume order or check titles
+        // Assuming order: 0: Dashboard, 1: Records, 2: Profile (Adjust based on actual app)
+        
+        // Safer way: Check if title is "Dashboard" (English) then localize
+        // But title might be empty if only icon.
+        
+        for (index, item) in items.enumerated() {
+            // fallback logic based on index if titles are missing
+            switch index {
+            case 0: item.title = "Dashboard".localized()
+            case 1: item.title = "Records".localized()
+            case 2: item.title = "Profile".localized() // Or "Settings" depending on app
+            default: break
+            }
+        }
+    }
 
     func sceneDidDisconnect(_ scene: UIScene) {
         // Called as the scene is being released by the system.

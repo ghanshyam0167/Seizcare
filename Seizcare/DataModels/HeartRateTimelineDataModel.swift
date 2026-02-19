@@ -15,7 +15,7 @@ enum HeartRatePhase: String, Codable {
 }
 
 // MARK: - Timeline Point
-struct HeartRateTimelinePoint: Identifiable {
+struct HeartRateTimelinePoint: Identifiable, Equatable {
     let id = UUID()
 
     let timestamp: Date

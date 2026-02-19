@@ -33,11 +33,11 @@ struct TriggerCorrelationChart: View {
     // 1. Extracted Header to reduce body complexity
     private var headerView: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text("Trigger Correlation")
+            Text("Trigger Correlation".localized())
                 .font(.system(size: 20, weight: .semibold))
                 .foregroundStyle(.secondary)
 
-            Text("What factors most often precede seizures")
+            Text("What factors most often precede seizures".localized())
                 .font(.caption2)
                 .foregroundColor(.secondary.opacity(0.7))
         }
@@ -48,8 +48,8 @@ struct TriggerCorrelationChart: View {
         Chart {
             ForEach(data) { item in
                 BarMark(
-                    x: .value("Percent", item.percent),
-                    y: .value("Trigger", item.trigger) // Ensure SeizureTrigger is Plottable (String enum)
+                    x: .value("Percent".localized(), item.percent),
+                    y: .value("Trigger".localized(), item.trigger.displayText) // Use displayText
                 )
                 .foregroundStyle(barColor(for: item.trigger))
                 .cornerRadius(6)
@@ -115,7 +115,7 @@ struct TriggerCorrelationChart: View {
                     .fill(accent)
                     .frame(width: 8, height: 8)
 
-                Text(item.trigger.rawValue.capitalized)
+                Text(item.trigger.displayText.capitalized)
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
@@ -124,7 +124,7 @@ struct TriggerCorrelationChart: View {
                 .font(.system(size: 24, weight: .bold))
                 .foregroundColor(accent)
 
-            Text("of seizures")
+            Text("of seizures".localized())
                 .font(.caption2)
                 .foregroundColor(.secondary)
         }

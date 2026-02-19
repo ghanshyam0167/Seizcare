@@ -35,7 +35,7 @@ struct SeizureFrequencyChart: View {
             Spacer()
 
             if average > 0 {
-                Text("Avg \(average)")
+                Text("\("Avg".localized()) \(average)")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
@@ -114,8 +114,8 @@ struct SeizureFrequencyChart: View {
     private var chartContent: some ChartContent {
         ForEach(data) { point in
             BarMark(
-                x: .value("Date", point.date, unit: xUnit),
-                y: .value("Seizures", point.count)
+                x: .value("Date".localized(), point.date, unit: xUnit),
+                y: .value("Seizures".localized(), point.count)
             )
             .cornerRadius(8)
             .foregroundStyle(barGradient(for: point))
@@ -123,7 +123,7 @@ struct SeizureFrequencyChart: View {
                 selectedPoint == nil || selectedPoint?.id == point.id ? 1 : 0.45
             )
         }
-        RuleMark(y: .value("Average", average))
+        RuleMark(y: .value("Average".localized(), average))
             .lineStyle(StrokeStyle(lineWidth: 1.2, dash: [6]))
             .foregroundStyle(.secondary.opacity(0.5))
     }
@@ -140,7 +140,7 @@ struct SeizureFrequencyChart: View {
                 .font(.caption2)
                 .foregroundStyle(.secondary)
             
-            Text("\(point.count) \(point.count == 1 ? "seizure" : "seizures")")
+            Text("\(point.count) \(point.count == 1 ? "seizure".localized() : "seizures".localized())")
                 .font(.caption.bold())
                 .foregroundStyle(.primary)
         }
@@ -158,6 +158,7 @@ struct SeizureFrequencyChart: View {
     // MARK: - Tooltip Date Label
     private func tooltipDateLabel(for date: Date) -> String {
         let f = DateFormatter()
+        f.locale = Locale(identifier: LanguageManager.shared.currentLanguage.code)
         switch period {
         case .current:
             f.dateFormat = "EEEE, MMM d"
@@ -166,11 +167,12 @@ struct SeizureFrequencyChart: View {
             let cal = Calendar.current
             if let end = cal.date(byAdding: .day, value: 6, to: date) {
                 let f2 = DateFormatter()
+                f2.locale = Locale(identifier: LanguageManager.shared.currentLanguage.code)
                 f.dateFormat = "MMM d"
                 f2.dateFormat = "MMM d"
                 return "\(f.string(from: date)) – \(f2.string(from: end))"
             }
-            f.dateFormat = "'Week of' MMM d"
+            f.dateFormat = "'\("Week of".localized())' MMM d"
         case .monthly:
             f.dateFormat = "MMMM yyyy"
         }
@@ -209,14 +211,15 @@ struct SeizureFrequencyChart: View {
 
     private var titleText: String {
         switch period {
-        case .current: return "Last 7 Days"
-        case .weekly:  return "Last 4 Weeks"
-        case .monthly: return "Last 6 Months"
+        case .current: return "Last 7 Days".localized()
+        case .weekly:  return "Last 4 Weeks".localized()
+        case .monthly: return "Last 6 Months".localized()
         }
     }
 
     private func xLabel(for date: Date) -> String {
         let f = DateFormatter()
+        f.locale = Locale(identifier: LanguageManager.shared.currentLanguage.code)
         switch period {
         case .current: f.dateFormat = "E"
         case .weekly:  f.dateFormat = "'W'w"

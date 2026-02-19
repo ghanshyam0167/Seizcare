@@ -23,9 +23,9 @@ enum TrendDirection {
 
     var text: String {
         switch self {
-        case .increased: return "increased"
-        case .decreased: return "decreased"
-        case .noChange:  return "no change"
+        case .increased: return "increased".localized()
+        case .decreased: return "decreased".localized()
+        case .noChange:  return "no change".localized()
         }
     }
 
@@ -179,23 +179,29 @@ class DashboardTableViewController: UITableViewController {
             label?.font = titleFont
             label?.textColor = .secondaryLabel
         }
+        
+        // Localize Card Titles (assuming order 0:Sleep, 1:Seizures, 2:Duration, 3:Time)
+        pipeLabel0.text = "Sleep Quality".localized()
+        pipeLabel1.text = "Avg Seizures".localized()
+        pipeLabel2.text = "Avg Duration".localized()
+        pipeLabel3.text = "Most Common Time".localized()
 
         // ── New user: show friendly placeholder state ──────────────────────
         if !hasRecords {
             sleepDurationLabel.text        = "—"
-            sleepDurationStatusLabel.text  = "Start tracking to unlock insights"
+            sleepDurationStatusLabel.text  = "Start tracking to unlock insights".localized()
             sleepDurationStatusLabel.textColor = .secondaryLabel
 
             avgMonthlySeizuresLabel.text   = "—"
-            avgSeizureStatusLabel.text     = "Add your first record"
+            avgSeizureStatusLabel.text     = "Add your first record".localized()
             avgSeizureStatusLabel.textColor = .secondaryLabel
 
             avgDurationLabel.text          = "—"
-            avgDurationStatusLabel.text    = "No records yet"
+            avgDurationStatusLabel.text    = "No records yet".localized()
             avgDurationStatusLabel.textColor = .secondaryLabel
 
             mostCommonTimeLabel.text       = "—"
-            mostCommonTimeStatusLabel.text = "Track seizures to find patterns"
+            mostCommonTimeStatusLabel.text = "Track seizures to find patterns".localized()
             mostCommonTimeStatusLabel.textColor = .secondaryLabel
             return
         }
@@ -205,30 +211,30 @@ class DashboardTableViewController: UITableViewController {
         let previous = dashboardModel.getDashboardSummary(forPreviousMonth: true)
 
         // Sleep Quality
-        sleepDurationLabel.text = "\(current.avgSleepHours.formatted(1)) hrs"
+        sleepDurationLabel.text = "\(current.avgSleepHours.formatted(1)) " + "hrs".localized()
         let sleepTrend = trend(current: current.avgSleepHours, previous: previous.avgSleepHours)
-        sleepDurationStatusLabel.text      = "\(sleepTrend.icon) vs last month"
+        sleepDurationStatusLabel.text      = "\(sleepTrend.icon) " + "vs last month".localized()
         sleepDurationStatusLabel.textColor = sleepTrend.color
 
         // Avg Seizures
-        avgMonthlySeizuresLabel.text = "\(Int(current.avgMonthlySeizures)) / month"
+        avgMonthlySeizuresLabel.text = "\(Int(current.avgMonthlySeizures)) / month" // "month" could be localized but leaving for now as user didn't specificy units in detail, but Seizures is key
         let seizureTrend = trend(current: current.avgMonthlySeizures, previous: previous.avgMonthlySeizures)
-        avgSeizureStatusLabel.text      = "\(seizureTrend.icon) Seizures \(seizureTrend.text)"
+        avgSeizureStatusLabel.text      = "\(seizureTrend.icon) " + "Seizures".localized() + " \(seizureTrend.text)"
         avgSeizureStatusLabel.textColor = seizureTrend.color
 
         // Avg Duration
         avgDurationLabel.text = formatDuration(current.avgDuration)
         let durationTrend = trend(current: current.avgDuration, previous: previous.avgDuration)
-        avgDurationStatusLabel.text      = "\(durationTrend.icon) Duration \(durationTrend.text)"
+        avgDurationStatusLabel.text      = "\(durationTrend.icon) " + "Duration".localized() + " \(durationTrend.text)"
         avgDurationStatusLabel.textColor = durationTrend.color
 
         // Most Common Time
         mostCommonTimeLabel.text = current.mostCommonTime.displayText
         if current.mostCommonTime != previous.mostCommonTime {
-            mostCommonTimeStatusLabel.text      = "Peak time shifted to \(current.mostCommonTime.displayText)"
+            mostCommonTimeStatusLabel.text      = "Peak time shifted to".localized() + " \(current.mostCommonTime.displayText)"
             mostCommonTimeStatusLabel.textColor = .systemBlue
         } else {
-            mostCommonTimeStatusLabel.text      = "Peak time unchanged"
+            mostCommonTimeStatusLabel.text      = "Peak time unchanged".localized()
             mostCommonTimeStatusLabel.textColor = .secondaryLabel
         }
     }
@@ -341,7 +347,7 @@ class DashboardTableViewController: UITableViewController {
 
 
     func setupSeizureChartTitle() {
-        seizureChartLabel.text = "Seizure Frequency"
+        seizureChartLabel.text = "Seizure Frequency".localized()
         seizureChartLabel.font = UIFont.systemFont(ofSize: 20, weight: .semibold)
         seizureChartLabel.textColor = UIColor.darkGray
         seizureChartLabel.numberOfLines = 1
@@ -480,7 +486,8 @@ class DashboardTableViewController: UITableViewController {
     private func buildRecordsLayout() {
 
         // ── Header row (22pt semibold, 20pt padding) ──────────────────────
-        recordsTitleLabel.text = "Records"
+        // ── Header row (22pt semibold, 20pt padding) ──────────────────────
+        recordsTitleLabel.text = "Records".localized()
         recordsTitleLabel.font = .systemFont(ofSize: 22, weight: .semibold)
         recordsTitleLabel.textColor = .label
         recordsTitleLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
@@ -502,19 +509,19 @@ class DashboardTableViewController: UITableViewController {
         iconView.contentMode = .scaleAspectFit
         iconView.heightAnchor.constraint(equalToConstant: 42).isActive = true
 
-        emptyTitleLabel.text = "No Records Yet"
+        emptyTitleLabel.text = "No Records Yet".localized()
         emptyTitleLabel.font = .systemFont(ofSize: 17, weight: .semibold)
         emptyTitleLabel.textColor = .label
         emptyTitleLabel.textAlignment = .center
 
-        emptySubtitleLabel.text = "Add your first seizure record to start tracking."
+        emptySubtitleLabel.text = "Add your first seizure record to start tracking.".localized()
         emptySubtitleLabel.font = .systemFont(ofSize: 14, weight: .regular)
         emptySubtitleLabel.textColor = .secondaryLabel
         emptySubtitleLabel.textAlignment = .center
         emptySubtitleLabel.numberOfLines = 0
 
         var btnConfig = UIButton.Configuration.filled()
-        btnConfig.title = "+ Add Record"
+        btnConfig.title = "+ Add Record".localized()
         btnConfig.baseForegroundColor = .white
         btnConfig.baseBackgroundColor = .systemBlue
         btnConfig.cornerStyle = .capsule
@@ -603,9 +610,9 @@ class DashboardTableViewController: UITableViewController {
         // ── Title / entry type ────────────────────────────────────────────
         let titleLabel = UILabel()
         if record.entryType == .automatic {
-            titleLabel.text = "Automatic Detection"
+            titleLabel.text = "Automatic Detection".localized()
         } else {
-            titleLabel.text = record.title?.capitalized ?? "Manual Record"
+            titleLabel.text = record.title?.capitalized ?? "Manual Record".localized()
         }
         titleLabel.font = .systemFont(ofSize: 13, weight: .regular)
         titleLabel.textColor = .secondaryLabel
@@ -614,10 +621,10 @@ class DashboardTableViewController: UITableViewController {
         let severityColor: UIColor
         let severityText: String
         switch record.type {
-        case .mild:     severityColor = .systemGreen;  severityText = "Mild"
-        case .moderate: severityColor = .systemOrange; severityText = "Moderate"
-        case .severe:   severityColor = .systemRed;    severityText = "Severe"
-        default:        severityColor = .systemGray;   severityText = "Unknown"
+        case .mild:     severityColor = .systemGreen;  severityText = "Mild".localized()
+        case .moderate: severityColor = .systemOrange; severityText = "Moderate".localized()
+        case .severe:   severityColor = .systemRed;    severityText = "Severe".localized()
+        default:        severityColor = .systemGray;   severityText = "Unknown".localized()
         }
 
         let dot = UIView()
@@ -642,9 +649,10 @@ class DashboardTableViewController: UITableViewController {
         if let dur = record.duration, dur > 0 {
             let mins = Int(dur) / 60
             let secs = Int(dur) % 60
-            durationLabel.text = mins > 0 ? "\(mins)m \(secs)s duration" : "\(secs)s duration"
+            // Simplified localization for duration
+            durationLabel.text = mins > 0 ? "\(mins)m \(secs)s " + "duration".localized() : "\(secs)s " + "duration".localized()
         } else {
-            durationLabel.text = "Duration not recorded"
+            durationLabel.text = "Duration not recorded".localized()
         }
         durationLabel.font = .systemFont(ofSize: 13, weight: .regular)
         durationLabel.textColor = .tertiaryLabel
@@ -717,7 +725,8 @@ class DashboardTableViewController: UITableViewController {
         // Switch header button to "View all"
         recordsActionButton.removeTarget(nil, action: nil, for: .allEvents)
         recordsActionButton.setImage(nil, for: .normal)
-        recordsActionButton.setTitle("View all", for: .normal)
+        recordsActionButton.setImage(nil, for: .normal)
+        recordsActionButton.setTitle("View all".localized(), for: .normal)
         recordsActionButton.addTarget(self, action: #selector(viewAllRecordsTapped), for: .touchUpInside)
 
         let hide = { self.emptyStateView.isHidden = true }
@@ -830,7 +839,7 @@ class DashboardTableViewController: UITableViewController {
     private func formatDuration(_ seconds: Double) -> String {
         let mins = Int(seconds) / 60
         let secs = Int(seconds) % 60
-        return "\(mins)m \(secs)s"
+        return "\(mins)" + "m".localized() + " \(secs)" + "s".localized()
     }
 
 }
@@ -839,11 +848,11 @@ extension DashboardPeriod {
     var title: String {
         switch self {
         case .current:
-            return "Daily"
+            return "Daily".localized()
         case .weekly:
-            return "Weekly"
+            return "Weekly".localized()
         case .monthly:
-            return "Monthly"
+            return "Monthly".localized()
         }
     }
 

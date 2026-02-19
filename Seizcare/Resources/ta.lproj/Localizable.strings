@@ -1,0 +1,252 @@
+/* 
+  Localizable.strings
+  Seizcare
+
+  Created by Antigravity on 02/18/26.
+*/
+
+// Common
+"OK" = "சரி";
+"Cancel" = "ரத்துசெய்";
+"Save" = "சேமி";
+"Back" = "பின்னால்";
+
+// Dashboard - Titles
+"Dashboard" = "முகப்பு";
+"Welcome" = "வரவேற்கிறோம்";
+"Heart Rate" = "இதய துடிப்பு";
+"Motion" = "இயக்கம்";
+"Recent Alerts" = "சமீபத்திய அறிவிப்புகள்";
+
+// Language Settings
+"Language" = "மொழி";
+"Select Language" = "மொழியைத் தேர்ந்தெடுக்கவும்";
+
+// Onboarding
+"Get Started" = "தொடங்கவும்";
+"Connect Watch" = "கடிகாரத்தை இணைக்கவும்";
+"Emergency Contact" = "அவசர தொடர்பு";
+"Alert Delay" = "எச்சரிக்கை தாமதம்";
+"Setup Complete" = "அமைப்பு முடிந்தது";
+
+// Medical Notice
+"Important Medical Notice" = "முக்கிய மருத்துவ அறிவிப்பு";
+"I Understand" = "நான் புரிந்துகொண்டேன்";
+
+// Dashboard - Insights
+"Start tracking to unlock insights" = "தகவல்களைப் பெற கண்காணிக்கத் தொடங்குங்கள்";
+"Add your first record" = "உங்கள் முதல் பதிவைச் சேர்க்கவும்";
+"No records yet" = "பதிவுகள் எதுவும் இல்லை";
+"Track seizures to find patterns" = "முறைகளைக் கண்டறிய வலிப்புநோயைக் கண்காணிக்கவும்";
+"Peak time shifted to" = "உச்ச நேரம் மாற்றப்பட்டது";
+"Peak time unchanged" = "உச்ச நேரம் மாறவில்லை";
+
+// Dashboard - Records
+"Records" = "பதிவுகள்";
+"No Records Yet" = "பதிவுகள் எதுவும் இல்லை";
+"Add your first seizure record to start tracking." = "கண்காணிக்கத் தொடங்க உங்கள் முதல் வலிப்பு பதிவைச் சேர்க்கவும்.";
+"+ Add Record" = "+ பதிவு சேர்";
+"View all" = "அனைத்தையும் பார்";
+"Seizure Frequency" = "வலிப்பு அதிர்வெண்";
+
+// Dashboard - Card Titles
+"Sleep Quality" = "தூக்க தரம்";
+"Avg Seizures" = "சராசரி வலிப்பு";
+"Avg Duration" = "சராசரி காலம்";
+"Most Common Time" = "பொதுவான நேரம்";
+
+// Dashboard - Card Details
+"Automatic Detection" = "தானியங்கி கண்டறிதல்";
+"Manual Record" = "கைமுறை பதிவு";
+"Mild" = "லேசான";
+"Moderate" = "மிதமான";
+"Severe" = "கடுமையான";
+"Unknown" = "தெரியாத";
+"duration" = "காலம்";
+
+// Trends
+"increased" = "அதிகரித்துள்ளது";
+"decreased" = "குறைந்துள்ளது";
+"no change" = "மாற்றமில்லை";
+"vs last month" = "கடந்த மாதத்துடன் ஒப்பீடு";
+
+// Units
+"Seizures" = "வலிப்பு";
+"Duration" = "காலம்";
+"hrs" = "மணிநேரம்";
+"Duration not recorded" = "காலம் பதிவு செய்யப்படவில்லை";
+
+// Time Buckets
+"Morning" = "காலை";
+"Afternoon" = "மதியம்";
+"Evening" = "மாலை";
+"Night" = "இரவு";
+
+// Dashboard Periods
+"Daily" = "தினசரி";
+"Weekly" = "வாராந்திர";
+"Monthly" = "மாதாந்திர";
+
+// Short Units
+"min" = "நிமி";
+"sec" = "வி";
+
+// Charts - Timeline
+"SpO₂ Pattern" = "SpO₂ Pattern";
+"2 hours before & after seizure" = "2 hours before & after seizure";
+"Heart Rate Pattern" = "Heart Rate Pattern";
+"During seizure" = "During seizure";
+"Before seizure" = "Before seizure";
+"After seizure" = "After seizure";
+
+// Record View
+"Manual Log" = "கையேடு பதிவு";
+"Seizure" = "வலிப்பு";
+// Sample Data
+"Aura Episode" = "சுய நினைவு இழப்பு";
+"Night Seizure" = "இரவு வலிப்பு";
+"Post Medication Miss" = "மருந்து தவறிய பிறகு";
+"Stress Triggered Episode" = "மன அழுத்தம் காரணமாக";
+
+"Auto detected during rest" = "ஓய்வின் போது தானாக கண்டறியப்பட்டது";
+"Detected during sleep" = "தூக்கத்தின் போது கண்டறியப்பட்டது";
+"Detected after physical exertion" = "உடல் உழைப்புக்கு பிறகு கண்டறியப்பட்டது";
+"Detected during stress period" = "மன அழுத்தத்தின் போது கண்டறியப்பட்டது";
+
+"Bedroom" = "படுக்கையறை";
+"Office" = "அலுவலகம்";
+"Living Room" = "வரவேற்பறை";
+"Bathroom" = "குளியலறை";
+
+// Add Record - Headers & Labels
+"SEVERITY" = "தீவிரம்";
+"SYMPTOMS" = "அறிகுறிகள்";
+"NOTES" = "குறிப்புகள்";
+"Date & Time" = "தேதி மற்றும் நேரம்";
+"e.g., 1min 30sec" = "எ.கா, 1 நிமிடம் 30 வினாடிகள்";
+"Title" = "தலைப்பு";
+"Date" = "தேதி";
+
+// Symptoms
+"Déjà vu" = "தேஜா வூ";
+"Anxiety" = "கவலை";
+"Visual Change" = "பார்வை மாற்றம்";
+"Odd Smell/Taste" = "விசித்திரமான வாசனை/சுவை";
+"Dizziness" = "தலைச்சுற்றல்";
+"Nausea" = "குமட்டல்";
+"Confused" = "குழப்பம்";
+"Tired" = "சோர்வு";
+"Headache" = "தலைவலி";
+"Body Ache" = "உடல் வலி";
+"Weakness" = "பலவீனம்";
+"Memory Loss" = "நினைவாற்றல் இழப்பு";
+
+// MARK: - New Keys (To be translated)
+
+// Symptoms
+"Déjà vu" = "Déjà vu";
+"Anxiety" = "Anxiety";
+"Visual Change" = "Visual Change";
+"Odd Smell/Taste" = "Odd Smell/Taste";
+"Dizziness" = "Dizziness";
+"Nausea" = "Nausea";
+"Confused" = "Confused";
+"Tired" = "Tired";
+"Headache" = "Headache";
+"Body Ache" = "Body Ache";
+"Weakness" = "Weakness";
+"Memory Loss" = "Memory Loss";
+
+// Add Record
+"Add Record" = "Add Record";
+"Edit Record" = "Edit Record";
+"Add your notes here..." = "Add your notes here...";
+"Date" = "Date";
+"Title" = "Title";
+"Update" = "Update";
+
+// Triggers
+"Stress" = "Stress";
+"Sleep Deprivation" = "Sleep Deprivation";
+"Missed Medication" = "Missed Medication";
+"Alcohol" = "Alcohol";
+"Flashing Lights" = "Flashing Lights";
+"Illness" = "Illness";
+
+// Entry Type
+"Automatic" = "Automatic";
+"Manual" = "Manual";
+
+// Charts - Common
+"Avg" = "Avg";
+"Average" = "Average";
+"Count" = "Count";
+"Date" = "Date";
+
+// Charts - Frequency
+"Last 7 Days" = "Last 7 Days";
+"Last 4 Weeks" = "Last 4 Weeks";
+"Last 6 Months" = "Last 6 Months";
+"Week of" = "Week of";
+
+// Charts - Sleep
+"Sleep vs Seizures" = "Sleep vs Seizures";
+"Sleep" = "Sleep";
+"Hours" = "Hours";
+"Dates" = "Dates";
+
+// Charts - Trigger
+"Trigger Correlation" = "Trigger Correlation";
+"What factors most often precede seizures" = "What factors most often precede seizures";
+"Percent" = "Percent";
+"Trigger" = "Trigger";
+"of seizures" = "of seizures";
+
+// Charts - Time Pattern
+"Time of Day Pattern" = "Time of Day Pattern";
+"Last 3 months" = "Last 3 months";
+"% of total" = "% of total";
+
+// Detail Records
+"Edit" = "Edit";
+"Share" = "Share";
+"Seizure Record" = "Seizure Record";
+"Location" = "Location";
+"Seizure Level" = "Seizure Level";
+"Symptoms" = "Symptoms";
+"Entry Type" = "Entry Type";
+"No duration" = "No duration";
+"Not available" = "Not available";
+"None" = "None";
+"Delete Record" = "Delete Record";
+"Are you sure you want to delete this record? This action cannot be undone." = "Are you sure you want to delete this record? This action cannot be undone.";
+"Delete" = "Delete";
+
+// Profile & Edit Profile
+"Edit Profile" = "Edit Profile";
+"Log Out" = "Log Out";
+"Are you sure you want to log out?" = "Are you sure you want to log out?";
+"Male" = "Male";
+"Female" = "Female";
+"Other" = "Other";
+"Unspecified" = "Unspecified";
+
+// Sensitivity
+"Sensitivity" = "Sensitivity";
+"Low" = "Low";
+"Medium" = "Medium";
+"High" = "High";
+"Triggers alerts only for strong seizure patterns" = "Triggers alerts only for strong seizure patterns";
+"Balanced detection for everyday use" = "Balanced detection for everyday use";
+"Highly sensitive, detects even mild activity" = "Highly sensitive, detects even mild activity";
+
+// Emergency Contacts
+"Limit Reached" = "Limit Reached";
+"LimitReachedMessage" = "You can only add up to 3 emergency contacts.Remove any contact first.";
+"Already Added" = "Already Added";
+"AlreadyAddedMessage" = "%@ is already in your emergency contact list.";
+
+// Record Search
+"Search records" = "Search records";
+"min" = "min";
+"sec" = "sec";

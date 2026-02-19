@@ -47,8 +47,8 @@ class EmergencyContactsTableViewController: UITableViewController, CNContactPick
         if contacts.count >= 3 {
             picker.dismiss(animated: true) {
                 let alert = UIAlertController(
-                    title: "Limit Reached",
-                    message: "You can only add up to 3 emergency contacts.Remove any contact first.",
+                    title: "Limit Reached".localized(),
+                    message: "LimitReachedMessage".localized(),
                     preferredStyle: .alert
                 )
                 alert.addAction(UIAlertAction(title: "OK", style: .cancel))
@@ -67,8 +67,8 @@ class EmergencyContactsTableViewController: UITableViewController, CNContactPick
         if exists {
             picker.dismiss(animated: true) {
                 let alert = UIAlertController(
-                    title: "Already Added",
-                    message: "\(name) is already in your emergency contact list.",
+                    title: "Already Added".localized(),
+                    message: String(format: "AlreadyAddedMessage".localized(), name),
                     preferredStyle: .alert
                 )
                 alert.addAction(UIAlertAction(title: "OK", style: .cancel))
@@ -105,7 +105,7 @@ class EmergencyContactsTableViewController: UITableViewController, CNContactPick
         trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath)
         -> UISwipeActionsConfiguration? {
 
-        let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { _, _, completion in
+        let deleteAction = UIContextualAction(style: .destructive, title: "Delete".localized()) { _, _, completion in
             
             let contactToDelete = self.contacts[indexPath.row]
             EmergencyContactDataModel.shared.deleteContact(id: contactToDelete.id)

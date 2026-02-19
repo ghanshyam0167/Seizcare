@@ -3,12 +3,13 @@ import UIKit
 class SensitivityViewTableViewController: UIViewController {
 
     // MARK: - Data
-    private let sensitivities = ["Low", "Medium", "High"]
+    // MARK: - Data
+    private let sensitivities = ["Low".localized(), "Medium".localized(), "High".localized()]
 
     private let descriptions = [
-        "Triggers alerts only for strong seizure patterns",
-        "Balanced detection for everyday use",
-        "Highly sensitive, detects even mild activity"
+        "Triggers alerts only for strong seizure patterns".localized(),
+        "Balanced detection for everyday use".localized(),
+        "Highly sensitive, detects even mild activity".localized()
     ]
 
     private var selectedIndex = 1 // Default = Medium
@@ -46,7 +47,7 @@ class SensitivityViewTableViewController: UIViewController {
 
         // Title centered in nav bar
         let titleLabel = UILabel()
-        titleLabel.text = "Sensitivity"
+        titleLabel.text = "Sensitivity".localized()
         titleLabel.font = .systemFont(ofSize: 17, weight: .semibold)
         titleLabel.textColor = .label
         titleLabel.textAlignment = .center

@@ -139,6 +139,7 @@ class DetailRecordsTableViewController: UITableViewController {
         isManualRecord = (record.entryType == .manual)
 
         let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: LanguageManager.shared.currentLanguage.code)
         if record.entryType == .manual {
             formatter.dateFormat = "dd MMM yyyy"
         } else {
@@ -166,7 +167,7 @@ class DetailRecordsTableViewController: UITableViewController {
 
         if record.entryType == .manual {
             navigationItem.rightBarButtonItem = UIBarButtonItem(
-                title: "Edit",
+                title: "Edit".localized(),
                 style: .plain,
                 target: self,
                 action: #selector(editTapped)
@@ -205,11 +206,11 @@ class DetailRecordsTableViewController: UITableViewController {
         guard let record else { return }
 
         let summary = """
-        Seizure Record
-        Date: \(dateLabel.text ?? "")
-        Duration: \(formatDuration(record.duration ?? 0))
+        \("Seizure Record".localized())
+        \("Date".localized()): \(dateLabel.text ?? "")
+        \("Duration".localized()): \(formatDuration(record.duration ?? 0))
         SpO₂: \(record.spo2 ?? 0)%
-        Heart Rate: \(record.heartRate ?? 0) bpm
+        \("Heart Rate".localized()): \(record.heartRate ?? 0) bpm
         """
 
         let vc = UIActivityViewController(
@@ -322,18 +323,18 @@ class DetailRecordsTableViewController: UITableViewController {
         // MARK: - Automatic record display
         func configureAutomatic(_ record: SeizureRecord) {
 
-            seizureLevelLabel.text = record.type?.rawValue.capitalized
+            seizureLevelLabel.text = record.type?.displayText.capitalized
 
-            durationTitleLabel.text = "Duration"
+            durationTitleLabel.text = "Duration".localized()
             durationValueLabel.text = record.duration != nil ? formatDuration(record.duration!) : "--"
             
             spo2TitleLabel.text = "SpO₂"
             spo2ValueLabel.text = record.spo2 != nil ? "\(record.spo2!)%" : "--"
             
-            heartRateTitleLabel.text = "Heart Rate"
+            heartRateTitleLabel.text = "Heart Rate".localized()
             heartRateValueLabel.text = record.heartRate != nil ? "\(record.heartRate!) bpm" : "--"
             
-            locationTitleLabel.text = "Location"
+            locationTitleLabel.text = "Location".localized()
             locationValueLabel.text = record.location ?? "--"
             
             if let desc = record.description, !desc.isEmpty {
@@ -348,28 +349,37 @@ class DetailRecordsTableViewController: UITableViewController {
         // MARK: - Manual record display (same UI, changed meaning)
         func configureManual(_ record: SeizureRecord) {
 
-            seizureLevelLabel.text = record.title ?? "Manual Log"
+            seizureLevelLabel.text = record.title ?? "Manual".localized()
 
-            durationTitleLabel.text = "Seizure Level"
-            durationValueLabel.text = record.type?.rawValue.capitalized ?? "Not available"
+            durationTitleLabel.text = "Seizure Level".localized()
+            durationValueLabel.text = record.type?.displayText.capitalized ?? "Not available".localized()
 
-            spo2TitleLabel.text = "Symptoms"
+            spo2TitleLabel.text = "Symptoms".localized()
             if let symptoms = record.symptoms, !symptoms.isEmpty {
-                spo2ValueLabel.text = symptoms.joined(separator: ", ")
+                // Determine if symptoms are localized via Enum or just strings.
+                // Symptom enum has localized displayText, but record.symptoms stores rawValues (Strings).
+                // We should try to resolve them to Symptom enum to get localized text, fallback to raw string.
+                let localizedSymptoms = symptoms.map { raw -> String in
+                    if let s = Symptom(rawValue: raw) {
+                        return s.displayText
+                    }
+                    return raw.localized() // Fallback
+                }
+                spo2ValueLabel.text = localizedSymptoms.joined(separator: ", ")
             } else {
-                spo2ValueLabel.text = "None"
+                spo2ValueLabel.text = "None".localized()
             }
 
-            heartRateTitleLabel.text = "Duration"
+            heartRateTitleLabel.text = "Duration".localized()
 
             if let dur = record.duration {
                 heartRateValueLabel.text = formatDuration(dur)
             } else {
-                heartRateValueLabel.text = "No duration"
+                heartRateValueLabel.text = "No duration".localized()
             }
 
-            locationTitleLabel.text = "Entry Type"
-            locationValueLabel.text = "Manual"
+            locationTitleLabel.text = "Entry Type".localized()
+            locationValueLabel.text = "Manual".localized()
             
             if let desc = record.description, !desc.isEmpty {
                 descriptionTextView.text = desc
@@ -383,7 +393,7 @@ class DetailRecordsTableViewController: UITableViewController {
         func formatDuration(_ seconds: TimeInterval) -> String {
             let mins = Int(seconds) / 60
             let secs = Int(seconds) % 60
-            return "\(mins) min \(secs) sec"
+            return "\(mins) \("m".localized()) \(secs) \("s".localized())"
         }
     // MARK: - Table View Gap Fixes
 
@@ -449,20 +459,20 @@ class DetailRecordsTableViewController: UITableViewController {
             guard let record = record else { return }
 
             let alert = UIAlertController(
-                title: "Delete Record",
-                message: "Are you sure you want to delete this record? This action cannot be undone.",
+                title: "Delete Record".localized(),
+                message: "Are you sure you want to delete this record? This action cannot be undone.".localized(),
                 preferredStyle: .alert
             )
 
             // ❌ Cancel
             alert.addAction(UIAlertAction(
-                title: "Cancel",
+                title: "Cancel".localized(),
                 style: .cancel
             ))
 
             // 🗑️ Delete
             alert.addAction(UIAlertAction(
-                title: "Delete",
+                title: "Delete".localized(),
                 style: .destructive,
                 handler: { [weak self] _ in
                     guard let self else { return }
@@ -483,6 +493,7 @@ class DetailRecordsTableViewController: UITableViewController {
 
             present(alert, animated: true)
     }
+    
     
 }
 

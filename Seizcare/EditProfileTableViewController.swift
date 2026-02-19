@@ -41,7 +41,7 @@ class EditProfileTableViewController: UITableViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = "Edit Profile"
+        title = "Edit Profile".localized()
         applyDefaultTableBackground()
         navigationController?.applyWhiteNavBar()
         [section1CardContainer, section0CardContainer].forEach {
@@ -55,7 +55,7 @@ class EditProfileTableViewController: UITableViewController {
            emailTextField.text = user.email
            phoneTextField.text = user.contactNumber
            dobTextField.text = dateFormatter.string(from: user.dateOfBirth)
-           genderButton.setTitle(user.gender.rawValue.capitalized, for: .normal)
+           genderButton.setTitle(user.gender.rawValue.capitalized.localized(), for: .normal)
 
            if let h = user.height { heightTextField.text = "\(h)" }
            if let w = user.weight { weightTextField.text = "\(w)" }
@@ -65,19 +65,19 @@ class EditProfileTableViewController: UITableViewController {
             let selected = user.gender
 
             genderButton.menu = UIMenu(title: "", options: .displayInline, children: [
-                UIAction(title: "Male",
+                UIAction(title: "Male".localized(),
                          state: selected == .male ? .on : .off,
                          handler: { _ in self.setGender(.male) }),
 
-                UIAction(title: "Female",
+                UIAction(title: "Female".localized(),
                          state: selected == .female ? .on : .off,
                          handler: { _ in self.setGender(.female) }),
 
-                UIAction(title: "Other",
+                UIAction(title: "Other".localized(),
                          state: selected == .other ? .on : .off,
                          handler: { _ in self.setGender(.other) }),
 
-                UIAction(title: "Unspecified",
+                UIAction(title: "Unspecified".localized(),
                          state: selected == .unspecified ? .on : .off,
                          handler: { _ in self.setGender(.unspecified) })
             ])
@@ -87,7 +87,7 @@ class EditProfileTableViewController: UITableViewController {
 
     func setGender(_ gender: Gender) {
             user.gender = gender
-            genderButton.setTitle(gender.rawValue.capitalized, for: .normal)
+            genderButton.setTitle(gender.rawValue.capitalized.localized(), for: .normal)
     }
 
     @IBAction func doneBottonTapped(_ sender: Any) {

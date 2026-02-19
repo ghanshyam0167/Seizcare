@@ -27,13 +27,17 @@ class RecordTableViewController: UITableViewController,UISearchResultsUpdating {
         let filtered = allRecords.filter { record in
             let titleMatch = record.title?.lowercased().contains(query) ?? false
             let typeMatch = record.type?.rawValue.lowercased().contains(query) ?? false
+            // Also check type.displayText for localization match
+            let typeDisplayMatch = record.type?.displayText.lowercased().contains(query) ?? false
+            
             let descMatch = record.description?.lowercased().contains(query) ?? false
 
             let formatter = DateFormatter()
+            formatter.locale = Locale(identifier: LanguageManager.shared.currentLanguage.code)
             formatter.dateFormat = "dd MMMM yyyy"
             let dateMatch = formatter.string(from: record.dateTime).lowercased().contains(query)
 
-            return titleMatch || typeMatch || descMatch || dateMatch
+            return titleMatch || typeMatch || typeDisplayMatch || descMatch || dateMatch
         }
 
         groupAndReload(filtered)
@@ -61,6 +65,8 @@ class RecordTableViewController: UITableViewController,UISearchResultsUpdating {
         setupBottomSearchBar()
         tableView.separatorStyle = .none
         tableView.backgroundColor = UIColor.systemGroupedBackground
+        
+        navigationItem.title = "Records".localized()
     }
     
     
@@ -74,6 +80,7 @@ class RecordTableViewController: UITableViewController,UISearchResultsUpdating {
         // Group by "Month Year" (e.g., "NOVEMBER 2025")
         let grouped = Dictionary(grouping: records) { record -> String in
             let formatter = DateFormatter()
+            formatter.locale = Locale(identifier: LanguageManager.shared.currentLanguage.code)
             formatter.dateFormat = "MMMM yyyy"
             return formatter.string(from: record.dateTime).uppercased()
         }
@@ -98,7 +105,7 @@ class RecordTableViewController: UITableViewController,UISearchResultsUpdating {
     // MARK: - Search bar stacked (iOS 16)
     func setupBottomSearchBar() {
         let searchController = UISearchController(searchResultsController: nil)
-        searchController.searchBar.placeholder = "Search records"
+        searchController.searchBar.placeholder = "Search records".localized() // Localize "Search records" (add key if needed, or just "Search")
         searchController.obscuresBackgroundDuringPresentation = false
         searchController.searchResultsUpdater = self
 
@@ -144,7 +151,7 @@ class RecordTableViewController: UITableViewController,UISearchResultsUpdating {
     func formatDuration(_ seconds: TimeInterval) -> String {
         let mins = Int(seconds) / 60
         let secs = Int(seconds) % 60
-        return "\(mins) min \(secs) sec"
+        return "\(mins) \("min".localized()) \(secs) \("sec".localized())"
     }
 
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {

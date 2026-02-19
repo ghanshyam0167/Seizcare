@@ -20,6 +20,10 @@ enum Symptom: String {
     case bodyAche = "Body Ache"
     case weakness = "Weakness"
     case memoryLoss = "Memory Loss"
+    
+    var displayText: String {
+        return rawValue.localized()
+    }
 }
 
 class AddRecordTableViewController: UITableViewController {
@@ -55,7 +59,7 @@ class AddRecordTableViewController: UITableViewController {
         recordToEdit != nil
     }
 
-    private let placeholderText = "Add your notes here..."
+    private let placeholderText = "Add your notes here...".localized()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -65,6 +69,8 @@ class AddRecordTableViewController: UITableViewController {
             $0?.applyRecordCard()
         }
 
+        // Fix Cancel Button Localization (System items don't auto-localize with swizzling)
+        navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Cancel".localized(), style: .plain, target: self, action: #selector(cancelButtonTapped))
 
         dateTextField.isUserInteractionEnabled = true
         let tap = UITapGestureRecognizer(target: self, action: #selector(openDatePicker))
@@ -74,6 +80,17 @@ class AddRecordTableViewController: UITableViewController {
         notesTextView.delegate = self
 
         seizureLevelSegment.applyPrimaryStyle()
+        seizureLevelSegment.setTitle("Mild".localized(), forSegmentAt: 0)
+        seizureLevelSegment.setTitle("Moderate".localized(), forSegmentAt: 1)
+        seizureLevelSegment.setTitle("Severe".localized(), forSegmentAt: 2)
+        
+        // Localize Severity Segment if it's separate (based on code it seems identical to seizureLevelSegment but mapped to severitySegment outlet? wait, outlets names are different?)
+        // In populateData/saveRecord severitySegment is used. seizureLevelSegment is outlet too.
+        // It seems they might be the same control or different. Let's assume severitySegment is the one used for logic.
+        severitySegment.setTitle("Mild".localized(), forSegmentAt: 0)
+        severitySegment.setTitle("Moderate".localized(), forSegmentAt: 1)
+        severitySegment.setTitle("Severe".localized(), forSegmentAt: 2)
+
         let symptomButtons = [
                 dejavuSymptomButton,
                 anxietySymptomButton,
@@ -114,6 +131,23 @@ class AddRecordTableViewController: UITableViewController {
             btn.titleLabel?.font = UIFont.systemFont(ofSize: 14, weight: .medium)
         }
         
+        // Localize Buttons explicitly
+        dejavuSymptomButton.setTitle(Symptom.dejaVu.displayText, for: .normal)
+        anxietySymptomButton.setTitle(Symptom.anxiety.displayText, for: .normal)
+        visualChangeSymptomButton.setTitle(Symptom.visualChange.displayText, for: .normal)
+        smellSymptomButton.setTitle(Symptom.oddSmell.displayText, for: .normal)
+        dizzinesSymptomButton.setTitle(Symptom.dizziness.displayText, for: .normal)
+        nauseaSymptomButton.setTitle(Symptom.nausea.displayText, for: .normal)
+        confusedSymptomButton.setTitle(Symptom.confused.displayText, for: .normal)
+        tiredSymptomButton.setTitle(Symptom.tired.displayText, for: .normal)
+        headacheSymptomButton.setTitle(Symptom.headache.displayText, for: .normal)
+        bodyacheSymptomButton.setTitle(Symptom.bodyAche.displayText, for: .normal)
+        weaknessSymptomButton.setTitle(Symptom.weakness.displayText, for: .normal)
+        memoryLossSymptomButton.setTitle(Symptom.memoryLoss.displayText, for: .normal)
+        
+        titleTextField.placeholder = "Title".localized()
+
+        
         titleTextField.addTarget(self, action: #selector(textFieldChanged), for: .editingChanged)
         dateTextField.addTarget(self, action: #selector(textFieldChanged), for: .editingChanged)
         durationTextField.addTarget(self, action: #selector(textFieldChanged), for: .editingChanged)
@@ -124,23 +158,29 @@ class AddRecordTableViewController: UITableViewController {
             configureForAdd()
         }
         
-        fixDateLabel()
+        localizeStaticUI()
 
     }
     
-    private func fixDateLabel() {
-        // Recursively find "Date & Time" label and change to "Date"
+    private func localizeStaticUI() {
+        // Recursively find and localize static labels
         func scan(view: UIView) {
-            if let label = view as? UILabel, label.text == "Date & Time" {
-                label.text = "Date"
+            if let label = view as? UILabel, let text = label.text {
+                if ["SEVERITY", "SYMPTOMS", "NOTES", "Title", "Date & Time", "Date", "Duration"].contains(text) {
+                    label.text = text.localized()
+                }
             }
             view.subviews.forEach { scan(view: $0) }
         }
         scan(view: view)
+        
+        // Localize Placeholder
+        durationTextField.placeholder = "e.g., 1min 30sec".localized()
     }
+    
     private func configureForAdd() {
-        navigationItem.title = "Add Record"
-        saveButton.title = "Save"
+        navigationItem.title = "Add Record".localized()
+        saveButton.title = "Save".localized()
         saveButton.isEnabled = false
         
         // Set default date to today
@@ -154,8 +194,8 @@ class AddRecordTableViewController: UITableViewController {
     }
 
     private func configureForEdit() {
-        navigationItem.title = "Edit Record"
-        saveButton.title = "Update"
+        navigationItem.title = "Edit Record".localized()
+        saveButton.title = "Update".localized()
         saveButton.isEnabled = true
         populateData()
     }

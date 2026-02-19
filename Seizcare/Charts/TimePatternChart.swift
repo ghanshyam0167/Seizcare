@@ -25,11 +25,11 @@ struct TimePatternChart: View {
             // Header
             // ======================
             VStack(alignment: .leading, spacing: 4) {
-                Text("Time of Day Pattern")
+                Text("Time of Day Pattern".localized())
                     .font(.callout)
                     .foregroundStyle(.secondary)
 
-                Text("Last 3 months")
+                Text("Last 3 months".localized())
                     .font(.caption2)
                     .foregroundStyle(.tertiary)
             }
@@ -40,7 +40,7 @@ struct TimePatternChart: View {
             Chart {
                 ForEach(data) { item in
                     SectorMark(
-                        angle: .value("Count", item.count),
+                        angle: .value("Count".localized(), item.count),
                         innerRadius: .ratio(0.62),
                         angularInset: 1.2
                     )
@@ -85,7 +85,7 @@ struct TimePatternChart: View {
                             .fill(color(for: item.bucket))
                             .frame(width: 8, height: 8)
 
-                        Text(item.bucket.rawValue.capitalized)
+                        Text(item.bucket.displayText.capitalized) // Use displayText
                             .font(.caption)
 
                         Spacer()
@@ -116,7 +116,7 @@ struct TimePatternChart: View {
                     .fill(accent)
                     .frame(width: 8, height: 8)
 
-                Text(item.bucket.rawValue.capitalized)
+                Text(item.bucket.displayText.capitalized)
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -126,12 +126,12 @@ struct TimePatternChart: View {
                 .font(.system(size: 28, weight: .bold))
                 .foregroundStyle(accent)
 
-            Text("Seizures")
+            Text("Seizures".localized())
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
             // 📊 Percentage pill
-            Text("\(percentage(of: item))% of total")
+            Text("\(percentage(of: item))% \("of total".localized())")
                 .font(.caption2)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)

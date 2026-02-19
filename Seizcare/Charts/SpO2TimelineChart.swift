@@ -2,6 +2,8 @@
 //  SpO2TimelineChart.swift
 //  Seizcare
 //
+//  Created by Seizcare Team.
+//
 
 import SwiftUI
 import Charts
@@ -27,18 +29,22 @@ struct SpO2TimelineChart: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 16) {
             
+            // Header
             VStack(alignment: .leading, spacing: 4) {
-                Text("SpO₂ Pattern")
+                Text("SpO₂ Pattern".localized())
                     .font(.callout)
                     .foregroundStyle(.secondary)
 
-                Text("2 hours before & after seizure")
+                Text("2 hours before & after seizure".localized())
                     .font(.caption2)
                     .foregroundStyle(.tertiary)
             }
+            
+            // Chart Area
             HStack(alignment: .center, spacing: 6) {
+                // Y-Axis Labels
                 VStack(spacing: 1) {
                     Image(systemName: "arrow.up")
                         .font(.caption2)
@@ -52,11 +58,11 @@ struct SpO2TimelineChart: View {
                         }
                     }
                 }
+                
+                // The Chart
                 Chart {
                     
-                    // ─────────────────────────────
                     // DURING PHASE (SHADED BAND)
-                    // ─────────────────────────────
                     let start = seizureTime
                     let end = seizureTime.addingTimeInterval(seizureDuration)
                     
@@ -66,9 +72,7 @@ struct SpO2TimelineChart: View {
                     )
                     .foregroundStyle(.red.opacity(0.10))
                     
-                    // ─────────────────────────────
                     // SpO₂ LINE
-                    // ─────────────────────────────
                     ForEach(data) { point in
                         LineMark(
                             x: .value("Time", point.timestamp),
@@ -79,16 +83,12 @@ struct SpO2TimelineChart: View {
                         .foregroundStyle(spo2Color)
                     }
                     
-                    // ─────────────────────────────
-                    // SEIZURE MOMENT (CENTER LINE)
-                    // ─────────────────────────────
+                    // SEIZURE MOMENT
                     RuleMark(x: .value("Seizure", seizureTime))
                         .foregroundStyle(.red.opacity(0.5))
                         .lineStyle(StrokeStyle(lineWidth: 2, dash: [4]))
                     
-                    // ─────────────────────────────
                     // SELECTED POINT
-                    // ─────────────────────────────
                     if let selected {
                         PointMark(
                             x: .value("Time", selected.timestamp),
@@ -114,55 +114,57 @@ struct SpO2TimelineChart: View {
                         }
                     }
                 }
-            }
-            .frame(height: 220)
-            .chartOverlay { proxy in
-                GeometryReader { geo in
-                    Rectangle()
-                        .fill(Color.clear)
-                        .contentShape(Rectangle())
-                        .gesture(
-                            DragGesture(minimumDistance: 0)
-                                .onChanged { value in
-                                    let plot = geo[proxy.plotAreaFrame]
-                                    let xInPlot = value.location.x - plot.origin.x
-                                    tooltipX = value.location.x
-                                    
-                                    if let time: Date = proxy.value(atX: xInPlot),
-                                       let nearest = nearestPoint(to: time) {
+                .frame(height: 220)
+                .chartOverlay { proxy in
+                    GeometryReader { geo in
+                        Rectangle()
+                            .fill(Color.clear)
+                            .contentShape(Rectangle())
+                            .gesture(
+                                DragGesture(minimumDistance: 0)
+                                    .onChanged { value in
+                                        let plot = geo[proxy.plotAreaFrame]
+                                        let xInPlot = value.location.x - plot.origin.x
+                                        tooltipX = value.location.x
                                         
-                                        selected = nearest
-                                        
-                                        let range = maxY - minY
-                                        let normalized =
-                                        range == 0
-                                        ? 0
-                                        : (CGFloat(nearest.spo2) - minY) / range
-                                        
-                                        tooltipY =
-                                        plot.maxY -
-                                        (normalized * plot.size.height) +
-                                        plot.origin.y
+                                        if let time: Date = proxy.value(atX: xInPlot),
+                                           let nearest = nearestPoint(to: time) {
+                                            
+                                            selected = nearest
+                                            
+                                            let range = maxY - minY
+                                            let normalized =
+                                            range == 0
+                                            ? 0
+                                            : (CGFloat(nearest.spo2) - minY) / range
+                                            
+                                            tooltipY =
+                                            plot.maxY -
+                                            (normalized * plot.size.height) +
+                                            plot.origin.y
+                                        }
                                     }
-                                }
-                            .onEnded { _ in
-                                selected = nil
-                            }
-                        )
-                    
-                    if let selected {
-                        tooltipView(selected)
-                            .position(
-                                x: tooltipX.clamped(min: 60, max: geo.size.width - 60),
-                                y: max(50, tooltipY - 60)
+                                    .onEnded { _ in
+                                        selected = nil
+                                    }
                             )
+                        
+                        if let selected {
+                            tooltipView(selected)
+                                .position(
+                                    x: tooltipX.clamped(min: 60, max: geo.size.width - 60),
+                                    y: max(50, tooltipY - 60)
+                                )
+                        }
                     }
                 }
             }
+            
+            // X-Axis Label ("Time")
             HStack {
                 Spacer()
                 HStack(spacing: 4) {
-                    Text("Time")
+                    Text("Time".localized())
                         .font(.caption2)
                         .foregroundColor(.secondary)
 
@@ -181,7 +183,7 @@ struct SpO2TimelineChart: View {
 extension SpO2TimelineChart {
     private func timeLabel(for date: Date) -> String {
         let formatter = DateFormatter()
-        formatter.dateFormat = "h a"   // 3 PM, 4 PM
+        formatter.dateFormat = "h a"
         return formatter.string(from: date)
     }
 
@@ -197,13 +199,14 @@ extension SpO2TimelineChart {
         VStack(spacing: 4) {
             Text(
                 point.phase == .during
-                ? "During seizure"
+                ? "During seizure".localized()
                 : point.phase == .before
-                    ? "Before seizure"
-                    : "After seizure"
+                    ? "Before seizure".localized()
+                    : "After seizure".localized()
             )
             .font(.caption2)
             .foregroundColor(.gray)
+
 
             Text("\(point.spo2)%")
                 .font(.headline)

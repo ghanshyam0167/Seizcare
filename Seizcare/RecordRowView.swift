@@ -145,20 +145,24 @@ final class RecordRowView: UIView {
         iconView?.tintColor = icon.tintColor
 
         if record.entryType == .manual {
-            titleLabel?.text = record.title ?? "Manual Log"
+            titleLabel?.text = record.title?.localized() ?? "Manual Log".localized()
         } else {
-            titleLabel?.text = record.type?.rawValue.capitalized ?? "Seizure"
+            titleLabel?.text = record.type?.displayText ?? "Seizure".localized()
         }
 
         if let duration = record.duration {
             let mins = Int(duration) / 60
             let secs = Int(duration) % 60
-            subtitleLabel?.text = "Duration: \(mins) min \(secs) sec"
+            let minStr = "min".localized()
+            let secStr = "sec".localized()
+            let durationTitle = "Duration".localized()
+            subtitleLabel?.text = "\(durationTitle): \(mins) \(minStr) \(secs) \(secStr)"
         } else {
-            subtitleLabel?.text = record.description
+            subtitleLabel?.text = record.description?.localized()
         }
 
         let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: LanguageManager.shared.currentLanguage.code)
         formatter.dateFormat = "dd MMM"
         dateLabel?.text = formatter.string(from: record.dateTime).uppercased()
     }
