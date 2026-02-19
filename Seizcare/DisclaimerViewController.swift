@@ -182,10 +182,11 @@ class DisclaimerViewController: UIViewController {
     // MARK: - Actions
     
     @objc private func understandButtonTapped() {
-        // Navigate to Dashboard storyboard
-        let dashboardStoryboard = UIStoryboard(name: "Dashboard", bundle: nil)
-        if let dashboardVC = dashboardStoryboard.instantiateInitialViewController() {
-            navigationController?.pushViewController(dashboardVC, animated: true)
+        // Navigate to NewUserOnboarding storyboard
+        let onboardingStoryboard = UIStoryboard(name: "NewUserOnboarding", bundle: nil)
+        if let onboardingVC = onboardingStoryboard.instantiateInitialViewController() {
+            onboardingVC.modalPresentationStyle = .fullScreen
+            present(onboardingVC, animated: true, completion: nil)
         }
     }
 }

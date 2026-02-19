@@ -111,12 +111,7 @@ final class DashboardDataModel {
         }
 
         guard !filteredRecords.isEmpty else {
-            return DashboardSummary(
-                avgMonthlySeizures: 0,
-                mostCommonTime: .unknown,
-                avgDuration: 0,
-                avgSleepHours: sleepModel.getAverageSleepLastMonth()
-            )
+            return getOnboardingFallbackSummary()
         }
 
         let avgMonthly = Double(filteredRecords.count)
@@ -140,6 +135,59 @@ final class DashboardDataModel {
             avgMonthlySeizures: avgMonthly,
             mostCommonTime: mostCommonTime,
             avgDuration: avgDuration,
+            avgSleepHours: avgSleep
+        )
+    }
+
+    private func getOnboardingFallbackSummary() -> DashboardSummary {
+        let defaults = UserDefaults.standard
+
+        // 1. Avg Monthly Seizures
+        let avgMonthly: Double = {
+            let choice = defaults.string(forKey: "avgSeizuresPerMonth") ?? ""
+            switch choice {
+            case "Less than 1": return 0.5
+            case "1–3": return 2.0
+            case "4–10": return 7.0
+            case "More than 10": return 15.0
+            default: return 0.0
+            }
+        }()
+
+        // 2. Most Common Time
+        let commonTime: SeizureTimeBucket = {
+            let choice = defaults.string(forKey: "commonSeizureTime") ?? ""
+            return SeizureTimeBucket(rawValue: choice) ?? .unknown
+        }()
+
+        // 3. Avg Duration (seconds)
+        let avgDur: Double = {
+            let choice = defaults.string(forKey: "typicalSeizureDuration") ?? ""
+            switch choice {
+            case "Less than 30 sec": return 15.0
+            case "30–60 sec": return 45.0
+            case "1–3 min": return 120.0
+            case "More than 3 min": return 240.0
+            default: return 60.0
+            }
+        }()
+
+        // 4. Avg Sleep Hours
+        let avgSleep: Double = {
+            let choice = defaults.string(forKey: "typicalSleepHours") ?? ""
+            switch choice {
+            case "Less than 5 hours": return 4.5
+            case "5–6 hours": return 5.5
+            case "6–8 hours": return 7.0
+            case "More than 8 hours": return 9.0
+            default: return SleepDataModel.shared.getAverageSleepLastMonth()
+            }
+        }()
+
+        return DashboardSummary(
+            avgMonthlySeizures: avgMonthly,
+            mostCommonTime: commonTime,
+            avgDuration: avgDur,
             avgSleepHours: avgSleep
         )
     }

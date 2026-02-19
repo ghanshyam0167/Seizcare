@@ -246,7 +246,8 @@ final class SeizureRecordDataModel {
         if let saved = loadFromDisk() {
             records = saved
         } else {
-            records = loadSampleRecords()
+            // Start with an empty list for new users
+            records = []
             saveRecords() 
         }
     }
