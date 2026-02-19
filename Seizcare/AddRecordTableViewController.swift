@@ -25,6 +25,7 @@ enum Symptom: String {
 class AddRecordTableViewController: UITableViewController {
 
     @IBOutlet weak var seizureLevelSegment: UISegmentedControl!
+    @IBOutlet weak var timeOfDaySegment: UISegmentedControl!
     @IBOutlet weak var topInputsCardView: UIView!
     @IBOutlet weak var notesCardView: UIView!
     @IBOutlet weak var symptompsCardView: UIView!
@@ -43,7 +44,7 @@ class AddRecordTableViewController: UITableViewController {
     @IBOutlet weak var anxietySymptomButton: UIButton!
     @IBOutlet weak var dejavuSymptomButton: UIButton!
     @IBOutlet weak var severitySegment: UISegmentedControl!
-    @IBOutlet weak var durationTextField: UITextField!
+    @IBOutlet weak var durationLabel: UILabel!
     @IBOutlet weak var dateTextField: UITextField!
     @IBOutlet weak var titleTextField: UITextField!
     
@@ -53,6 +54,14 @@ class AddRecordTableViewController: UITableViewController {
     var recordToEdit: SeizureRecord?   // nil = Add, non-nil = Edit
     var isEditMode: Bool {
         recordToEdit != nil
+    }
+    
+    // Duration in seconds
+    var duration: TimeInterval = 0 {
+        didSet {
+            updateDurationLabel()
+            validateForm()
+        }
     }
 
     private let placeholderText = "Add your notes here..."
@@ -67,13 +76,20 @@ class AddRecordTableViewController: UITableViewController {
 
 
         dateTextField.isUserInteractionEnabled = true
-        let tap = UITapGestureRecognizer(target: self, action: #selector(openDatePicker))
-        dateTextField.addGestureRecognizer(tap)
+        let tapDate = UITapGestureRecognizer(target: self, action: #selector(openDatePicker))
+        dateTextField.addGestureRecognizer(tapDate)
+        
+        // Duration Label Interaction
+        durationLabel.isUserInteractionEnabled = true
+        let tapDuration = UITapGestureRecognizer(target: self, action: #selector(openDurationPicker))
+        durationLabel.addGestureRecognizer(tapDuration)
         
         // Delegate for placeholder
         notesTextView.delegate = self
 
         seizureLevelSegment.applyPrimaryStyle()
+        setupTimeOfDaySegment()
+
         let symptomButtons = [
                 dejavuSymptomButton,
                 anxietySymptomButton,
@@ -88,8 +104,11 @@ class AddRecordTableViewController: UITableViewController {
                 weaknessSymptomButton,
                 memoryLossSymptomButton
             ]
-        saveButton.isEnabled = false
-
+        
+        // Note: saveButton enabled state is managed by validateForm() called in configureForAdd/Edit
+        
+        // Explicitly set gray color for disabled state
+        saveButton.setTitleTextAttributes([.foregroundColor: UIColor.systemGray], for: .disabled)
             
         for button in symptomButtons {
             guard let btn = button else { continue }
@@ -116,18 +135,15 @@ class AddRecordTableViewController: UITableViewController {
         
         titleTextField.addTarget(self, action: #selector(textFieldChanged), for: .editingChanged)
         dateTextField.addTarget(self, action: #selector(textFieldChanged), for: .editingChanged)
-        durationTextField.addTarget(self, action: #selector(textFieldChanged), for: .editingChanged)
         
         if isEditMode {
             configureForEdit()
         } else {
             configureForAdd()
         }
-        
-        fixDateLabel()
-
     }
-    
+
+
     private func fixDateLabel() {
         // Recursively find "Date & Time" label and change to "Date"
         func scan(view: UIView) {
@@ -141,16 +157,23 @@ class AddRecordTableViewController: UITableViewController {
     private func configureForAdd() {
         navigationItem.title = "Add Record"
         saveButton.title = "Save"
-        saveButton.isEnabled = false
         
         // Set default date to today
+        let now = Date()
         let formatter = DateFormatter()
         formatter.dateFormat = "dd/MM/yyyy"
-        dateTextField.text = formatter.string(from: Date())
+        dateTextField.text = formatter.string(from: now)
+        
+        updateTimeBucket(from: now)
+        
+        // Default Duration
+        duration = 0
         
         // Initial placeholder
         notesTextView.text = placeholderText
         notesTextView.textColor = .tertiaryLabel
+        
+        validateForm()
     }
 
     private func configureForEdit() {
@@ -176,10 +199,8 @@ class AddRecordTableViewController: UITableViewController {
         formatter.dateFormat = "dd/MM/yyyy"
         dateTextField.text = formatter.string(from: record.dateTime)
 
-        if let duration = record.duration {
-            let min = Int(duration) / 60
-            let sec = Int(duration) % 60
-            durationTextField.text = "\(min)min \(sec)sec"
+        if let d = record.duration {
+            duration = d
         }
 
         switch record.type {
@@ -187,6 +208,14 @@ class AddRecordTableViewController: UITableViewController {
         case .moderate: severitySegment.selectedSegmentIndex = 1
         case .severe: severitySegment.selectedSegmentIndex = 2
         default: break
+        }
+        
+        switch record.timeBucket {
+        case .morning: timeOfDaySegment?.selectedSegmentIndex = 0
+        case .afternoon: timeOfDaySegment?.selectedSegmentIndex = 1
+        case .evening: timeOfDaySegment?.selectedSegmentIndex = 2
+        case .night: timeOfDaySegment?.selectedSegmentIndex = 3
+        default: updateTimeBucket(from: record.dateTime)
         }
 
         if let symptoms = record.symptoms {
@@ -279,116 +308,103 @@ class AddRecordTableViewController: UITableViewController {
 
     
     @IBAction func saveRecord(_ sender: UIBarButtonItem) {
-            guard let title = titleTextField.text, !title.isEmpty,
-                  let dateString = dateTextField.text,
-                  let durationString = durationTextField.text else { return }
+        // Validation is handled by safe-guards and button state
+        guard let title = titleTextField.text, !title.isEmpty,
+              let dateString = dateTextField.text, !dateString.isEmpty,
+              duration > 0,
+              !selectedSymptoms.isEmpty else { return }
+        
+        let formatter = DateFormatter()
+        formatter.dateFormat = "dd/MM/yyyy"
+        guard let date = formatter.date(from: dateString) else { return }
 
-            let formatter = DateFormatter()
-            formatter.dateFormat = "dd/MM/yyyy"
-            guard let date = formatter.date(from: dateString),
-                  let durationSeconds = parseDuration(durationString) else { return }
-
-            let severity: SeizureType = {
-                switch severitySegment.selectedSegmentIndex {
-                case 0: return .mild
-                case 1: return .moderate
-                default: return .severe
-                }
-            }()
-
-            let symptoms = selectedSymptoms.map { $0.rawValue }
-//            let symptoms = selectedSymptoms.map { $0.rawValue }
-            
-            var notes = notesTextView.text
-            if notes == placeholderText && notesTextView.textColor == .tertiaryLabel {
-                notes = ""
+        let severity: SeizureType = {
+            switch severitySegment.selectedSegmentIndex {
+            case 0: return .mild
+            case 1: return .moderate
+            default: return .severe
             }
+        }()
 
-            if let oldRecord = recordToEdit {
-                let updatedRecord = SeizureRecord(
-                        id: oldRecord.id,  
-                        userId: oldRecord.userId,
-                        entryType: oldRecord.entryType,
-                        dateTime: date,
-                        description: notes,
-                        type: severity,
-                        duration: durationSeconds,
-                        title: title,
-                        symptoms: selectedSymptoms.map { $0.rawValue }
-                    )
+        let symptoms = selectedSymptoms.map { $0.rawValue }
+        
+        let timeBucket: SeizureTimeBucket
+        if let segment = timeOfDaySegment {
+            switch segment.selectedSegmentIndex {
+            case 0: timeBucket = .morning
+            case 1: timeBucket = .afternoon
+            case 2: timeBucket = .evening
+            case 3: timeBucket = .night
+            default: timeBucket = .unknown
+            }
+        } else {
+             // Fallback if UI not connected: derive from date
+            let hour = Calendar.current.component(.hour, from: date)
+            switch hour {
+            case 5..<12: timeBucket = .morning
+            case 12..<17: timeBucket = .afternoon
+            case 17..<21: timeBucket = .evening
+            default: timeBucket = .night
+            }
+        }
+        
+        var notes = notesTextView.text
+        if notes == placeholderText && notesTextView.textColor == .tertiaryLabel {
+            notes = ""
+        }
 
-                    SeizureRecordDataModel.shared.updateRecord(updatedRecord)
-            } else {
-                // ➕ ADD
-                guard let user = UserDataModel.shared.getCurrentUser() else { return }
-
-                let newRecord = SeizureRecord(
-                    id : UUID(),
-                    userId: user.id,
-                    entryType: .manual,
+        if let oldRecord = recordToEdit {
+            let updatedRecord = SeizureRecord(
+                    id: oldRecord.id,  
+                    userId: oldRecord.userId,
+                    entryType: oldRecord.entryType,
                     dateTime: date,
                     description: notes,
                     type: severity,
-                    duration: durationSeconds,
+                    duration: duration,
                     title: title,
-                    symptoms: symptoms
+                    symptoms: selectedSymptoms.map { $0.rawValue },
+                    timeBucket: timeBucket
                 )
 
-                SeizureRecordDataModel.shared.addManualRecord(newRecord)
-            }
+                SeizureRecordDataModel.shared.updateRecord(updatedRecord)
+        } else {
+            // ➕ ADD
+            guard let user = UserDataModel.shared.getCurrentUser() else { return }
 
-            onDismiss?()
-            if let nav = navigationController, nav.viewControllers.count > 1 {
-                nav.popViewController(animated: true)
-            } else {
-                dismiss(animated: true)
-            }
+            let newRecord = SeizureRecord(
+                id : UUID(),
+                userId: user.id,
+                entryType: .manual,
+                dateTime: date,
+                description: notes,
+                type: severity,
+                duration: duration,
+                title: title,
+                symptoms: symptoms,
+                timeBucket: timeBucket
+            )
 
-        
+            SeizureRecordDataModel.shared.addManualRecord(newRecord)
+        }
+
+        onDismiss?()
+        if let nav = navigationController, nav.viewControllers.count > 1 {
+            nav.popViewController(animated: true)
+        } else {
+            dismiss(animated: true)
+        }
     }
+
     func validateForm() {
         let isTitleValid = !(titleTextField.text?.isEmpty ?? true)
         let isDateValid = !(dateTextField.text?.isEmpty ?? true)
-        let isDurationValid = !(durationTextField.text?.isEmpty ?? true)
-        
+        let isDurationValid = duration > 0
         let isSymptomsValid = !selectedSymptoms.isEmpty
         
         saveButton.isEnabled = isTitleValid && isDateValid && isDurationValid && isSymptomsValid
     }
-    func parseDuration(_ text: String) -> TimeInterval? {
-        let lower = text.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
 
-        // 1. Try plain number -> treat as seconds
-        if let value = Double(lower) {
-            return value
-        }
-
-        var minutes: Double = 0
-        var seconds: Double = 0
-
-        // Extract minutes
-        if let minRange = lower.range(of: "min") {
-            let num = lower[..<minRange.lowerBound].trimmingCharacters(in: .whitespaces)
-            minutes = Double(num) ?? 0
-        }
-
-        // Extract seconds
-        if let secRange = lower.range(of: "sec") {
-            // find the number before "sec"
-            let before = lower[..<secRange.lowerBound]
-            if let lastSpace = before.lastIndex(of: " ") {
-                let secString = before[before.index(after: lastSpace)...]
-                seconds = Double(secString) ?? 0
-            } else {
-                // E.g. "30sec" where no space found, but we know it's seconds because we checked "sec"
-                // Try to parse the whole chunk before "sec" if it's just a number
-                 let num = before.trimmingCharacters(in: .whitespaces)
-                 seconds = Double(num) ?? 0
-            }
-        }
-
-        return (minutes * 60) + seconds
-    }
     override func tableView(_ tableView: UITableView,
                             willDisplay cell: UITableViewCell,
                             forRowAt indexPath: IndexPath) {
@@ -401,7 +417,7 @@ class AddRecordTableViewController: UITableViewController {
         let pickerVC = UIViewController()
         pickerVC.view.backgroundColor = .systemBackground
         pickerVC.modalPresentationStyle = .pageSheet
-
+        
         let datePicker = UIDatePicker()
         datePicker.datePickerMode = .date
         datePicker.preferredDatePickerStyle = .inline
@@ -440,6 +456,7 @@ class AddRecordTableViewController: UITableViewController {
             let formatter = DateFormatter()
             formatter.dateFormat = "dd/MM/yyyy"
             self.dateTextField.text = formatter.string(from: datePicker.date)
+            self.updateTimeBucket(from: datePicker.date)
             self.validateForm()
             self.dismiss(animated: true)
         }, for: .touchUpInside)
@@ -453,6 +470,106 @@ class AddRecordTableViewController: UITableViewController {
 
         present(pickerVC, animated: true)
     }
+    
+    // MARK: - Duration Picker Logic (Custom UIPickerView)
+    @objc private func openDurationPicker() {
+        let pickerVC = UIViewController()
+        pickerVC.view.backgroundColor = .systemBackground
+        pickerVC.modalPresentationStyle = .pageSheet
+        
+        // Title Label
+        let titleLabel = UILabel()
+        titleLabel.text = "Select Duration"
+        titleLabel.font = .systemFont(ofSize: 17, weight: .semibold)
+        titleLabel.textAlignment = .center
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        pickerVC.view.addSubview(titleLabel)
+        
+        // Picker
+        let pickerView = UIPickerView()
+        pickerView.translatesAutoresizingMaskIntoConstraints = false
+        pickerVC.view.addSubview(pickerView)
+        
+        // Done Button
+        let doneButton = UIButton(type: .system)
+        doneButton.setTitle("Done", for: .normal)
+        doneButton.titleLabel?.font = .systemFont(ofSize: 17, weight: .semibold)
+        doneButton.translatesAutoresizingMaskIntoConstraints = false
+        pickerVC.view.addSubview(doneButton)
+        
+        NSLayoutConstraint.activate([
+            titleLabel.topAnchor.constraint(equalTo: pickerVC.view.topAnchor, constant: 20),
+            titleLabel.centerXAnchor.constraint(equalTo: pickerVC.view.centerXAnchor),
+            
+            doneButton.topAnchor.constraint(equalTo: pickerVC.view.topAnchor, constant: 20),
+            doneButton.trailingAnchor.constraint(equalTo: pickerVC.view.trailingAnchor, constant: -20),
+            
+            pickerView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 20),
+            pickerView.leadingAnchor.constraint(equalTo: pickerVC.view.leadingAnchor),
+            pickerView.trailingAnchor.constraint(equalTo: pickerVC.view.trailingAnchor),
+            pickerView.heightAnchor.constraint(equalToConstant: 200)
+        ])
+        
+        let adapter = DurationPickerAdapter(initialDuration: duration) { [weak self] newDuration in
+            self?.duration = newDuration
+        }
+        
+        // Hold strong reference to adapter in pickerVC (via objc association or wrapping)
+        // Only for this simple task, we can use a closure-based wrapper or just a nested class.
+        // Let's use a nested controller to keep it clean, or assign it as a property if possible.
+        // Swift limitation: cannot easily attach arbitrary objects to UIViewController instance without subclassing.
+        // Alternate approach: Embed the logic in a small subclass or closure. Use a helper logic carrier.
+        
+        // Better: Make AddRecordTableViewController the delegate? No, complicates it.
+        // Let's use a wrapper property on the picker view itself using Associative Objects or just subclass UIPickerView.
+        // Simpler: Just assign the delegate/dataSource to a persisted helper object.
+        
+        // Trick: The picker view holds a strong ref to delegate? No, it's weak.
+        // WE need to hold the adapter.
+        
+        // Let's create a custom ViewController subclass inline or just add a property to the main class to hold the current adapter?
+        // Adding `var currentDurationAdapter: DurationPickerAdapter?` to main class.
+        self.currentDurationAdapter = adapter
+        pickerView.delegate = adapter
+        pickerView.dataSource = adapter
+        
+        // Select current row
+        let min = Int(duration) / 60
+        let sec = Int(duration) % 60
+        pickerView.selectRow(min, inComponent: 0, animated: false)
+        pickerView.selectRow(sec, inComponent: 1, animated: false)
+        
+        doneButton.addAction(UIAction { [weak self] _ in
+            self?.dismiss(animated: true)
+            self?.currentDurationAdapter = nil // Cleanup
+        }, for: .touchUpInside)
+
+        if let sheet = pickerVC.sheetPresentationController {
+            sheet.detents = [.medium()]
+            sheet.prefersGrabberVisible = true
+            sheet.preferredCornerRadius = 20
+        }
+        present(pickerVC, animated: true)
+    }
+    
+    // Hold reference to the adapter
+    var currentDurationAdapter: DurationPickerAdapter?
+
+    private func updateDurationLabel() {
+        let min = Int(duration) / 60
+        let sec = Int(duration) % 60
+        
+        if duration == 0 {
+            durationLabel.text = "0 min 0 sec"
+            durationLabel.textColor = .tertiaryLabel
+        } else {
+            var parts: [String] = []
+            if min > 0 { parts.append("\(min) min") }
+            if sec > 0 { parts.append("\(sec) sec") }
+            durationLabel.text = parts.joined(separator: " ")
+            durationLabel.textColor = .label
+        }
+    }
 
     @IBAction func cancelButtonTapped(_ sender: Any) {
         if let nav = navigationController, nav.viewControllers.count > 1 {
@@ -464,6 +581,25 @@ class AddRecordTableViewController: UITableViewController {
 
     
     
+    private func setupTimeOfDaySegment() {
+         guard let segment = timeOfDaySegment else { return }
+         
+         // Segments are defined in Storyboard: Morning, Afternoon, Evening, Night
+         
+         segment.applyPrimaryStyle()
+    }
+
+    private func updateTimeBucket(from date: Date) {
+        let hour = Calendar.current.component(.hour, from: date)
+        let index: Int
+        switch hour {
+        case 5..<12: index = 0
+        case 12..<17: index = 1
+        case 17..<21: index = 2
+        default: index = 3
+        }
+        timeOfDaySegment?.selectedSegmentIndex = index
+    }
 }
 
 extension AddRecordTableViewController: UITextViewDelegate {
@@ -483,3 +619,47 @@ extension AddRecordTableViewController: UITextViewDelegate {
 }
 
 
+// MARK: - Duration Picker Adapter
+class DurationPickerAdapter: NSObject, UIPickerViewDelegate, UIPickerViewDataSource {
+    let onUpdate: (TimeInterval) -> Void
+    
+    init(initialDuration: TimeInterval, onUpdate: @escaping (TimeInterval) -> Void) {
+        self.onUpdate = onUpdate
+        super.init()
+    }
+    
+    // 0: Minutes (0-59), 1: Seconds (0-59)
+    // Actually, Minutes can go up to say 60 or 120? Let's say 60 for now based on "wheels" style usually cycling or fixed.
+    // Let's go 0-300 min (5 hours) to be safe? Or just 0-60?
+    // User request: "Count down timer style". usually 0-23 hours, 0-59 min.
+    // But for seizure, maybe 0-59 min, 0-59 sec is typical.
+    // Let's do Minutes (0-120), Seconds (0-59).
+    
+    func numberOfComponents(in pickerView: UIPickerView) -> Int {
+        return 2
+    }
+    
+    func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
+        if component == 0 { return 121 } // 0-120 mins
+        return 60 // 0-59 secs
+    }
+    
+    func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
+        if component == 0 {
+            return "\(row) min"
+        } else {
+            return "\(row) sec"
+        }
+    }
+    
+    func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
+        let min = pickerView.selectedRow(inComponent: 0)
+        let sec = pickerView.selectedRow(inComponent: 1)
+        let totalSeconds = TimeInterval((min * 60) + sec)
+        onUpdate(totalSeconds)
+    }
+    
+    func pickerView(_ pickerView: UIPickerView, widthForComponent component: Int) -> CGFloat {
+        return 100
+    }
+}

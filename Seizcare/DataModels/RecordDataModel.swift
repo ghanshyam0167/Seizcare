@@ -101,7 +101,8 @@ struct SeizureRecord: Identifiable, Codable, Equatable {
         location: String? = nil,
         title: String? = nil,
         symptoms: [String]? = nil,
-        triggers: [SeizureTrigger]? = nil
+        triggers: [SeizureTrigger]? = nil,
+        timeBucket: SeizureTimeBucket? = nil
     ) {
         self.id = id
         self.userId = userId
@@ -117,14 +118,18 @@ struct SeizureRecord: Identifiable, Codable, Equatable {
         self.symptoms = symptoms
         self.triggers = triggers
 
-        // Auto-assign time bucket
-        let hour = Calendar.current.component(.hour, from: dateTime)
-        switch hour {
-        case 5..<12: self.timeBucket = .morning
-        case 12..<17: self.timeBucket = .afternoon
-        case 17..<22: self.timeBucket = .evening
-        case 22...23, 0..<5: self.timeBucket = .night
-        default: self.timeBucket = .unknown
+        if let explicitBucket = timeBucket {
+            self.timeBucket = explicitBucket
+        } else {
+            // Auto-assign time bucket
+            let hour = Calendar.current.component(.hour, from: dateTime)
+            switch hour {
+            case 5..<12: self.timeBucket = .morning
+            case 12..<17: self.timeBucket = .afternoon
+            case 17..<22: self.timeBucket = .evening
+            case 22...23, 0..<5: self.timeBucket = .night
+            default: self.timeBucket = .unknown
+            }
         }
     }
 
