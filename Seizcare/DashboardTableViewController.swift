@@ -234,77 +234,315 @@ class DashboardTableViewController: UITableViewController {
     }
 
     func addTriggerCorrelationChart() {
+        // ── Setup Graph Structure (Persistent Header + Content) ─────────────
+        let contentContainer = setupGraphStructure(
+            in: triggerCorrelationChart,
+            title: "Trigger Correlation"
+        )
+        
+        // ── emptyStateView ────────────────────────────────────────────────
+        let emptyStateView = makeChartEmptyState(
+            symbol: "bolt.horizontal.circle",
+            title: "No Trigger Insights Yet",
+            subtitle: "Log seizures and triggers to discover patterns.",
+            tint: .systemOrange.withAlphaComponent(0.45)
+        )
+        emptyStateView.translatesAutoresizingMaskIntoConstraints = false
+        contentContainer.addSubview(emptyStateView)
+        NSLayoutConstraint.activate([
+            emptyStateView.topAnchor.constraint(equalTo: contentContainer.topAnchor),
+            emptyStateView.leadingAnchor.constraint(equalTo: contentContainer.leadingAnchor),
+            emptyStateView.trailingAnchor.constraint(equalTo: contentContainer.trailingAnchor),
+            emptyStateView.bottomAnchor.constraint(equalTo: contentContainer.bottomAnchor)
+        ])
 
-        // 1️⃣ Fetch data from model
+        // ── chartContainerView ────────────────────────────────────────────
+        let chartContainerView = UIView()
+        chartContainerView.backgroundColor = .clear
+        chartContainerView.translatesAutoresizingMaskIntoConstraints = false
+        contentContainer.addSubview(chartContainerView)
+        NSLayoutConstraint.activate([
+            chartContainerView.topAnchor.constraint(equalTo: contentContainer.topAnchor),
+            chartContainerView.leadingAnchor.constraint(equalTo: contentContainer.leadingAnchor),
+            chartContainerView.trailingAnchor.constraint(equalTo: contentContainer.trailingAnchor),
+            chartContainerView.bottomAnchor.constraint(equalTo: contentContainer.bottomAnchor)
+        ])
+
+        // ── Trigger Condition ─────────────────────────────────────────────
         let triggerData = dashboardModel.getTriggerCorrelation()
+        let hasRecords = !SeizureRecordDataModel.shared.getRecordsForCurrentUser().isEmpty
+        let hasData = hasRecords && !triggerData.isEmpty
 
-        // Safety check
-        guard !triggerData.isEmpty else { return }
+        chartContainerView.isHidden = !hasData
+        emptyStateView.isHidden = hasData
 
-        // 2️⃣ Create SwiftUI chart
+        guard hasData else {
+            contentContainer.bringSubviewToFront(emptyStateView)
+            return
+        }
+
+        // ── Embed chart into chartContainerView ───────────────────────────
         let chartView = TriggerCorrelationChart(data: triggerData)
-
-        // 3️⃣ Embed using UIHostingController
         let hostingVC = UIHostingController(rootView: chartView)
 
         addChild(hostingVC)
         hostingVC.view.translatesAutoresizingMaskIntoConstraints = false
-        triggerCorrelationChart.addSubview(hostingVC.view)
-
+        chartContainerView.addSubview(hostingVC.view)
         NSLayoutConstraint.activate([
-            hostingVC.view.leadingAnchor.constraint(equalTo: triggerCorrelationChart.leadingAnchor),
-            hostingVC.view.trailingAnchor.constraint(equalTo: triggerCorrelationChart.trailingAnchor),
-            hostingVC.view.topAnchor.constraint(equalTo: triggerCorrelationChart.topAnchor),
-            hostingVC.view.bottomAnchor.constraint(equalTo: triggerCorrelationChart.bottomAnchor)
+            hostingVC.view.topAnchor.constraint(equalTo: chartContainerView.topAnchor),
+            hostingVC.view.leadingAnchor.constraint(equalTo: chartContainerView.leadingAnchor),
+            hostingVC.view.trailingAnchor.constraint(equalTo: chartContainerView.trailingAnchor),
+            hostingVC.view.bottomAnchor.constraint(equalTo: chartContainerView.bottomAnchor)
         ])
-
         hostingVC.didMove(toParent: self)
     }
 
+
     func addTimePatternChart() {
+        // ── Setup Graph Structure (Persistent Header + Content) ─────────────
+        let contentContainer = setupGraphStructure(
+            in: timePatternChart,
+            title: "Time of Day Pattern"
+        )
 
+        // ── emptyStateView ────────────────────────────────────────────────
+        let emptyStateView = makeChartEmptyState(
+            symbol: "clock.arrow.circlepath",
+            title: "No Time Pattern Yet",
+            subtitle: "Log seizure records to see when they occur most often."
+        )
+        emptyStateView.translatesAutoresizingMaskIntoConstraints = false
+        contentContainer.addSubview(emptyStateView)
+        NSLayoutConstraint.activate([
+            emptyStateView.topAnchor.constraint(equalTo: contentContainer.topAnchor),
+            emptyStateView.leadingAnchor.constraint(equalTo: contentContainer.leadingAnchor),
+            emptyStateView.trailingAnchor.constraint(equalTo: contentContainer.trailingAnchor),
+            emptyStateView.bottomAnchor.constraint(equalTo: contentContainer.bottomAnchor)
+        ])
+
+        // ── chartContainerView ────────────────────────────────────────────
+        let chartContainerView = UIView()
+        chartContainerView.backgroundColor = .clear
+        chartContainerView.translatesAutoresizingMaskIntoConstraints = false
+        contentContainer.addSubview(chartContainerView)
+        NSLayoutConstraint.activate([
+            chartContainerView.topAnchor.constraint(equalTo: contentContainer.topAnchor),
+            chartContainerView.leadingAnchor.constraint(equalTo: contentContainer.leadingAnchor),
+            chartContainerView.trailingAnchor.constraint(equalTo: contentContainer.trailingAnchor),
+            chartContainerView.bottomAnchor.constraint(equalTo: contentContainer.bottomAnchor)
+        ])
+
+        // ── Guard: show empty state when no records ───────────────────────
+        let hasRecords = !SeizureRecordDataModel.shared.getRecordsForCurrentUser().isEmpty
+        chartContainerView.isHidden = !hasRecords
+        emptyStateView.isHidden = hasRecords
+
+        guard hasRecords else {
+            contentContainer.bringSubviewToFront(emptyStateView)
+            return
+        }
+
+        // ── Embed chart into chartContainerView ───────────────────────────
         let data = dashboardModel.getTimeOfDayPattern(months: 3)
-
         let chart = TimePatternChart(data: data)
         let hostingVC = UIHostingController(rootView: chart)
 
         addChild(hostingVC)
         hostingVC.view.translatesAutoresizingMaskIntoConstraints = false
-        timePatternChart.addSubview(hostingVC.view)
-
+        chartContainerView.addSubview(hostingVC.view)
         NSLayoutConstraint.activate([
-            hostingVC.view.leadingAnchor.constraint(equalTo: timePatternChart.leadingAnchor),
-            hostingVC.view.trailingAnchor.constraint(equalTo: timePatternChart.trailingAnchor),
-            hostingVC.view.topAnchor.constraint(equalTo: timePatternChart.topAnchor),
-            hostingVC.view.bottomAnchor.constraint(equalTo: timePatternChart.bottomAnchor)
+            hostingVC.view.topAnchor.constraint(equalTo: chartContainerView.topAnchor),
+            hostingVC.view.leadingAnchor.constraint(equalTo: chartContainerView.leadingAnchor),
+            hostingVC.view.trailingAnchor.constraint(equalTo: chartContainerView.trailingAnchor),
+            hostingVC.view.bottomAnchor.constraint(equalTo: chartContainerView.bottomAnchor)
         ])
-
         hostingVC.didMove(toParent: self)
     }
 
+
     func addSleepVsSeizureChart() {
+        // ── Setup Graph Structure (Persistent Header + Content) ─────────────
+        let contentContainer = setupGraphStructure(
+            in: sleepVsSeizureChart,
+            title: "Sleep vs Seizures"
+        )
 
+        // ── emptyStateView ────────────────────────────────────────────────
+        let emptyStateView = makeChartEmptyState(
+            symbol: "chart.line.uptrend.xyaxis",
+            title: "No Insights Available",
+            subtitle: "Log seizures and sleep to unlock comparisons."
+        )
+        emptyStateView.translatesAutoresizingMaskIntoConstraints = false
+        contentContainer.addSubview(emptyStateView)
+        NSLayoutConstraint.activate([
+            emptyStateView.topAnchor.constraint(equalTo: contentContainer.topAnchor),
+            emptyStateView.leadingAnchor.constraint(equalTo: contentContainer.leadingAnchor),
+            emptyStateView.trailingAnchor.constraint(equalTo: contentContainer.trailingAnchor),
+            emptyStateView.bottomAnchor.constraint(equalTo: contentContainer.bottomAnchor)
+        ])
+
+        // ── chartContainerView ────────────────────────────────────────────
+        let chartContainerView = UIView()
+        chartContainerView.backgroundColor = .clear
+        chartContainerView.translatesAutoresizingMaskIntoConstraints = false
+        contentContainer.addSubview(chartContainerView)
+        NSLayoutConstraint.activate([
+            chartContainerView.topAnchor.constraint(equalTo: contentContainer.topAnchor),
+            chartContainerView.leadingAnchor.constraint(equalTo: contentContainer.leadingAnchor),
+            chartContainerView.trailingAnchor.constraint(equalTo: contentContainer.trailingAnchor),
+            chartContainerView.bottomAnchor.constraint(equalTo: contentContainer.bottomAnchor)
+        ])
+
+        // ── Guard: show empty state when no records ───────────────────────
+        let hasRecords = !SeizureRecordDataModel.shared.getRecordsForCurrentUser().isEmpty
+        chartContainerView.isHidden = !hasRecords
+        emptyStateView.isHidden = hasRecords
+
+        guard hasRecords else {
+            contentContainer.bringSubviewToFront(emptyStateView)
+            return
+        }
+
+        // ── Embed chart into chartContainerView ───────────────────────────
         let data = dashboardModel.getSleepVsSeizure()
-
         let chart = SleepVsSeizureChart(data: data)
         let hostingVC = UIHostingController(rootView: chart)
 
         addChild(hostingVC)
         hostingVC.view.translatesAutoresizingMaskIntoConstraints = false
-        sleepVsSeizureChart.addSubview(hostingVC.view)
+        chartContainerView.addSubview(hostingVC.view)
+        NSLayoutConstraint.activate([
+            hostingVC.view.topAnchor.constraint(equalTo: chartContainerView.topAnchor),
+            hostingVC.view.leadingAnchor.constraint(equalTo: chartContainerView.leadingAnchor),
+            hostingVC.view.trailingAnchor.constraint(equalTo: chartContainerView.trailingAnchor),
+            hostingVC.view.bottomAnchor.constraint(equalTo: chartContainerView.bottomAnchor)
+        ])
+        hostingVC.didMove(toParent: self)
+    }
+
+    // MARK: - Chart Empty State Helper
+
+    /// Returns a self-centering empty state view. The stack is centered
+    /// inside the container using centerX/centerY — no clipping, no frames.
+    private func makeChartEmptyState(symbol: String, title: String, subtitle: String,
+                                      tint: UIColor = .systemBlue.withAlphaComponent(0.4)) -> UIView {
+        let container = UIView()
+        container.backgroundColor = .clear
+
+        let iconConfig = UIImage.SymbolConfiguration(pointSize: 28, weight: .light) // Reduced to 28pt as requested
+        let iconView = UIImageView(image: UIImage(systemName: symbol, withConfiguration: iconConfig))
+        iconView.tintColor = tint
+        iconView.contentMode = .scaleAspectFit
+        iconView.setContentHuggingPriority(.required, for: .vertical)
+        iconView.heightAnchor.constraint(equalToConstant: 32).isActive = true
+
+        let titleLabel = UILabel()
+        titleLabel.text = title
+        titleLabel.font = .systemFont(ofSize: 17, weight: .semibold)
+        titleLabel.textColor = .label
+        titleLabel.textAlignment = .center
+        titleLabel.numberOfLines = 1
+
+        let subtitleLabel = UILabel()
+        subtitleLabel.text = subtitle
+        subtitleLabel.font = .systemFont(ofSize: 14, weight: .regular)
+        subtitleLabel.textColor = .secondaryLabel
+        subtitleLabel.textAlignment = .center
+        subtitleLabel.numberOfLines = 0
+
+        let stack = UIStackView(arrangedSubviews: [iconView, titleLabel, subtitleLabel])
+        stack.axis = .vertical
+        stack.alignment = .center
+        stack.spacing = 12 // Adjusted spacing
+        stack.setCustomSpacing(16, after: iconView)
+        stack.translatesAutoresizingMaskIntoConstraints = false
+
+        container.addSubview(stack)
+        NSLayoutConstraint.activate([
+            // Center the stack inside the container
+            stack.centerXAnchor.constraint(equalTo: container.centerXAnchor),
+            stack.centerYAnchor.constraint(equalTo: container.centerYAnchor),
+            // Prevent overflow on narrow screens
+            stack.leadingAnchor.constraint(greaterThanOrEqualTo: container.leadingAnchor, constant: 20),
+            stack.trailingAnchor.constraint(lessThanOrEqualTo: container.trailingAnchor, constant: -20),
+            // Keep stack within vertical bounds
+            stack.topAnchor.constraint(greaterThanOrEqualTo: container.topAnchor, constant: 0),
+            stack.bottomAnchor.constraint(lessThanOrEqualTo: container.bottomAnchor, constant: 0)
+        ])
+        return container
+    }
+
+    /// Helper to create the standard Graph Card structure:
+    /// - Header (Title + Optional Subtitle) pinned to top
+    /// - Content Container (fills remaining space)
+    /// Returns the content container where charts/empty states should be added.
+    private func setupGraphStructure(in parentView: UIView, title: String, subtitle: String? = nil) -> UIView {
+        parentView.subviews.forEach { $0.removeFromSuperview() }
+        parentView.clipsToBounds = true
+
+        // 1. Header (Title)
+        let titleLabel = UILabel()
+        titleLabel.text = title
+        titleLabel.font = .systemFont(ofSize: 17, weight: .semibold)
+        titleLabel.textColor = .darkGray
+        titleLabel.textAlignment = .left
+        titleLabel.numberOfLines = 1
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        parentView.addSubview(titleLabel)
 
         NSLayoutConstraint.activate([
-            hostingVC.view.leadingAnchor.constraint(equalTo: sleepVsSeizureChart.leadingAnchor),
-            hostingVC.view.trailingAnchor.constraint(equalTo: sleepVsSeizureChart.trailingAnchor),
-            hostingVC.view.topAnchor.constraint(equalTo: sleepVsSeizureChart.topAnchor),
-            hostingVC.view.bottomAnchor.constraint(equalTo: sleepVsSeizureChart.bottomAnchor)
+            titleLabel.topAnchor.constraint(equalTo: parentView.topAnchor, constant: 20),
+            titleLabel.leadingAnchor.constraint(equalTo: parentView.leadingAnchor, constant: 20),
+            titleLabel.trailingAnchor.constraint(equalTo: parentView.trailingAnchor, constant: -20)
         ])
 
-        hostingVC.didMove(toParent: self)
+        var topAnchorForContent = titleLabel.bottomAnchor
+        let topPaddingForContent: CGFloat = 20
+
+        // 2. Subtitle (Optional)
+        if let sub = subtitle {
+            let subLabel = UILabel()
+            subLabel.text = sub
+            subLabel.font = .preferredFont(forTextStyle: .caption2)
+            subLabel.textColor = .tertiaryLabel
+            subLabel.numberOfLines = 0
+            subLabel.textAlignment = .left
+            subLabel.translatesAutoresizingMaskIntoConstraints = false
+            parentView.addSubview(subLabel)
+
+            NSLayoutConstraint.activate([
+                subLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 6),
+                subLabel.leadingAnchor.constraint(equalTo: parentView.leadingAnchor, constant: 20),
+                subLabel.trailingAnchor.constraint(equalTo: parentView.trailingAnchor, constant: -20)
+            ])
+            topAnchorForContent = subLabel.bottomAnchor
+        }
+
+        // 3. Content Container
+        let contentContainer = UIView()
+        contentContainer.backgroundColor = .clear
+        contentContainer.translatesAutoresizingMaskIntoConstraints = false
+        parentView.addSubview(contentContainer)
+        
+        NSLayoutConstraint.activate([
+            contentContainer.topAnchor.constraint(equalTo: topAnchorForContent, constant: topPaddingForContent),
+            contentContainer.leadingAnchor.constraint(equalTo: parentView.leadingAnchor),
+            contentContainer.trailingAnchor.constraint(equalTo: parentView.trailingAnchor),
+            contentContainer.bottomAnchor.constraint(equalTo: parentView.bottomAnchor, constant: -20) // Bottom padding
+        ])
+        
+        return contentContainer
     }
 
 
     func setupSeizureChartFooter() {
+        let hasRecords = !SeizureRecordDataModel.shared.getRecordsForCurrentUser().isEmpty
+
+        // Hide footer entirely when there are no records
+        seizureChartBottomIcon.isHidden = !hasRecords
+        seizureChartBottomMetricsLabel.isHidden = !hasRecords
+        guard hasRecords else { return }
 
         let currentAvg = dashboardModel.getCurrentPeriodAverage(period: currentPeriod)
         let previousAvg = dashboardModel.getPreviousPeriodAverage(period: currentPeriod)
@@ -342,7 +580,7 @@ class DashboardTableViewController: UITableViewController {
 
     func setupSeizureChartTitle() {
         seizureChartLabel.text = "Seizure Frequency"
-        seizureChartLabel.font = UIFont.systemFont(ofSize: 20, weight: .semibold)
+        seizureChartLabel.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
         seizureChartLabel.textColor = UIColor.darkGray
         seizureChartLabel.numberOfLines = 1
     }
@@ -416,28 +654,81 @@ class DashboardTableViewController: UITableViewController {
 
 
     func addSeizureFrequencyChart(period: DashboardPeriod) {
+        // ── Clear all previous content ────────────────────────────────────
+        seizureFrequencyChartContainer.subviews.forEach { $0.removeFromSuperview() }
+        seizureFrequencyChartContainer.clipsToBounds = true
 
+        // ── contentContainer fills the storyboard chart container ─────────
+        let contentContainer = UIView()
+        contentContainer.backgroundColor = .clear
+        contentContainer.translatesAutoresizingMaskIntoConstraints = false
+        seizureFrequencyChartContainer.addSubview(contentContainer)
+        NSLayoutConstraint.activate([
+            contentContainer.topAnchor.constraint(equalTo: seizureFrequencyChartContainer.topAnchor),
+            contentContainer.leadingAnchor.constraint(equalTo: seizureFrequencyChartContainer.leadingAnchor),
+            contentContainer.trailingAnchor.constraint(equalTo: seizureFrequencyChartContainer.trailingAnchor),
+            contentContainer.bottomAnchor.constraint(equalTo: seizureFrequencyChartContainer.bottomAnchor)
+        ])
+
+        // ── emptyStateView ────────────────────────────────────────────────
+        let emptyStateView = makeChartEmptyState(
+            symbol: "chart.bar.fill",
+            title: "No Data Yet",
+            subtitle: "Start logging seizures to see frequency trends."
+        )
+        emptyStateView.translatesAutoresizingMaskIntoConstraints = false
+        contentContainer.addSubview(emptyStateView)
+        NSLayoutConstraint.activate([
+            emptyStateView.topAnchor.constraint(equalTo: contentContainer.topAnchor),
+            emptyStateView.leadingAnchor.constraint(equalTo: contentContainer.leadingAnchor),
+            emptyStateView.trailingAnchor.constraint(equalTo: contentContainer.trailingAnchor),
+            emptyStateView.bottomAnchor.constraint(equalTo: contentContainer.bottomAnchor)
+        ])
+
+        // ── chartContainerView ────────────────────────────────────────────
+        let chartContainerView = UIView()
+        chartContainerView.backgroundColor = .clear
+        chartContainerView.translatesAutoresizingMaskIntoConstraints = false
+        contentContainer.addSubview(chartContainerView)
+        NSLayoutConstraint.activate([
+            chartContainerView.topAnchor.constraint(equalTo: contentContainer.topAnchor),
+            chartContainerView.leadingAnchor.constraint(equalTo: contentContainer.leadingAnchor),
+            chartContainerView.trailingAnchor.constraint(equalTo: contentContainer.trailingAnchor),
+            chartContainerView.bottomAnchor.constraint(equalTo: contentContainer.bottomAnchor)
+        ])
+
+        // ── Guard: show empty state when no records ───────────────────────
+        let hasRecords = !SeizureRecordDataModel.shared.getRecordsForCurrentUser().isEmpty
+        chartContainerView.isHidden = !hasRecords
+        emptyStateView.isHidden = hasRecords
+
+        // Hide/show comparison footer alongside chart
+        seizureChartBottomIcon.isHidden = !hasRecords
+        seizureChartBottomMetricsLabel.isHidden = !hasRecords
+
+        guard hasRecords else {
+            contentContainer.bringSubviewToFront(emptyStateView)
+            UIView.transition(with: seizureFrequencyChartContainer, duration: 0.3,
+                              options: .transitionCrossDissolve, animations: nil)
+            return
+        }
+
+        // ── Embed chart into chartContainerView ───────────────────────────
         let data = dashboardModel.getSeizureFrequency(period: period)
         let sortedData = data.sorted { $0.date < $1.date }
 
-        let chartView = SeizureFrequencyChart(
-            data: sortedData,
-            period: period
-        )
-
+        let chartView = SeizureFrequencyChart(data: sortedData, period: period)
         let hostingVC = UIHostingController(rootView: chartView)
 
         addChild(hostingVC)
         hostingVC.view.translatesAutoresizingMaskIntoConstraints = false
-        seizureFrequencyChartContainer.addSubview(hostingVC.view)
-
+        chartContainerView.addSubview(hostingVC.view)
         NSLayoutConstraint.activate([
-            hostingVC.view.leadingAnchor.constraint(equalTo: seizureFrequencyChartContainer.leadingAnchor),
-            hostingVC.view.trailingAnchor.constraint(equalTo: seizureFrequencyChartContainer.trailingAnchor),
-            hostingVC.view.topAnchor.constraint(equalTo: seizureFrequencyChartContainer.topAnchor),
-            hostingVC.view.bottomAnchor.constraint(equalTo: seizureFrequencyChartContainer.bottomAnchor)
+            hostingVC.view.topAnchor.constraint(equalTo: chartContainerView.topAnchor),
+            hostingVC.view.leadingAnchor.constraint(equalTo: chartContainerView.leadingAnchor),
+            hostingVC.view.trailingAnchor.constraint(equalTo: chartContainerView.trailingAnchor),
+            hostingVC.view.bottomAnchor.constraint(equalTo: chartContainerView.bottomAnchor)
         ])
-
         hostingVC.didMove(toParent: self)
     }
 
@@ -699,11 +990,10 @@ class DashboardTableViewController: UITableViewController {
         previewCard0.isHidden = true
         previewCard1.isHidden = true
 
-        // Switch header button to "+"
+        // Hide header button (the upper + button) completely in empty state
+        // as we already have a large CTA button in the empty state view.
+        recordsActionButton.isHidden = true
         recordsActionButton.removeTarget(nil, action: nil, for: .allEvents)
-        recordsActionButton.setTitle(nil, for: .normal)
-        recordsActionButton.setImage(UIImage(systemName: "plus"), for: .normal)
-        recordsActionButton.addTarget(self, action: #selector(addRecordTapped), for: .touchUpInside)
 
         let show = { self.emptyStateView.isHidden = false }
         if animated {
@@ -714,7 +1004,8 @@ class DashboardTableViewController: UITableViewController {
 
 
     private func hideEmptyState(animated: Bool = true) {
-        // Switch header button to "View all"
+        // Show "View all" button when records exist
+        recordsActionButton.isHidden = false
         recordsActionButton.removeTarget(nil, action: nil, for: .allEvents)
         recordsActionButton.setImage(nil, for: .normal)
         recordsActionButton.setTitle("View all", for: .normal)

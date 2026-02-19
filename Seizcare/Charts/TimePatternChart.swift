@@ -24,15 +24,7 @@ struct TimePatternChart: View {
             // ======================
             // Header
             // ======================
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Time of Day Pattern")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
 
-                Text("Last 3 months")
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
-            }
 
             // ======================
             // Donut Chart
