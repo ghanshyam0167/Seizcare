@@ -156,16 +156,12 @@ class DashboardTableViewController: UITableViewController {
     
     func setupInsightsCards() {
 
-        let hasRecords = !SeizureRecordDataModel.shared.getLatestTwoRecordsForCurrentUser().isEmpty
-
         // ── Typography helpers ─────────────────────────────────────────────
         let titleFont    = UIFont.systemFont(ofSize: 15, weight: .bold)
         let valueFont    = UIFont.systemFont(ofSize: 21, weight: .regular)
         let subtitleFont = UIFont.systemFont(ofSize: 13, weight: .regular)
 
-
         // Apply consistent typography to all title/value/subtitle labels
-        // (pipeLabels are the card titles in storyboard)
         for label in [sleepDurationLabel, avgMonthlySeizuresLabel,
                       avgDurationLabel, mostCommonTimeLabel] {
             label?.font = valueFont
@@ -180,55 +176,65 @@ class DashboardTableViewController: UITableViewController {
             label?.textColor = .secondaryLabel
         }
 
-        // ── New user: show friendly placeholder state ──────────────────────
-        if !hasRecords {
-            sleepDurationLabel.text        = "—"
-            sleepDurationStatusLabel.text  = "Start tracking to unlock insights"
-            sleepDurationStatusLabel.textColor = .secondaryLabel
-
-            avgMonthlySeizuresLabel.text   = "—"
-            avgSeizureStatusLabel.text     = "Add your first record"
-            avgSeizureStatusLabel.textColor = .secondaryLabel
-
-            avgDurationLabel.text          = "—"
-            avgDurationStatusLabel.text    = "No records yet"
-            avgDurationStatusLabel.textColor = .secondaryLabel
-
-            mostCommonTimeLabel.text       = "—"
-            mostCommonTimeStatusLabel.text = "Track seizures to find patterns"
-            mostCommonTimeStatusLabel.textColor = .secondaryLabel
-            return
-        }
-
-        // ── Existing user: show real data ──────────────────────────────────
+        // ── Fetch Data (includes onboarding fallback) ──────────────────────
         let current  = dashboardModel.getDashboardSummary()
         let previous = dashboardModel.getDashboardSummary(forPreviousMonth: true)
+        let hasRealRecords = !SeizureRecordDataModel.shared.getRecordsForCurrentUser().isEmpty
 
-        // Sleep Quality
+        // ── Sleep Quality ──────────────────────────────────────────────────
         sleepDurationLabel.text = "\(current.avgSleepHours.formatted(1)) hrs"
-        let sleepTrend = trend(current: current.avgSleepHours, previous: previous.avgSleepHours)
-        sleepDurationStatusLabel.text      = "\(sleepTrend.icon) vs last month"
-        sleepDurationStatusLabel.textColor = sleepTrend.color
-
-        // Avg Seizures
-        avgMonthlySeizuresLabel.text = "\(Int(current.avgMonthlySeizures)) / month"
-        let seizureTrend = trend(current: current.avgMonthlySeizures, previous: previous.avgMonthlySeizures)
-        avgSeizureStatusLabel.text      = "\(seizureTrend.icon) Seizures \(seizureTrend.text)"
-        avgSeizureStatusLabel.textColor = seizureTrend.color
-
-        // Avg Duration
-        avgDurationLabel.text = formatDuration(current.avgDuration)
-        let durationTrend = trend(current: current.avgDuration, previous: previous.avgDuration)
-        avgDurationStatusLabel.text      = "\(durationTrend.icon) Duration \(durationTrend.text)"
-        avgDurationStatusLabel.textColor = durationTrend.color
-
-        // Most Common Time
-        mostCommonTimeLabel.text = current.mostCommonTime.displayText
-        if current.mostCommonTime != previous.mostCommonTime {
-            mostCommonTimeStatusLabel.text      = "Peak time shifted to \(current.mostCommonTime.displayText)"
-            mostCommonTimeStatusLabel.textColor = .systemBlue
+        if hasRealRecords {
+            let sleepTrend = trend(current: current.avgSleepHours, previous: previous.avgSleepHours)
+            sleepDurationStatusLabel.text      = "\(sleepTrend.icon) vs last month"
+            sleepDurationStatusLabel.textColor = sleepTrend.color
         } else {
-            mostCommonTimeStatusLabel.text      = "Peak time unchanged"
+            sleepDurationStatusLabel.text      = "Based on initial setup"
+            sleepDurationStatusLabel.textColor = .secondaryLabel
+        }
+
+        // ── Avg Seizures ───────────────────────────────────────────────────
+        if current.avgMonthlySeizures > 0 {
+            if current.avgMonthlySeizures < 1.0 {
+                avgMonthlySeizuresLabel.text = "< 1 / month"
+            } else {
+                avgMonthlySeizuresLabel.text = "\(Int(current.avgMonthlySeizures)) / month"
+            }
+        } else {
+            avgMonthlySeizuresLabel.text = "None"
+        }
+        
+        if hasRealRecords {
+            let seizureTrend = trend(current: current.avgMonthlySeizures, previous: previous.avgMonthlySeizures)
+            avgSeizureStatusLabel.text      = "\(seizureTrend.icon) Seizures \(seizureTrend.text)"
+            avgSeizureStatusLabel.textColor = seizureTrend.color
+        } else {
+            avgSeizureStatusLabel.text      = "Based on profile"
+            avgSeizureStatusLabel.textColor = .secondaryLabel
+        }
+
+        // ── Avg Duration ───────────────────────────────────────────────────
+        avgDurationLabel.text = current.avgDuration > 0 ? formatDuration(current.avgDuration) : "None"
+        if hasRealRecords {
+            let durationTrend = trend(current: current.avgDuration, previous: previous.avgDuration)
+            avgDurationStatusLabel.text      = "\(durationTrend.icon) Duration \(durationTrend.text)"
+            avgDurationStatusLabel.textColor = durationTrend.color
+        } else {
+            avgDurationStatusLabel.text      = "Estimated duration"
+            avgDurationStatusLabel.textColor = .secondaryLabel
+        }
+
+        // ── Most Common Time ───────────────────────────────────────────────
+        mostCommonTimeLabel.text = current.mostCommonTime.displayText
+        if hasRealRecords {
+            if current.mostCommonTime != previous.mostCommonTime {
+                mostCommonTimeStatusLabel.text      = "Peak time shifted to \(current.mostCommonTime.displayText)"
+                mostCommonTimeStatusLabel.textColor = .systemBlue
+            } else {
+                mostCommonTimeStatusLabel.text      = "Peak time unchanged"
+                mostCommonTimeStatusLabel.textColor = .secondaryLabel
+            }
+        } else {
+            mostCommonTimeStatusLabel.text      = "Common occurrence"
             mostCommonTimeStatusLabel.textColor = .secondaryLabel
         }
     }

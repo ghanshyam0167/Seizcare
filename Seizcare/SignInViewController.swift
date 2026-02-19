@@ -30,7 +30,22 @@ class SignInViewController: UIViewController,UITextFieldDelegate {
 
         if loginSuccess {
             debugLog("Login SUCCESS → UserDataModel accepted credentials.")
-            performSegue(withIdentifier: "goToNextScreen", sender: self)
+            // Go directly to Dashboard for existing users (skip onboarding)
+            let dashboardStoryboard = UIStoryboard(name: "Dashboard", bundle: nil)
+            if let dashboardVC = dashboardStoryboard.instantiateInitialViewController() {
+                let navController = UINavigationController(rootViewController: dashboardVC)
+                if let scene = view.window?.windowScene,
+                   let sceneDelegate = scene.delegate as? UIWindowSceneDelegate,
+                   let window = sceneDelegate.window ?? view.window {
+                    let transition = CATransition()
+                    transition.duration = 0.3
+                    transition.type = .push
+                    transition.subtype = .fromRight
+                    transition.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+                    window.layer.add(transition, forKey: kCATransition)
+                    window.rootViewController = navController
+                }
+            }
         } else {
             debugLog("Login FAILED → No matching user in stored users.")
             showAlert(message: "Invalid email or password.")

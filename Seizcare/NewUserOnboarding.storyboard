@@ -1,30 +1,193 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="17150" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="24506" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="NavC-01-id1">
+    <device id="retina6_12" orientation="portrait" appearance="light"/>
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="17122"/>
-        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="24504"/>
         <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
-        <!--View Controller-->
-        <scene sceneID="s0d-6b-0kx">
+        <!--Navigation Controller-->
+        <scene sceneID="NavS-01-id1">
             <objects>
-                <viewController id="Y6W-OH-hqX" sceneMemberID="viewController">
-                    <view key="view" contentMode="scaleToFill" id="5EZ-qb-Rvc">
-                        <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="NavC-01-id1" sceneMemberID="viewController">
+                    <toolbarItems/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="NavB-01-id1">
+                        <rect key="frame" x="0.0" y="118" width="393" height="54"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </navigationBar>
+                    <nil name="viewControllers"/>
+                    <connections>
+                        <segue destination="Mq6-KB-hVg" kind="relationship" relationship="rootViewController" id="NavR-01-id1"/>
+                    </connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="NavF-01-id1" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-595" y="-38"/>
+        </scene>
+        <!--Add Emergency Contacts-->
+        <scene sceneID="pQj-Jt-tUh">
+            <objects>
+                <tableViewController id="Mq6-KB-hVg" customClass="NUAddEmergencyContactsTableViewController" customModule="Seizcare" customModuleProvider="target" sceneMemberID="viewController">
+                    <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" id="Toz-lX-lQB">
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <viewLayoutGuide key="safeArea" id="vDu-zF-Fre"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <prototypes>
+                            <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="ContactCell" id="Cvv-GL-caQ" customClass="EmergencyContactsTableViewCell" customModule="Seizcare" customModuleProvider="target">
+                                <rect key="frame" x="0.0" y="50" width="393" height="51"/>
+                                <autoresizingMask key="autoresizingMask"/>
+                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="Cvv-GL-caQ" id="lTO-l1-T2Z">
+                                    <rect key="frame" x="0.0" y="0.0" width="393" height="51"/>
+                                    <autoresizingMask key="autoresizingMask"/>
+                                    <subviews>
+                                        <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="top" spacing="2" translatesAutoresizingMaskIntoConstraints="NO" id="dzx-fn-nJJ">
+                                            <rect key="frame" x="78" y="6" width="41.333333333333343" height="39.333333333333336"/>
+                                            <subviews>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" ambiguous="YES" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="tgj-Bm-ISM">
+                                                    <rect key="frame" x="0.0" y="0.0" width="41.333333333333336" height="20.333333333333332"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                    <nil key="textColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" ambiguous="YES" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="JfH-rm-ZXL">
+                                                    <rect key="frame" x="0.0" y="22.333333333333332" width="35.333333333333336" height="16.999999999999996"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                                    <color key="textColor" white="0.33333333329999998" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                            </subviews>
+                                        </stackView>
+                                        <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="zcp-Ib-iiP" userLabel="avatarView">
+                                            <rect key="frame" x="16" y="0.66666666666666785" width="50" height="50"/>
+                                            <subviews>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ZH1-9i-b43">
+                                                    <rect key="frame" x="4.3333333333333321" y="14.66666666666667" width="41.333333333333343" height="20.333333333333329"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                    <nil key="textColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                            </subviews>
+                                            <color key="backgroundColor" red="0.80901946170000005" green="0.89263719320000001" blue="0.85852945800000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                            <constraints>
+                                                <constraint firstItem="ZH1-9i-b43" firstAttribute="centerX" secondItem="zcp-Ib-iiP" secondAttribute="centerX" id="5Wr-WC-sHn"/>
+                                                <constraint firstAttribute="width" constant="50" id="Psf-Kr-Mkl"/>
+                                                <constraint firstItem="ZH1-9i-b43" firstAttribute="centerY" secondItem="zcp-Ib-iiP" secondAttribute="centerY" id="gUd-97-kL1"/>
+                                                <constraint firstAttribute="height" constant="50" id="xJg-dh-7NB"/>
+                                            </constraints>
+                                        </view>
+                                    </subviews>
+                                    <constraints>
+                                        <constraint firstItem="zcp-Ib-iiP" firstAttribute="leading" secondItem="lTO-l1-T2Z" secondAttribute="leading" constant="16" id="0YG-qY-kRU"/>
+                                        <constraint firstItem="zcp-Ib-iiP" firstAttribute="centerY" secondItem="lTO-l1-T2Z" secondAttribute="centerY" id="Kp6-AM-rKI"/>
+                                        <constraint firstItem="dzx-fn-nJJ" firstAttribute="centerY" secondItem="lTO-l1-T2Z" secondAttribute="centerY" id="tBm-dl-wMm"/>
+                                        <constraint firstItem="dzx-fn-nJJ" firstAttribute="leading" secondItem="zcp-Ib-iiP" secondAttribute="trailing" constant="12" id="uID-0W-cNF"/>
+                                    </constraints>
+                                </tableViewCellContentView>
+                                <connections>
+                                    <outlet property="avatarView" destination="zcp-Ib-iiP" id="0P4-HZ-xez"/>
+                                    <outlet property="initialsLabel" destination="ZH1-9i-b43" id="6hv-z0-At2"/>
+                                    <outlet property="nameLabel" destination="tgj-Bm-ISM" id="14e-kS-mf8"/>
+                                    <outlet property="phoneLabel" destination="JfH-rm-ZXL" id="odj-ag-yb5"/>
+                                </connections>
+                            </tableViewCell>
+                        </prototypes>
+                        <connections>
+                            <outlet property="dataSource" destination="Mq6-KB-hVg" id="PaN-hH-Koy"/>
+                            <outlet property="delegate" destination="Mq6-KB-hVg" id="xU2-eI-eMQ"/>
+                        </connections>
+                    </tableView>
+                    <toolbarItems/>
+                    <navigationItem key="navigationItem" title="Add Emergency Contacts" id="NI1-01-id1">
+                        <barButtonItem key="rightBarButtonItem" image="plus" catalog="system" id="BBI-01-id1">
+                            <connections>
+                                <action selector="addButtonTapped:" destination="Mq6-KB-hVg" id="ACT-01-id1"/>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
+                </tableViewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="GUt-eg-fg1" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="157" y="-38"/>
+        </scene>
+        <!--Adjust Sensitivity-->
+        <scene sceneID="SEN-01-id1">
+            <objects>
+                <viewController id="SEN-VC-id1" customClass="NUAdjustSensitivityViewController" customModule="Seizcare" customModuleProvider="target" sceneMemberID="viewController" storyboardIdentifier="NUSensitivityVC">
+                    <view key="view" contentMode="scaleToFill" id="SEN-VW-id1">
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" systemColor="systemGroupedBackgroundColor"/>
                     </view>
                 </viewController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="Ief-a0-LHa" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="SEN-FR-id1" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
+            <point key="canvasLocation" x="900" y="-38"/>
+        </scene>
+        <!--Seizure Duration-->
+        <scene sceneID="DUR-01-id1">
+            <objects>
+                <viewController id="DUR-VC-id1" customClass="NUSeizureDurationViewController" customModule="Seizcare" customModuleProvider="target" sceneMemberID="viewController" storyboardIdentifier="NUSeizureDurationVC">
+                    <view key="view" contentMode="scaleToFill" id="DUR-VW-id1">
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" systemColor="systemGroupedBackgroundColor"/>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="DUR-FR-id1" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1600" y="-38"/>
+        </scene>
+        <!--Sleep Hours-->
+        <scene sceneID="SLP-01-id1">
+            <objects>
+                <viewController id="SLP-VC-id1" customClass="NUSleepHoursViewController" customModule="Seizcare" customModuleProvider="target" sceneMemberID="viewController" storyboardIdentifier="NUSleepHoursVC">
+                    <view key="view" contentMode="scaleToFill" id="SLP-VW-id1">
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" systemColor="systemGroupedBackgroundColor"/>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="SLP-FR-id1" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="2300" y="-38"/>
+        </scene>
+        <!--Seizure Timing-->
+        <scene sceneID="TIM-01-id1">
+            <objects>
+                <viewController id="TIM-VC-id1" customClass="NUSeizureTimeViewController" customModule="Seizcare" customModuleProvider="target" sceneMemberID="viewController" storyboardIdentifier="NUSeizureTimeVC">
+                    <view key="view" contentMode="scaleToFill" id="TIM-VW-id1">
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" systemColor="systemGroupedBackgroundColor"/>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="TIM-FR-id1" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="3000" y="-38"/>
+        </scene>
+        <!--Seizure Frequency-->
+        <scene sceneID="FRQ-01-id1">
+            <objects>
+                <viewController id="FRQ-VC-id1" customClass="NUSeizureFrequencyViewController" customModule="Seizcare" customModuleProvider="target" sceneMemberID="viewController" storyboardIdentifier="NUSeizureFrequencyVC">
+                    <view key="view" contentMode="scaleToFill" id="FRQ-VW-id1">
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" systemColor="systemGroupedBackgroundColor"/>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="FRQ-FR-id1" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="3700" y="-38"/>
         </scene>
     </scenes>
     <resources>
+        <image name="plus" catalog="system" width="128" height="113"/>
         <systemColor name="systemBackgroundColor">
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
+        <systemColor name="systemGroupedBackgroundColor">
+            <color red="0.94901960784313721" green="0.94901960784313721" blue="0.96862745098039216" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
     </resources>
 </document>
