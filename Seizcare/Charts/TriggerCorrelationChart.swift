@@ -22,26 +22,12 @@ struct TriggerCorrelationChart: View {
     // MARK: - Body
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            headerView
             chartView
         }
         .padding(20)
     }
 
     // MARK: - Subviews
-    
-    // 1. Extracted Header to reduce body complexity
-    private var headerView: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text("Trigger Correlation")
-                .font(.system(size: 20, weight: .semibold))
-                .foregroundStyle(.secondary)
-
-            Text("What factors most often precede seizures")
-                .font(.caption2)
-                .foregroundColor(.secondary.opacity(0.7))
-        }
-    }
 
     // 2. Extracted Chart logic
     private var chartView: some View {

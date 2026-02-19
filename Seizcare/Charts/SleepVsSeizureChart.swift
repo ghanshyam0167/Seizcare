@@ -16,18 +16,7 @@ struct SleepVsSeizureChart: View {
             // ======================
             // Header
             // ======================
-            HStack(spacing: 6) {
-                Image(systemName: "waveform.path.ecg")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
 
-                Text("Sleep vs Seizures")
-                    .font(.system(size: 20, weight: .semibold))
-                    .foregroundColor(Color(uiColor: .darkGray))
-                    .lineLimit(1)
-
-                Spacer()
-            }
 
 
             // ======================
@@ -154,23 +143,7 @@ struct SleepVsSeizureChart: View {
             // ======================
             // X-axis hint
             // ======================
-            HStack {
-                Spacer()
-
-                HStack(spacing: 4) {
-                    Text("Dates")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-
-                    Image(systemName: "arrow.right")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                }
-                Spacer()
-            }
-            .padding(.top, -15)
-            .padding(.trailing, 10)
-            .allowsHitTesting(false)
+            // Removed as per instruction to remove internal header views (titles/subtitles)
         }
         .padding(20)
     }
