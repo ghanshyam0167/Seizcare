@@ -87,11 +87,12 @@
                                                                             <nil key="textColor"/>
                                                                             <nil key="highlightedColor"/>
                                                                         </label>
-                                                                        <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="e.g.,  1min 30sec" textAlignment="right" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="Qq6-Mx-IZ6">
+                                                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="248" verticalHuggingPriority="251" text="0 min 0 sec" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Qq6-Mx-IZ6">
                                                                             <rect key="frame" x="78.333333333333343" y="0.0" width="266.66666666666663" height="22"/>
-                                                                            <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                                                            <textInputTraits key="textInputTraits"/>
-                                                                        </textField>
+                                                                            <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                                            <nil key="textColor"/>
+                                                                            <nil key="highlightedColor"/>
+                                                                        </label>
                                                                     </subviews>
                                                                 </stackView>
                                                             </subviews>
@@ -111,6 +112,35 @@
                                                 <constraint firstItem="fnr-dh-Sa5" firstAttribute="leading" secondItem="qmv-Rw-Vxy" secondAttribute="leading" constant="12" id="TJZ-wd-3dl"/>
                                                 <constraint firstAttribute="bottom" secondItem="fnr-dh-Sa5" secondAttribute="bottom" constant="8" id="sUK-5X-e26"/>
                                                 <constraint firstItem="fnr-dh-Sa5" firstAttribute="top" secondItem="qmv-Rw-Vxy" secondAttribute="top" constant="8" id="sYt-ij-HSg"/>
+                                            </constraints>
+                                        </tableViewCellContentView>
+                                    </tableViewCell>
+                                </cells>
+                            </tableViewSection>
+                            <tableViewSection headerTitle="TIME OF DAY" id="T0D-Se-ctN">
+                                <cells>
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="none" indentationWidth="10" rowHeight="54" id="T0D-Ce-ll1">
+                                        <rect key="frame" x="0.0" y="269" width="393" height="54"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="T0D-Ce-ll1" id="T0D-Co-nt1">
+                                            <rect key="frame" x="0.0" y="0.0" width="393" height="54"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="T0D-Seg-Ctl">
+                                                    <rect key="frame" x="12" y="8" width="369" height="39"/>
+                                                    <segments>
+                                                        <segment title="Morning"/>
+                                                        <segment title="Afternoon"/>
+                                                        <segment title="Evening"/>
+                                                        <segment title="Night"/>
+                                                    </segments>
+                                                </segmentedControl>
+                                            </subviews>
+                                            <constraints>
+                                                <constraint firstAttribute="trailing" secondItem="T0D-Seg-Ctl" secondAttribute="trailing" constant="12" id="T0D-C1-111"/>
+                                                <constraint firstAttribute="bottom" secondItem="T0D-Seg-Ctl" secondAttribute="bottom" constant="8" id="T0D-C2-222"/>
+                                                <constraint firstItem="T0D-Seg-Ctl" firstAttribute="leading" secondItem="T0D-Co-nt1" secondAttribute="leading" constant="12" id="T0D-C3-333"/>
+                                                <constraint firstItem="T0D-Seg-Ctl" firstAttribute="top" secondItem="T0D-Co-nt1" secondAttribute="top" constant="8" id="T0D-C4-444"/>
                                             </constraints>
                                         </tableViewCellContentView>
                                     </tableViewCell>
@@ -412,7 +442,7 @@
                         <outlet property="dateTextField" destination="l1N-H1-AJ1" id="h9a-C8-e8n"/>
                         <outlet property="dejavuSymptomButton" destination="ptL-c4-xNq" id="Z1u-TS-ihZ"/>
                         <outlet property="dizzinesSymptomButton" destination="aWq-mI-TnN" id="z1R-gT-Quc"/>
-                        <outlet property="durationTextField" destination="Qq6-Mx-IZ6" id="ow1-B3-CPX"/>
+                        <outlet property="durationLabel" destination="Qq6-Mx-IZ6" id="ow1-B3-CPX"/>
                         <outlet property="headacheSymptomButton" destination="5Gt-A4-Xkg" id="bIB-iZ-76O"/>
                         <outlet property="memoryLossSymptomButton" destination="xfg-oJ-HNP" id="xaL-Sl-pzS"/>
                         <outlet property="nauseaSymptomButton" destination="iB8-ZN-48Z" id="jTi-MZ-VWw"/>
@@ -428,6 +458,7 @@
                         <outlet property="topInputsCardView" destination="fnr-dh-Sa5" id="Vft-dS-yEB"/>
                         <outlet property="visualChangeSymptomButton" destination="zWH-2S-Wql" id="9V2-E1-fsr"/>
                         <outlet property="weaknessSymptomButton" destination="mPj-Xg-sIx" id="Eq4-xZ-bsk"/>
+                        <outlet property="timeOfDaySegment" destination="T0D-Seg-Ctl" id="T0D-Ou-tlt"/>
                     </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="S93-4k-EN9" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>

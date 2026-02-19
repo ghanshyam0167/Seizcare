@@ -368,8 +368,8 @@ class DetailRecordsTableViewController: UITableViewController {
                 heartRateValueLabel.text = "No duration"
             }
 
-            locationTitleLabel.text = "Entry Type"
-            locationValueLabel.text = "Manual"
+            locationTitleLabel.text = "Time of Day"
+            locationValueLabel.text = record.timeBucket.rawValue.capitalized
             
             if let desc = record.description, !desc.isEmpty {
                 descriptionTextView.text = desc
