@@ -6,18 +6,18 @@
 import Foundation
 import Charts
 
-//====================================================
-// MARK: - Seizure Type
-//====================================================
+
+//  Seizure Type
+
 enum SeizureType: String, Codable, CaseIterable {
     case mild
     case moderate
     case severe
 }
 
-//====================================================
-// MARK: - Seizure Trigger
-//====================================================
+
+//  Seizure Trigger
+
 enum SeizureTrigger: String, Codable, CaseIterable, Plottable {
     case stress
     case sleepDeprivation
@@ -28,9 +28,9 @@ enum SeizureTrigger: String, Codable, CaseIterable, Plottable {
     case unknown
 }
 
-//====================================================
+
 // MARK: - Seizure Time Bucket
-//====================================================
+
 enum SeizureTimeBucket: String, Codable, CaseIterable {
     case morning
     case afternoon
@@ -49,17 +49,17 @@ enum SeizureTimeBucket: String, Codable, CaseIterable {
        }
 }
 
-//====================================================
-// MARK: - Entry Type
-//====================================================
+
+// Entry Type
+
 enum RecordEntryType: String, Codable {
     case automatic
     case manual
 }
 
-//====================================================
-// MARK: - Seizure Record Model
-//====================================================
+
+// Seizure Record Model
+
 struct SeizureRecord: Identifiable, Codable, Equatable {
 
     let id: UUID
@@ -85,9 +85,9 @@ struct SeizureRecord: Identifiable, Codable, Equatable {
     var triggers: [SeizureTrigger]?
     var timeBucket: SeizureTimeBucket
 
-    //====================================================
-    // MARK: - Init
-    //====================================================
+    
+    //  Init
+    
     init(
         id: UUID,
         userId: UUID,
@@ -138,9 +138,9 @@ struct SeizureRecord: Identifiable, Codable, Equatable {
     }
 }
 
-//====================================================
-// MARK: - Record Data Model
-//====================================================
+
+//  Record Data Model
+
 final class SeizureRecordDataModel {
 
     static let shared = SeizureRecordDataModel()
@@ -151,9 +151,9 @@ final class SeizureRecordDataModel {
     private let archiveURL: URL
     private var records: [SeizureRecord] = []
 
-    //====================================================
-    // MARK: Init
-    //====================================================
+    
+    //  Init
+    
     private init() {
         
         archiveURL = documentsDirectory
@@ -161,12 +161,14 @@ final class SeizureRecordDataModel {
             .appendingPathExtension("plist")
         loadRecords()
         
+        
+        
 
     }
 
-    //====================================================
-    // MARK: Public Access
-    //====================================================
+    
+    //  Public Access
+    
     func getAllRecords() -> [SeizureRecord] {
         records
     }
@@ -179,9 +181,9 @@ final class SeizureRecordDataModel {
         return records.filter { $0.userId == currentUser.id }
     }
 
-    //====================================================
-    // MARK: Add Records
-    //====================================================
+
+    //Add Records
+    
     func addAutomaticRecord(
         type: SeizureType,
         dateTime: Date,
@@ -217,9 +219,9 @@ final class SeizureRecordDataModel {
         saveRecords()
     }
 
-    //====================================================
-    // MARK: Update / Delete
-    //====================================================
+   
+    //  Update / Delete
+    
     func updateRecord(_ record: SeizureRecord) {
         if let index = records.firstIndex(where: { $0.id == record.id }) {
             records[index] = record
@@ -243,17 +245,17 @@ final class SeizureRecordDataModel {
         saveRecords()
     }
 
-    //====================================================
-    // MARK: Persistence
-    //====================================================
+   
+    
+   
     private func loadRecords() {
         
         if let saved = loadFromDisk() {
             records = saved
         } else {
             // Start with an empty list for new users
-            records = []
-            saveRecords() 
+             records = loadSampleRecords()
+            saveRecords()
         }
     }
 
@@ -267,9 +269,9 @@ final class SeizureRecordDataModel {
         try? data?.write(to: archiveURL, options: .noFileProtection)
     }
 
-    //====================================================
-    // MARK: Sample Data (UPDATED)
-    //====================================================
+    
+    //  Sample Data (UPDATED)
+    
     private func loadSampleRecords() -> [SeizureRecord] {
         guard let userId = UserDataModel.shared.getCurrentUser()?.id else { return [] }
 
@@ -350,9 +352,9 @@ final class SeizureRecordDataModel {
 
 }
 
-//====================================================
-// MARK: - Extra Helper
-//====================================================
+
+// Extra Helper
+
 extension SeizureRecordDataModel {
     func getLatestTwoRecordsForCurrentUser() -> [SeizureRecord] {
         getRecordsForCurrentUser()

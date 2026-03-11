@@ -7,14 +7,14 @@ import UIKit
 
 class AlertHistoryTableViewController: UITableViewController {
 
-    // MARK: - Section Data (EXACTLY like RecordTableVC)
+    // Section Data (EXACTLY like RecordTableVC)
 
     var sectionTitles: [String] = []
     var notificationsBySection: [[AppNotification]] = []
 
     private var allNotifications: [AppNotification] = []
 
-    // MARK: - Lifecycle
+    // Lifecycle
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -28,7 +28,7 @@ class AlertHistoryTableViewController: UITableViewController {
         loadAndGroupNotifications()
     }
 
-    // MARK: - Load + Group (MATCHES RecordTableVC)
+    //  Load + Group (MATCHES RecordTableVC)
 
     func loadAndGroupNotifications() {
         let notifications =
@@ -62,7 +62,7 @@ class AlertHistoryTableViewController: UITableViewController {
         tableView.reloadData()
     }
 
-    // MARK: - TableView Sections
+    //  TableView Sections
 
     override func numberOfSections(in tableView: UITableView) -> Int {
         sectionTitles.count
@@ -75,7 +75,7 @@ class AlertHistoryTableViewController: UITableViewController {
         sectionTitles[section]
     }
 
-    // MARK: - Rows (ONE row per month)
+    //  Rows (ONE row per month)
 
     override func tableView(
         _ tableView: UITableView,
@@ -101,7 +101,7 @@ class AlertHistoryTableViewController: UITableViewController {
         return cell
     }
 
-    // MARK: - Section Header Styling (same as before)
+    // Section Header Styling (same as before)
 
     override func tableView(
         _ tableView: UITableView,

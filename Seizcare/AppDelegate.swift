@@ -13,7 +13,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+        // Initialize WatchConnectivity
+        _ = WatchConnectivityManager.shared
+        
+        // Request HealthKit authorization
+        HealthKitManager.shared.requestAuthorization { success, error in
+            if success {
+                print("HealthKit authorization granted.")
+            } else if let error = error {
+                print("HealthKit authorization failed: \(error.localizedDescription)")
+            }
+        }
+        
         return true
     }
 

@@ -9,14 +9,14 @@
 
 import Foundation
 
-// MARK: - SpO2 Phase
+//  SpO2 Phase
 enum SpO2Phase: String, Codable {
     case before
     case during
     case after
 }
 
-// MARK: - SpO2 Timeline Point
+// SpO2 Timeline Point
 struct SpO2TimelinePoint: Identifiable {
     let id = UUID()
 
@@ -25,7 +25,7 @@ struct SpO2TimelinePoint: Identifiable {
     let phase: SpO2Phase
 }
 
-// MARK: - Timeline Generator (Temporary / Server-ready)
+// Timeline Generator (Temporary / Server-ready)
 struct SpO2TimelineBuilder {
 
     /// Generates 2h before → during → 2h after SpO₂ data

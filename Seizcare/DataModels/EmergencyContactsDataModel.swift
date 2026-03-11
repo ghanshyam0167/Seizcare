@@ -7,7 +7,7 @@
 
 import Foundation
 
-// MARK: - EmergencyContact Model
+//  EmergencyContact Model
 struct EmergencyContact: Equatable, Codable {
     let id: UUID
     let userId: UUID
@@ -42,7 +42,7 @@ class EmergencyContactDataModel {
         loadContacts()
     }
     
-    // MARK: - Public Methods
+    //  Public Methods
     
     /// Get all contacts (for debugging/admin)
     func getAllContacts() -> [EmergencyContact] {
@@ -52,7 +52,7 @@ class EmergencyContactDataModel {
     /// Get all contacts for the currently logged-in user
     func getContactsForCurrentUser() -> [EmergencyContact] {
         guard let currentUser = UserDataModel.shared.getCurrentUser() else {
-            print("⚠️ No user logged in.")
+            print("No user logged in.")
             return []
         }
         return contacts.filter { $0.userId == currentUser.id }
@@ -61,7 +61,7 @@ class EmergencyContactDataModel {
     /// Add a new contact for the currently logged-in user
     func addContact(name: String, contactNumber: String) {
         guard let currentUser = UserDataModel.shared.getCurrentUser() else {
-            print("⚠️ Cannot add contact — no user logged in.")
+            print("Cannot add contact — no user logged in.")
             return
         }
         
@@ -81,7 +81,7 @@ class EmergencyContactDataModel {
     }
 
     
-    // MARK: - Private Methods
+    //  Private Methods
     
     private func loadContacts() {
         if let savedContacts = loadContactsFromDisk() {

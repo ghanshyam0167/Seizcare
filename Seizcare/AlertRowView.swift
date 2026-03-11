@@ -53,7 +53,7 @@ final class AlertRowView: UIView {
     private weak var subtitleLabel: UILabel?
     private weak var timeLabel: UILabel?
 
-    // MARK: - Init
+    // Init
 
     init(notification: AppNotification) {
         super.init(frame: .zero)
@@ -63,7 +63,7 @@ final class AlertRowView: UIView {
 
     required init?(coder: NSCoder) { fatalError() }
 
-    // MARK: - UI Setup
+    // UI Setup
 
     private func setupUI() {
         translatesAutoresizingMaskIntoConstraints = false
@@ -130,7 +130,7 @@ final class AlertRowView: UIView {
         self.timeLabel = time
     }
 
-    // MARK: - Configure
+    // Configure
 
     private func configure(_ notification: AppNotification) {
 

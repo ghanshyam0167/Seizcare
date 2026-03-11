@@ -9,11 +9,11 @@ import UIKit
 
 class LanguageTableViewController: UIViewController {
 
-    // MARK: - Data
+    //  Data
     private let languages = ["English", "Hindi", "Marathi", "Telugu", "Bengali", "Tamil"]
     private var selectedIndex = 2 // Default = English (index 0), but keeping 2 as initial
 
-    // MARK: - Views
+    // Views
     private let cardView: UIView = {
         let v = UIView()
         v.backgroundColor = .white
@@ -37,7 +37,7 @@ class LanguageTableViewController: UIViewController {
 
     private var rowControls: [LanguageRowView] = []
 
-    // MARK: - Lifecycle
+    //  Lifecycle
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -55,7 +55,7 @@ class LanguageTableViewController: UIViewController {
         setupViews()
     }
 
-    // MARK: - Setup
+    //  Setup
 
     private func setupViews() {
         view.addSubview(cardView)
@@ -127,7 +127,7 @@ class LanguageTableViewController: UIViewController {
         rowControls[selectedIndex].setChecked(true, animated: true)
     }
 
-    // MARK: - Persistence
+    //  Persistence
 
     private func loadSavedPreference() {
         if let savedLanguage = UserDefaults.standard.string(forKey: "selectedLanguage"),
@@ -137,7 +137,7 @@ class LanguageTableViewController: UIViewController {
     }
 }
 
-// MARK: - LanguageRowView
+//  LanguageRowView
 
 private class LanguageRowView: UIControl {
     private let titleLabel = UILabel()

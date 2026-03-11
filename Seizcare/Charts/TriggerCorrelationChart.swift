@@ -27,7 +27,7 @@ struct TriggerCorrelationChart: View {
         .padding(20)
     }
 
-    // MARK: - Subviews
+   
 
     // 2. Extracted Chart logic
     private var chartView: some View {

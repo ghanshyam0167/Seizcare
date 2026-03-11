@@ -514,21 +514,7 @@ class AddRecordTableViewController: UITableViewController {
             self?.duration = newDuration
         }
         
-        // Hold strong reference to adapter in pickerVC (via objc association or wrapping)
-        // Only for this simple task, we can use a closure-based wrapper or just a nested class.
-        // Let's use a nested controller to keep it clean, or assign it as a property if possible.
-        // Swift limitation: cannot easily attach arbitrary objects to UIViewController instance without subclassing.
-        // Alternate approach: Embed the logic in a small subclass or closure. Use a helper logic carrier.
-        
-        // Better: Make AddRecordTableViewController the delegate? No, complicates it.
-        // Let's use a wrapper property on the picker view itself using Associative Objects or just subclass UIPickerView.
-        // Simpler: Just assign the delegate/dataSource to a persisted helper object.
-        
-        // Trick: The picker view holds a strong ref to delegate? No, it's weak.
-        // WE need to hold the adapter.
-        
-        // Let's create a custom ViewController subclass inline or just add a property to the main class to hold the current adapter?
-        // Adding `var currentDurationAdapter: DurationPickerAdapter?` to main class.
+       
         self.currentDurationAdapter = adapter
         pickerView.delegate = adapter
         pickerView.dataSource = adapter
@@ -619,7 +605,7 @@ extension AddRecordTableViewController: UITextViewDelegate {
 }
 
 
-// MARK: - Duration Picker Adapter
+//  Duration Picker Adapter
 class DurationPickerAdapter: NSObject, UIPickerViewDelegate, UIPickerViewDataSource {
     let onUpdate: (TimeInterval) -> Void
     
@@ -628,12 +614,7 @@ class DurationPickerAdapter: NSObject, UIPickerViewDelegate, UIPickerViewDataSou
         super.init()
     }
     
-    // 0: Minutes (0-59), 1: Seconds (0-59)
-    // Actually, Minutes can go up to say 60 or 120? Let's say 60 for now based on "wheels" style usually cycling or fixed.
-    // Let's go 0-300 min (5 hours) to be safe? Or just 0-60?
-    // User request: "Count down timer style". usually 0-23 hours, 0-59 min.
-    // But for seizure, maybe 0-59 min, 0-59 sec is typical.
-    // Let's do Minutes (0-120), Seconds (0-59).
+    
     
     func numberOfComponents(in pickerView: UIPickerView) -> Int {
         return 2

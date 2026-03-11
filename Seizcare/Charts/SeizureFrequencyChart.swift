@@ -17,9 +17,7 @@ struct SeizureFrequencyChart: View {
             headerView
             frequencyChart
         }
-        // =======================
-        // Card Styling (Balanced)
-        // =======================
+        
         .padding(20)
 
     }
