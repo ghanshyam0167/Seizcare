@@ -1,13 +1,13 @@
 import UIKit
 
-// MARK: - Insight Model
+// Insight Model
 struct SeizureInsight {
     let text: String
     let iconName: String
     let color: UIColor
 }
 
-// MARK: - Insight Generator
+// Insight Generator
 final class SeizureInsightGenerator {
 
     static func generate(

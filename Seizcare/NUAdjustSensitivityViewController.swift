@@ -9,7 +9,7 @@ import UIKit
 
 class NUAdjustSensitivityViewController: UIViewController {
 
-    // MARK: - Data
+    //  Data
     private let sensitivities = ["Low", "Medium", "High"]
 
     private let descriptions = [
@@ -20,7 +20,7 @@ class NUAdjustSensitivityViewController: UIViewController {
 
     private var selectedIndex = 1 // Default = Medium
 
-    // MARK: - Views
+    //  Views
     private let cardView: UIView = {
         let v = UIView()
         v.backgroundColor = .white
@@ -45,7 +45,7 @@ class NUAdjustSensitivityViewController: UIViewController {
     private var rowControls: [NUSensitivityRowView] = []
     private var continueButton: UIButton!
 
-    // MARK: - Lifecycle
+    // Lifecycle
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -58,7 +58,7 @@ class NUAdjustSensitivityViewController: UIViewController {
         setupContinueButton()
     }
 
-    // MARK: - Setup
+    //  Setup
 
     private func setupViews() {
         view.addSubview(cardView)

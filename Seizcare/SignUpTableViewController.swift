@@ -38,6 +38,7 @@ class SignUpTableViewController: UITableViewController {
         emailField.autocorrectionType = .no
 
         // Phone
+        phoneField.delegate = self
         phoneField.keyboardType = .numberPad
         phoneField.textContentType = .telephoneNumber
 
@@ -342,3 +343,27 @@ class SignUpTableViewController: UITableViewController {
         return phonePred.evaluate(with: phone)
     }
    }
+
+extension SignUpTableViewController: UITextFieldDelegate {
+    func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
+        // Only valid for phone field
+        guard textField == phoneField else { return true }
+        
+        // Allow backspace
+        if string.isEmpty { return true }
+        
+        // 1. Check if the new characters are only digits
+        let allowedCharacters = CharacterSet.decimalDigits
+        let characterSet = CharacterSet(charactersIn: string)
+        guard allowedCharacters.isSuperset(of: characterSet) else {
+            return false
+        }
+        
+        // 2. Check maximum length (10 digits)
+        let currentText = textField.text ?? ""
+        guard let stringRange = Range(range, in: currentText) else { return false }
+        let updatedText = currentText.replacingCharacters(in: stringRange, with: string)
+        
+        return updatedText.count <= 10
+    }
+}

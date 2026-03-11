@@ -86,7 +86,7 @@ class DashboardTableViewController: UITableViewController {
     @IBOutlet weak var spo2RecordLabel00: UILabel!
     @IBOutlet weak var dateRecordLabel00: UILabel!
     
-    // MARK: - Records Section — Programmatic Views
+    // Records Section — Programmatic Views
     private let recordsHeaderView   = UIView()
     private let recordsTitleLabel   = UILabel()
     private let recordsActionButton = UIButton(type: .system)
@@ -94,7 +94,7 @@ class DashboardTableViewController: UITableViewController {
     private let emptyTitleLabel     = UILabel()
     private let emptySubtitleLabel  = UILabel()
     private let emptyAddButton      = UIButton(type: .system)
-    // Premium programmatic preview cards (replace storyboard recordCardView0/1)
+    
     private let previewCard0        = UIView()
     private let previewCard1        = UIView()
 
@@ -107,8 +107,6 @@ class DashboardTableViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
  
-        updateUI()
-        
         applyDefaultTableBackground()
         navigationController?.applyWhiteNavBar()
         applySectionSpacing()
@@ -118,7 +116,6 @@ class DashboardTableViewController: UITableViewController {
         
         pipeLabel2.setContentHuggingPriority(.required, for: .horizontal)
         pipeLabel3.setContentHuggingPriority(.required, for: .horizontal)
-        
         
         // Chart / records cards keep the original dashboard card style
         [recordsCardView, seizureFrequencyChartUpperView, sleepVsSeizureChartContainerView,
@@ -134,19 +131,112 @@ class DashboardTableViewController: UITableViewController {
         currentCardView1?.applyMetricCard(tint: .systemOrange)  // Avg Seizures
         currentCardView2?.applyMetricCard(tint: .systemTeal)    // Avg Duration
         currentCardView3?.applyMetricCard(tint: .systemPurple)  // Most Common Time
-        setupInsightsCards()
+        
         setupRecordsSection()
-        updateRecordsSection()
         setupPeriodMenu()
         setupPeriodButton()
-        changePeriod(currentPeriod)
-        setupSeizureChartTitle()
-        setupSeizureChartFooter()
-        addSleepVsSeizureChart()
-        addTimePatternChart()
-        addTriggerCorrelationChart()
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        updateUI()
+        refreshDashboardData()
+    }
+    
+    //  Dashboard Refresh Logic
+    
+    private func refreshDashboardData() {
+        fetchRecords()
+        fetchHealthData()
+        calculateInsights()
+        updateRecordsSection() // Keep existing method
+        
+        // Update Graphs
+        updateSeizureFrequencyGraph()
+        updateSleepVsSeizureGraph()
+        updateTimeOfDayGraph()
+        updateTriggerCorrelationGraph()
+    }
+    
+    private func fetchRecords() {
+        
+    }
+    
+    private func fetchHealthData() {
+        let dispatchGroup = DispatchGroup()
+        
+        var fetchedHeartRate: Double?
+        var fetchedSpO2: Double?
+        var fetchedSleep: Double?
+        
+        dispatchGroup.enter()
+        HealthKitManager.shared.fetchLatestHeartRate { hr in
+            fetchedHeartRate = hr
+            dispatchGroup.leave()
+        }
+        
+        dispatchGroup.enter()
+        HealthKitManager.shared.fetchLatestSpO2 { spo2 in
+            fetchedSpO2 = spo2
+            dispatchGroup.leave()
+        }
+        
+        dispatchGroup.enter()
+        HealthKitManager.shared.fetchLatestSleepDuration { sleep in
+            fetchedSleep = sleep
+            dispatchGroup.leave()
+        }
+        
+        dispatchGroup.notify(queue: .main) {
+            let healthData = HealthData(
+                heartRate: fetchedHeartRate,
+                oxygenSaturation: fetchedSpO2,
+                sleepHours: fetchedSleep
+            )
+            
+            // Print values in the console for testing
+            if let hr = healthData.heartRate {
+                print("Heart Rate: \(Int(hr)) bpm")
+            } else {
+                print("Heart Rate: Not available")
+            }
+            
+            if let spo2 = healthData.oxygenSaturation {
+                print("SpO2: \(Int(spo2)) %")
+            } else {
+                print("SpO2: Not available")
+            }
+            
+            if let sleep = healthData.sleepHours {
+                print("Sleep Duration: \(String(format: "%.1f", sleep)) hours")
+            } else {
+                print("Sleep Duration: Not available")
+            }
+            
+            // In a real scenario, we might assign this to a property or trigger UI updates:
+            // self.currentHealthData = healthData
+            // self.updateHealthUI()
+        }
+    }
+    
+    private func updateSeizureFrequencyGraph() {
+        setupSeizureChartTitle()
+        setupSeizureChartFooter()
+        addSeizureFrequencyChart(period: currentPeriod)
+    }
+    
+    private func updateSleepVsSeizureGraph() {
+        addSleepVsSeizureChart()
+    }
+    
+    private func updateTimeOfDayGraph() {
+        addTimePatternChart()
+    }
+    
+    private func updateTriggerCorrelationGraph() {
+        addTriggerCorrelationChart()
+    }
+
     func trend(current: Double, previous: Double, threshold: Double = 0.01) -> TrendDirection {
         if abs(current - previous) < threshold {
             return .noChange
@@ -154,9 +244,9 @@ class DashboardTableViewController: UITableViewController {
         return current > previous ? .increased : .decreased
     }
     
-    func setupInsightsCards() {
+    func calculateInsights() {
 
-        // ── Typography helpers ─────────────────────────────────────────────
+        //Typography helpers
         let titleFont    = UIFont.systemFont(ofSize: 15, weight: .bold)
         let valueFont    = UIFont.systemFont(ofSize: 21, weight: .regular)
         let subtitleFont = UIFont.systemFont(ofSize: 13, weight: .regular)
@@ -176,12 +266,12 @@ class DashboardTableViewController: UITableViewController {
             label?.textColor = .secondaryLabel
         }
 
-        // ── Fetch Data (includes onboarding fallback) ──────────────────────
+        // Fetch Data (includes onboarding fallback)
         let current  = dashboardModel.getDashboardSummary()
         let previous = dashboardModel.getDashboardSummary(forPreviousMonth: true)
         let hasRealRecords = !SeizureRecordDataModel.shared.getRecordsForCurrentUser().isEmpty
 
-        // ── Sleep Quality ──────────────────────────────────────────────────
+        // Sleep Quality
         sleepDurationLabel.text = "\(current.avgSleepHours.formatted(1)) hrs"
         if hasRealRecords {
             let sleepTrend = trend(current: current.avgSleepHours, previous: previous.avgSleepHours)
@@ -192,7 +282,7 @@ class DashboardTableViewController: UITableViewController {
             sleepDurationStatusLabel.textColor = .secondaryLabel
         }
 
-        // ── Avg Seizures ───────────────────────────────────────────────────
+        //Avg Seizures
         if current.avgMonthlySeizures > 0 {
             if current.avgMonthlySeizures < 1.0 {
                 avgMonthlySeizuresLabel.text = "< 1 / month"
@@ -212,7 +302,7 @@ class DashboardTableViewController: UITableViewController {
             avgSeizureStatusLabel.textColor = .secondaryLabel
         }
 
-        // ── Avg Duration ───────────────────────────────────────────────────
+        //  Avg Duration
         avgDurationLabel.text = current.avgDuration > 0 ? formatDuration(current.avgDuration) : "None"
         if hasRealRecords {
             let durationTrend = trend(current: current.avgDuration, previous: previous.avgDuration)
@@ -223,7 +313,7 @@ class DashboardTableViewController: UITableViewController {
             avgDurationStatusLabel.textColor = .secondaryLabel
         }
 
-        // ── Most Common Time ───────────────────────────────────────────────
+        //  Most Common Time
         mostCommonTimeLabel.text = current.mostCommonTime.displayText
         if hasRealRecords {
             if current.mostCommonTime != previous.mostCommonTime {
@@ -240,13 +330,13 @@ class DashboardTableViewController: UITableViewController {
     }
 
     func addTriggerCorrelationChart() {
-        // ── Setup Graph Structure (Persistent Header + Content) ─────────────
+        //  (Persistent Header + Content)
         let contentContainer = setupGraphStructure(
             in: triggerCorrelationChart,
             title: "Trigger Correlation"
         )
         
-        // ── emptyStateView ────────────────────────────────────────────────
+        //emptyStateView
         let emptyStateView = makeChartEmptyState(
             symbol: "bolt.horizontal.circle",
             title: "No Trigger Insights Yet",
@@ -262,7 +352,7 @@ class DashboardTableViewController: UITableViewController {
             emptyStateView.bottomAnchor.constraint(equalTo: contentContainer.bottomAnchor)
         ])
 
-        // ── chartContainerView ────────────────────────────────────────────
+        //  chartContainerView
         let chartContainerView = UIView()
         chartContainerView.backgroundColor = .clear
         chartContainerView.translatesAutoresizingMaskIntoConstraints = false
@@ -274,7 +364,7 @@ class DashboardTableViewController: UITableViewController {
             chartContainerView.bottomAnchor.constraint(equalTo: contentContainer.bottomAnchor)
         ])
 
-        // ── Trigger Condition ─────────────────────────────────────────────
+        //Trigger Condition
         let triggerData = dashboardModel.getTriggerCorrelation()
         let hasRecords = !SeizureRecordDataModel.shared.getRecordsForCurrentUser().isEmpty
         let hasData = hasRecords && !triggerData.isEmpty
@@ -287,7 +377,7 @@ class DashboardTableViewController: UITableViewController {
             return
         }
 
-        // ── Embed chart into chartContainerView ───────────────────────────
+        // Embed chart into chartContainerView
         let chartView = TriggerCorrelationChart(data: triggerData)
         let hostingVC = UIHostingController(rootView: chartView)
 
@@ -305,13 +395,13 @@ class DashboardTableViewController: UITableViewController {
 
 
     func addTimePatternChart() {
-        // ── Setup Graph Structure (Persistent Header + Content) ─────────────
+        //  Setup Graph Structure (Persistent Header + Content)
         let contentContainer = setupGraphStructure(
             in: timePatternChart,
             title: "Time of Day Pattern"
         )
 
-        // ── emptyStateView ────────────────────────────────────────────────
+        // emptyStateView
         let emptyStateView = makeChartEmptyState(
             symbol: "clock.arrow.circlepath",
             title: "No Time Pattern Yet",
@@ -326,7 +416,7 @@ class DashboardTableViewController: UITableViewController {
             emptyStateView.bottomAnchor.constraint(equalTo: contentContainer.bottomAnchor)
         ])
 
-        // ── chartContainerView ────────────────────────────────────────────
+        // chartContainerView
         let chartContainerView = UIView()
         chartContainerView.backgroundColor = .clear
         chartContainerView.translatesAutoresizingMaskIntoConstraints = false
@@ -338,7 +428,7 @@ class DashboardTableViewController: UITableViewController {
             chartContainerView.bottomAnchor.constraint(equalTo: contentContainer.bottomAnchor)
         ])
 
-        // ── Guard: show empty state when no records ───────────────────────
+        //  Guard: show empty state when no records
         let hasRecords = !SeizureRecordDataModel.shared.getRecordsForCurrentUser().isEmpty
         chartContainerView.isHidden = !hasRecords
         emptyStateView.isHidden = hasRecords
@@ -348,7 +438,7 @@ class DashboardTableViewController: UITableViewController {
             return
         }
 
-        // ── Embed chart into chartContainerView ───────────────────────────
+        //  Embed chart into chartContainerView
         let data = dashboardModel.getTimeOfDayPattern(months: 3)
         let chart = TimePatternChart(data: data)
         let hostingVC = UIHostingController(rootView: chart)
@@ -367,13 +457,13 @@ class DashboardTableViewController: UITableViewController {
 
 
     func addSleepVsSeizureChart() {
-        // ── Setup Graph Structure (Persistent Header + Content) ─────────────
+        //  Setup Graph Structure (Persistent Header + Content)
         let contentContainer = setupGraphStructure(
             in: sleepVsSeizureChart,
             title: "Sleep vs Seizures"
         )
 
-        // ── emptyStateView ────────────────────────────────────────────────
+        // emptyStateView
         let emptyStateView = makeChartEmptyState(
             symbol: "chart.line.uptrend.xyaxis",
             title: "No Insights Available",
@@ -388,7 +478,7 @@ class DashboardTableViewController: UITableViewController {
             emptyStateView.bottomAnchor.constraint(equalTo: contentContainer.bottomAnchor)
         ])
 
-        // ── chartContainerView ────────────────────────────────────────────
+        //  chartContainerView
         let chartContainerView = UIView()
         chartContainerView.backgroundColor = .clear
         chartContainerView.translatesAutoresizingMaskIntoConstraints = false
@@ -400,7 +490,7 @@ class DashboardTableViewController: UITableViewController {
             chartContainerView.bottomAnchor.constraint(equalTo: contentContainer.bottomAnchor)
         ])
 
-        // ── Guard: show empty state when no records ───────────────────────
+        //  Guard show empty state when no records
         let hasRecords = !SeizureRecordDataModel.shared.getRecordsForCurrentUser().isEmpty
         chartContainerView.isHidden = !hasRecords
         emptyStateView.isHidden = hasRecords
@@ -410,7 +500,7 @@ class DashboardTableViewController: UITableViewController {
             return
         }
 
-        // ── Embed chart into chartContainerView ───────────────────────────
+        //  Embed chart into chartContainerView
         let data = dashboardModel.getSleepVsSeizure()
         let chart = SleepVsSeizureChart(data: data)
         let hostingVC = UIHostingController(rootView: chart)
@@ -427,10 +517,7 @@ class DashboardTableViewController: UITableViewController {
         hostingVC.didMove(toParent: self)
     }
 
-    // MARK: - Chart Empty State Helper
-
-    /// Returns a self-centering empty state view. The stack is centered
-    /// inside the container using centerX/centerY — no clipping, no frames.
+    
     private func makeChartEmptyState(symbol: String, title: String, subtitle: String,
                                       tint: UIColor = .systemBlue.withAlphaComponent(0.4)) -> UIView {
         let container = UIView()
@@ -479,10 +566,7 @@ class DashboardTableViewController: UITableViewController {
         return container
     }
 
-    /// Helper to create the standard Graph Card structure:
-    /// - Header (Title + Optional Subtitle) pinned to top
-    /// - Content Container (fills remaining space)
-    /// Returns the content container where charts/empty states should be added.
+    
     private func setupGraphStructure(in parentView: UIView, title: String, subtitle: String? = nil) -> UIView {
         parentView.subviews.forEach { $0.removeFromSuperview() }
         parentView.clipsToBounds = true
@@ -747,11 +831,7 @@ class DashboardTableViewController: UITableViewController {
 
         navigationItem.title = "Hey \(firstName)" 
     }
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        updateRecordsSection()
-        setupInsightsCards()
-    }
+
 
     
     // MARK: - Records Section Setup

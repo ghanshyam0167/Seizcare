@@ -1,13 +1,11 @@
 import Foundation
 
-//====================================================
-// MARK: - Seizure Time Bucket
-//====================================================
 
 
-//====================================================
-// MARK: - Sleep Data Model (Mock for now)
-//====================================================
+
+
+//  Sleep Data Model (Mock for now)
+
 final class SleepDataModel {
 
     static let shared = SleepDataModel()
@@ -75,7 +73,7 @@ final class SleepDataModel {
             .averageOrZero()
     }
 }
-// MARK: - Dashboard Period
+// Dashboard Period
 enum DashboardPeriod {
     case current   // daily
     case weekly
@@ -83,9 +81,9 @@ enum DashboardPeriod {
 }
 
 
-//====================================================
-// MARK: - Dashboard Models
-//====================================================
+
+//  Dashboard Models
+
 struct DashboardSummary {
     let avgMonthlySeizures: Double
     let mostCommonTime: SeizureTimeBucket
@@ -119,9 +117,9 @@ struct TriggerCorrelation: Identifiable {
     let percent: Double
 }
 
-//====================================================
-// MARK: - Dashboard Data Model
-//====================================================
+
+//  Dashboard Data Model
+
 final class DashboardDataModel {
 
     static let shared = DashboardDataModel()
@@ -130,9 +128,9 @@ final class DashboardDataModel {
     private let recordModel = SeizureRecordDataModel.shared
     private let sleepModel = SleepDataModel.shared
 
-    //====================================================
-    // MARK: TOP 4 CARDS
-    //====================================================
+    
+    //  TOP 4 CARDS
+  
     func getDashboardSummary(forPreviousMonth: Bool = false) -> DashboardSummary {
 
         let records = recordModel.getRecordsForCurrentUser()
@@ -142,8 +140,7 @@ final class DashboardDataModel {
         if forPreviousMonth {
             filteredRecords = recordsLastMonths(records, months: 2)
                 .filter { record in
-                    // keep only previous month records
-                    // adjust logic if you already have helpers
+                    
                     true
                 }
         } else {
@@ -339,9 +336,9 @@ final class DashboardDataModel {
         return Double(filtered.count)
     }
 
-    //====================================================
-    // MARK: SEIZURE FREQUENCY
-    //====================================================
+    
+    //  SEIZURE FREQUENCY
+  
     func getDailyFrequency() -> [FrequencyPoint] {
         groupBy(.day)
     }
@@ -368,9 +365,9 @@ final class DashboardDataModel {
         .sorted { $0.date < $1.date }
     }
 
-    //====================================================
-    // MARK: TIME OF DAY PATTERN
-    //====================================================
+    
+    //  TIME OF DAY PATTERN
+ 
     func getTimeOfDayPattern(months: Int = 3) -> [TimeOfDayPattern] {
 
         let records = recordsLastMonths(months)
@@ -387,9 +384,9 @@ final class DashboardDataModel {
         }
     }
 
-    //====================================================
-    // MARK: SLEEP VS SEIZURE
-    //====================================================
+    
+    //  SLEEP VS SEIZURE
+    
     func getSleepVsSeizure() -> [SleepSeizurePoint] {
 
         let sleepEntries = sleepModel.getDailySleepData()
@@ -408,9 +405,8 @@ final class DashboardDataModel {
         }
     }
 
-    //====================================================
-    // MARK: TRIGGER CORRELATION
-    //====================================================
+        //  TRIGGER CORRELATION
+   
     func getTriggerCorrelation() -> [TriggerCorrelation] {
 
         let records = recordModel.getRecordsForCurrentUser()
@@ -432,9 +428,9 @@ final class DashboardDataModel {
         .sorted { $0.percent > $1.percent }
     }
 
-    //====================================================
-    // MARK: HELPERS
-    //====================================================
+  
+    //  HELPERS
+    
     private func recordsLastMonths(_ records: [SeizureRecord], months: Int) -> [SeizureRecord] {
         let cal = Calendar.current
         let cut = cal.date(byAdding: .month, value: -months, to: Date())!
@@ -450,9 +446,9 @@ final class DashboardDataModel {
 
 }
 
-//====================================================
-// MARK: - Array Helpers
-//====================================================
+
+// Array Helpers
+
 extension Array where Element == Double {
     func averageOrZero() -> Double {
         guard !isEmpty else { return 0 }

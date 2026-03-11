@@ -6,18 +6,18 @@
 import Foundation
 import Charts
 
-//====================================================
-// MARK: - Seizure Type
-//====================================================
+
+//  Seizure Type
+
 enum SeizureType: String, Codable, CaseIterable {
     case mild
     case moderate
     case severe
 }
 
-//====================================================
-// MARK: - Seizure Trigger
-//====================================================
+
+//  Seizure Trigger
+
 enum SeizureTrigger: String, Codable, CaseIterable, Plottable {
     case stress
     case sleepDeprivation
@@ -28,9 +28,9 @@ enum SeizureTrigger: String, Codable, CaseIterable, Plottable {
     case unknown
 }
 
-//====================================================
+
 // MARK: - Seizure Time Bucket
-//====================================================
+
 enum SeizureTimeBucket: String, Codable, CaseIterable {
     case morning
     case afternoon
@@ -49,17 +49,17 @@ enum SeizureTimeBucket: String, Codable, CaseIterable {
     }
 }
 
-//====================================================
-// MARK: - Entry Type
-//====================================================
+
+// Entry Type
+
 enum RecordEntryType: String, Codable {
     case automatic
     case manual
 }
 
-//====================================================
-// MARK: - Seizure Record Model
-//====================================================
+
+// Seizure Record Model
+
 struct SeizureRecord: Identifiable, Codable, Equatable {
 
     let id: UUID
@@ -85,9 +85,9 @@ struct SeizureRecord: Identifiable, Codable, Equatable {
     var triggers: [SeizureTrigger]?
     var timeBucket: SeizureTimeBucket
 
-    //====================================================
-    // MARK: - Init
-    //====================================================
+    
+    //  Init
+    
     init(
         id: UUID,
         userId: UUID,
@@ -137,9 +137,9 @@ struct SeizureRecord: Identifiable, Codable, Equatable {
     }
 }
 
-//====================================================
-// MARK: - Record Data Model
-//====================================================
+
+//  Record Data Model
+
 final class SeizureRecordDataModel {
 
     static let shared = SeizureRecordDataModel()
@@ -147,11 +147,18 @@ final class SeizureRecordDataModel {
     /// In-memory cache – DashboardDataModel reads from this via the sync getters.
     private var records: [SeizureRecord] = []
 
-    private init() {}
-
-    //====================================================
-    // MARK: Public Refresh (async, call from ViewControllers)
-    //====================================================
+    
+    //  Init
+    
+    private init() {
+        
+        archiveURL = documentsDirectory
+            .appendingPathComponent("seizureRecords")
+            .appendingPathExtension("plist")
+        loadRecords()
+        
+        
+        
 
     /// Fetches all records for the current user from Supabase (including triggers)
     /// and refreshes the local cache.
@@ -173,9 +180,9 @@ final class SeizureRecordDataModel {
         }
     }
 
-    //====================================================
-    // MARK: Public Access (synchronous – uses cache)
-    //====================================================
+    
+    //  Public Access
+    
     func getAllRecords() -> [SeizureRecord] {
         records
     }
@@ -187,9 +194,9 @@ final class SeizureRecordDataModel {
         return records.filter { $0.userId == currentUser.id }
     }
 
-    //====================================================
-    // MARK: Add Records
-    //====================================================
+
+    //Add Records
+    
     func addAutomaticRecord(
         type: SeizureType,
         dateTime: Date,
@@ -225,9 +232,9 @@ final class SeizureRecordDataModel {
         persistRecord(record)
     }
 
-    //====================================================
-    // MARK: Update / Delete
-    //====================================================
+   
+    //  Update / Delete
+    
     func updateRecord(_ record: SeizureRecord) {
         if let index = records.firstIndex(where: { $0.id == record.id }) {
             records[index] = record
@@ -261,36 +268,115 @@ final class SeizureRecordDataModel {
         guard records.indices.contains(index) else { return }
         let recordId = records[index].id
         records.remove(at: index)
-        Task {
-            do {
-                try await SupabaseService.shared.deleteTriggers(recordId: recordId)
-                try await SupabaseService.shared.deleteSeizureRecord(id: recordId)
-            } catch {
-                print("⚠️ [SeizureRecordDataModel] deleteRecord failed:", error.localizedDescription)
-            }
+        saveRecords()
+    }
+
+   
+    
+   
+    private func loadRecords() {
+        
+        if let saved = loadFromDisk() {
+            records = saved
+        } else {
+            // Start with an empty list for new users
+             records = loadSampleRecords()
+            saveRecords()
         }
     }
 
-    // MARK: - Private Helpers
+    private func loadFromDisk() -> [SeizureRecord]? {
+        guard let data = try? Data(contentsOf: archiveURL) else { return nil }
+        return try? PropertyListDecoder().decode([SeizureRecord].self, from: data)
+    }
 
-    private func persistRecord(_ record: SeizureRecord) {
-        Task {
-            do {
-                try await SupabaseService.shared.insertSeizureRecord(SeizureRecordDTO(from: record))
-                if let triggers = record.triggers, !triggers.isEmpty {
-                    let dtos = triggers.map { SeizureTriggerDTO(recordId: record.id, trigger: $0) }
-                    try await SupabaseService.shared.insertTriggers(dtos)
-                }
-            } catch {
-                print("⚠️ [SeizureRecordDataModel] persistRecord failed:", error.localizedDescription)
+    private func saveRecords() {
+        let data = try? PropertyListEncoder().encode(records)
+        try? data?.write(to: archiveURL, options: .noFileProtection)
+    }
+
+    
+    //  Sample Data (UPDATED)
+    
+    private func loadSampleRecords() -> [SeizureRecord] {
+        guard let userId = UserDataModel.shared.getCurrentUser()?.id else { return [] }
+
+        let calendar = Calendar.current
+        let now = Date()
+
+        let locations = ["Bedroom", "Office", "Living Room", "Bathroom"]
+        let autoDescriptions = [
+            "Auto detected during rest",
+            "Detected during sleep",
+            "Detected after physical exertion",
+            "Detected during stress period"
+        ]
+        let manualTitles = [
+            "Aura Episode",
+            "Night Seizure",
+            "Post Medication Miss",
+            "Stress Triggered Episode"
+        ]
+        let symptomsPool: [[Symptom]] = [
+            [.dizziness, .visualChange],
+            [.confused, .headache],
+            [.tired],
+            [.bodyAche, .weakness]
+        ]
+
+        let triggersPool: [[SeizureTrigger]] = [
+            [.stress],
+            [.sleepDeprivation],
+            [.missedMedication],
+            [.alcohol],
+            [.stress, .sleepDeprivation]
+        ]
+
+        var records: [SeizureRecord] = []
+
+        for _ in 0..<50 {
+            let daysAgo = Int.random(in: 0...180) // past 6 months
+            let date = calendar.date(byAdding: .day, value: -daysAgo, to: now)!
+
+            let isAutomatic = Bool.random()
+
+            if isAutomatic {
+                records.append(
+                    SeizureRecord(
+                        id : UUID(),
+                        userId: userId,
+                        entryType: .automatic,
+                        dateTime: date,
+                        description: autoDescriptions.randomElement()!,
+                        type: SeizureType.allCases.randomElement()!,
+                        duration: TimeInterval(Int.random(in: 30...180)),
+                        spo2: Int.random(in: 85...97),
+                        heartRate: Int.random(in: 90...160),
+                        location: locations.randomElement()!,
+                        triggers: triggersPool.randomElement()!
+                    )
+                )
+            } else {
+                records.append(
+                    SeizureRecord(
+                        id : UUID(),
+                        userId: userId,
+                        entryType: .manual,
+                        dateTime: date,
+                        type: SeizureType.allCases.randomElement()!, duration: TimeInterval(Int.random(in: 40...150)),
+                        title: manualTitles.randomElement()!,
+                        symptoms: (symptomsPool.randomElement() ?? []).map { $0.rawValue },
+                        triggers: triggersPool.randomElement()!
+                    )
+                )
             }
         }
     }
 }
 
-//====================================================
-// MARK: - Extra Helper
-//====================================================
+
+// Extra Helper
+
 extension SeizureRecordDataModel {
     func getLatestTwoRecordsForCurrentUser() -> [SeizureRecord] {
         getRecordsForCurrentUser()

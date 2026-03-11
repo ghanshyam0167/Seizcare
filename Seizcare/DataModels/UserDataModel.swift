@@ -5,7 +5,7 @@
 
 import Foundation
 
-// MARK: - Enum for Gender
+//  Enum for Gender
 enum Gender: String, Codable {
     case male
     case female
@@ -13,7 +13,7 @@ enum Gender: String, Codable {
     case unspecified
 }
 
-// MARK: - User Model
+//  User Model
 struct User: Identifiable, Codable, Equatable {
     let id: UUID
     var fullName: String
@@ -57,7 +57,7 @@ struct User: Identifiable, Codable, Equatable {
     }
 }
 
-// MARK: - User Data Model
+//  User Data Model
 class UserDataModel {
 
     static let shared = UserDataModel()
@@ -67,6 +67,25 @@ class UserDataModel {
     private(set) var currentUser: User?
 
     private let currentUserKey = "currentUserId"
+    private var currentUser: User?
+    
+    private init() {
+        archiveURL = documentsDirectory
+            .appendingPathComponent("users")
+            .appendingPathExtension("plist")
+        loadUsers()
+        loadCurrentUser()
+    }
+    
+    //  CRUD
+    func addUser(_ user: User) {
+        users.append(user)
+        saveUsers()
+    }
+    
+    func updateCurrentUser(_ updatedUser: User) {
+        // Ensure someone is logged in
+        guard let current = currentUser else { return }
 
     private init() {}
 
@@ -99,17 +118,13 @@ class UserDataModel {
     func getCurrentUser() -> User? {
         return currentUser
     }
-
-    // MARK: - Async CRUD
-
-    /// Fetches the profile for a specific user from Supabase.
-    func fetchCurrentUserProfile() async {
-        guard let uid = await SupabaseService.shared.currentUserId() else { return }
-        do {
-            let dto = try await SupabaseService.shared.fetchUser(id: uid)
-            currentUser = dto?.toDomain()
-        } catch {
-            print("⚠️ [UserDataModel] fetchCurrentUserProfile failed:", error.localizedDescription)
+    
+    //Private Storage Helpers
+    private func loadUsers() {
+        if let savedUsers = loadUsersFromDisk() {
+            users = savedUsers
+        } else {
+            users = loadSampleUsers()
         }
     }
 
@@ -134,7 +149,7 @@ class UserDataModel {
     }
 }
 
-// MARK: - Authentication Extension
+//  - Authentication Extension
 extension UserDataModel {
 
     /// Async sign-in. Fetches user profile from Supabase after auth succeeds.

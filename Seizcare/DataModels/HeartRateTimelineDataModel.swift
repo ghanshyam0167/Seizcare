@@ -7,14 +7,14 @@
 
 import Foundation
 
-// MARK: - Heart Rate Phase
+//  Heart Rate Phase
 enum HeartRatePhase: String, Codable {
     case before
     case during
     case after
 }
 
-// MARK: - Timeline Point
+//  Timeline Point
 struct HeartRateTimelinePoint: Identifiable {
     let id = UUID()
 
@@ -23,7 +23,7 @@ struct HeartRateTimelinePoint: Identifiable {
     let phase: HeartRatePhase
 }
 
-// MARK: - Builder (Mock / Server-ready)
+//  Builder (Mock / Server-ready)
 struct HeartRateTimelineBuilder {
 
     /// Generates HR timeline: 2h before → during → 2h after

@@ -72,7 +72,7 @@ class DetailRecordsTableViewController: UITableViewController {
     
     private func configureDynamicLabels() {
 
-        // MARK: - Title Labels (Fixed Width + High Priority)
+        //  Title Labels (Fixed Width + High Priority)
         let titleLabels = [
             durationTitleLabel,
             spo2TitleLabel,
@@ -85,7 +85,7 @@ class DetailRecordsTableViewController: UITableViewController {
 
             label.numberOfLines = 1
 
-            // 🔥 Give titles a fixed width (critical)
+            //  Give titles a fixed width (critical)
             if label.constraints.first(where: { $0.firstAttribute == .width }) == nil {
                 label.widthAnchor.constraint(equalToConstant: 120).isActive = true
             }
@@ -110,7 +110,7 @@ class DetailRecordsTableViewController: UITableViewController {
             label.lineBreakMode = .byWordWrapping
             label.textAlignment = .right
 
-            // 🔥 Allow horizontal expansion
+            // Allow horizontal expansion
             label.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
             label.setContentHuggingPriority(.defaultLow, for: .horizontal)
 
@@ -118,7 +118,7 @@ class DetailRecordsTableViewController: UITableViewController {
             label.setContentCompressionResistancePriority(.required, for: .vertical)
         }
 
-        // MARK: - Important: Remove any fixed height constraints
+        //  Important: Remove any fixed height constraints
         (titleLabels + valueLabels).forEach { label in
             guard let label else { return }
             label.constraints.forEach { constraint in
@@ -319,7 +319,7 @@ class DetailRecordsTableViewController: UITableViewController {
 
 
 
-        // MARK: - Automatic record display
+        //  Automatic record display
         func configureAutomatic(_ record: SeizureRecord) {
 
             seizureLevelLabel.text = record.type?.rawValue.capitalized
@@ -345,7 +345,7 @@ class DetailRecordsTableViewController: UITableViewController {
             }
         }
 
-        // MARK: - Manual record display (same UI, changed meaning)
+        //  Manual record display (same UI, changed meaning)
         func configureManual(_ record: SeizureRecord) {
 
             seizureLevelLabel.text = record.title ?? "Manual Log"
@@ -385,7 +385,7 @@ class DetailRecordsTableViewController: UITableViewController {
             let secs = Int(seconds) % 60
             return "\(mins) min \(secs) sec"
         }
-    // MARK: - Table View Gap Fixes
+    //  Table View Gap Fixes
 
     override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
         // Hide headers for manual records in sections 2 & 3
@@ -454,13 +454,13 @@ class DetailRecordsTableViewController: UITableViewController {
                 preferredStyle: .alert
             )
 
-            // ❌ Cancel
+            //  Cancel
             alert.addAction(UIAlertAction(
                 title: "Cancel",
                 style: .cancel
             ))
 
-            // 🗑️ Delete
+            //  Delete
             alert.addAction(UIAlertAction(
                 title: "Delete",
                 style: .destructive,

@@ -5,7 +5,7 @@
 
 import Foundation
 
-// MARK: - Notification Model
+//  Notification Model
 struct AppNotification: Identifiable, Codable, Equatable {
     let id: UUID
     let userId: UUID
@@ -60,10 +60,10 @@ class NotificationDataModel {
             print("⚠️ [NotificationDataModel] refreshNotifications failed:", error.localizedDescription)
         }
     }
-
-    // MARK: - Public CRUD Methods
-
-    /// Returns all notifications from the local cache.
+    
+    //  Public CRUD methods
+    
+    /// Returns all notifications (for admin/debug use)
     func getAllNotifications() -> [AppNotification] {
         return cachedNotifications
     }
@@ -71,7 +71,7 @@ class NotificationDataModel {
     /// Returns notifications for the currently logged-in user from the local cache.
     func getNotificationsForCurrentUser() -> [AppNotification] {
         guard let currentUser = UserDataModel.shared.getCurrentUser() else {
-            print("⚠️ No user is currently logged in.")
+            print(" No user is currently logged in.")
             return []
         }
         return cachedNotifications.filter { $0.userId == currentUser.id }
@@ -80,7 +80,7 @@ class NotificationDataModel {
     /// Adds a new notification for the currently logged-in user.
     func addNotification(title: String, iconName: String, description: String? = nil) {
         guard let currentUser = UserDataModel.shared.getCurrentUser() else {
-            print("⚠️ Cannot add notification — no user logged in.")
+            print("Cannot add notification — no user logged in.")
             return
         }
         let newNotification = AppNotification(

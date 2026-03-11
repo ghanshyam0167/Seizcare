@@ -21,14 +21,14 @@ struct TimePatternChart: View {
 
         VStack(alignment: .leading, spacing: 16) {
 
-            // ======================
+           
             // Header
-            // ======================
+           
 
 
-            // ======================
+           
             // Donut Chart
-            // ======================
+            
             Chart {
                 ForEach(data) { item in
                     SectorMark(
@@ -66,9 +66,9 @@ struct TimePatternChart: View {
                 }
             }
 
-            // ======================
+          
             // Legend
-            // ======================
+           
             VStack(spacing: 10) {
                 ForEach(data) { item in
                     HStack(spacing: 8) {
@@ -102,7 +102,7 @@ struct TimePatternChart: View {
 
         return VStack(spacing: 10) {
 
-            // 🟢 Accent indicator + title
+            
             HStack(spacing: 6) {
                 Circle()
                     .fill(accent)
@@ -113,7 +113,7 @@ struct TimePatternChart: View {
                     .foregroundStyle(.secondary)
             }
 
-            // 🔢 Main value
+            
             Text("\(item.count)")
                 .font(.system(size: 28, weight: .bold))
                 .foregroundStyle(accent)
@@ -122,7 +122,7 @@ struct TimePatternChart: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
-            // 📊 Percentage pill
+          
             Text("\(percentage(of: item))% of total")
                 .font(.caption2)
                 .padding(.horizontal, 8)
