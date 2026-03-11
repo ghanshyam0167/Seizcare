@@ -37,16 +37,16 @@ enum SeizureTimeBucket: String, Codable, CaseIterable {
     case evening
     case night
     case unknown
-    
+
     var displayText: String {
-           switch self {
-           case .morning: return "Morning"
-           case .afternoon: return "Afternoon"
-           case .evening: return "Evening"
-           case .night: return "Night"
-           case .unknown: return "Unknown"
-           }
-       }
+        switch self {
+        case .morning:   return "Morning"
+        case .afternoon: return "Afternoon"
+        case .evening:   return "Evening"
+        case .night:     return "Night"
+        case .unknown:   return "Unknown"
+        }
+    }
 }
 
 
@@ -104,31 +104,30 @@ struct SeizureRecord: Identifiable, Codable, Equatable {
         triggers: [SeizureTrigger]? = nil,
         timeBucket: SeizureTimeBucket? = nil
     ) {
-        self.id = id
-        self.userId = userId
-        self.entryType = entryType
-        self.dateTime = dateTime
+        self.id          = id
+        self.userId      = userId
+        self.entryType   = entryType
+        self.dateTime    = dateTime
         self.description = description
-        self.type = type
-        self.duration = duration
-        self.spo2 = spo2
-        self.heartRate = heartRate
-        self.location = location
-        self.title = title
-        self.symptoms = symptoms
-        self.triggers = triggers
+        self.type        = type
+        self.duration    = duration
+        self.spo2        = spo2
+        self.heartRate   = heartRate
+        self.location    = location
+        self.title       = title
+        self.symptoms    = symptoms
+        self.triggers    = triggers
 
         if let explicitBucket = timeBucket {
             self.timeBucket = explicitBucket
         } else {
-            // Auto-assign time bucket
             let hour = Calendar.current.component(.hour, from: dateTime)
             switch hour {
-            case 5..<12: self.timeBucket = .morning
-            case 12..<17: self.timeBucket = .afternoon
-            case 17..<22: self.timeBucket = .evening
+            case 5..<12:        self.timeBucket = .morning
+            case 12..<17:       self.timeBucket = .afternoon
+            case 17..<22:       self.timeBucket = .evening
             case 22...23, 0..<5: self.timeBucket = .night
-            default: self.timeBucket = .unknown
+            default:            self.timeBucket = .unknown
             }
         }
     }
@@ -145,10 +144,7 @@ final class SeizureRecordDataModel {
 
     static let shared = SeizureRecordDataModel()
 
-    private let documentsDirectory =
-        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-
-    private let archiveURL: URL
+    /// In-memory cache – DashboardDataModel reads from this via the sync getters.
     private var records: [SeizureRecord] = []
 
     
@@ -164,6 +160,24 @@ final class SeizureRecordDataModel {
         
         
 
+    /// Fetches all records for the current user from Supabase (including triggers)
+    /// and refreshes the local cache.
+    func refreshRecords() async {
+        guard let userId = UserDataModel.shared.getCurrentUser()?.id else { return }
+        do {
+            let dtos = try await SupabaseService.shared.fetchSeizureRecords(userId: userId)
+
+            // Fetch triggers for all records in parallel
+            var loaded: [SeizureRecord] = []
+            for dto in dtos {
+                let triggerDTOs = try await SupabaseService.shared.fetchTriggers(recordId: dto.id)
+                let triggers = triggerDTOs.compactMap { SeizureTrigger(rawValue: $0.trigger) }
+                loaded.append(dto.toDomain(triggers: triggers))
+            }
+            records = loaded
+        } catch {
+            print("⚠️ [SeizureRecordDataModel] refreshRecords failed:", error.localizedDescription)
+        }
     }
 
     
@@ -177,7 +191,6 @@ final class SeizureRecordDataModel {
         guard let currentUser = UserDataModel.shared.getCurrentUser() else {
             return []
         }
-        loadRecords()
         return records.filter { $0.userId == currentUser.id }
     }
 
@@ -197,7 +210,7 @@ final class SeizureRecordDataModel {
         guard let currentUser = UserDataModel.shared.getCurrentUser() else { return }
 
         let record = SeizureRecord(
-            id : UUID(),
+            id: UUID(),
             userId: currentUser.id,
             entryType: .automatic,
             dateTime: dateTime,
@@ -211,12 +224,12 @@ final class SeizureRecordDataModel {
         )
 
         records.append(record)
-        saveRecords()
+        persistRecord(record)
     }
 
     func addManualRecord(_ record: SeizureRecord) {
         records.append(record)
-        saveRecords()
+        persistRecord(record)
     }
 
    
@@ -225,22 +238,35 @@ final class SeizureRecordDataModel {
     func updateRecord(_ record: SeizureRecord) {
         if let index = records.firstIndex(where: { $0.id == record.id }) {
             records[index] = record
-            saveRecords()
+        }
+        Task {
+            do {
+                // Update the main row
+                try await SupabaseService.shared.updateSeizureRecord(SeizureRecordDTO(from: record))
+                // Refresh triggers: delete old + insert new
+                try await SupabaseService.shared.deleteTriggers(recordId: record.id)
+                if let triggers = record.triggers, !triggers.isEmpty {
+                    let dtos = triggers.map { SeizureTriggerDTO(recordId: record.id, trigger: $0) }
+                    try await SupabaseService.shared.insertTriggers(dtos)
+                }
+            } catch {
+                print("⚠️ [SeizureRecordDataModel] updateRecord failed:", error.localizedDescription)
+            }
         }
     }
-    func updateRecordDescription(id: UUID, newDescription: String) {
-        print("Updating ID:", id)
 
+    func updateRecordDescription(id: UUID, newDescription: String) {
         if let index = records.firstIndex(where: { $0.id == id }) {
             var record = records[index]
             record.description = newDescription
             records[index] = record
-            saveRecords()
+            updateRecord(record)
         }
     }
 
     func deleteRecord(at index: Int) {
         guard records.indices.contains(index) else { return }
+        let recordId = records[index].id
         records.remove(at: index)
         saveRecords()
     }
@@ -345,11 +371,7 @@ final class SeizureRecordDataModel {
                 )
             }
         }
-
-        // Sort latest first (important for UI)
-        return records.sorted { $0.dateTime > $1.dateTime }
     }
-
 }
 
 
@@ -362,18 +384,9 @@ extension SeizureRecordDataModel {
             .prefix(2)
             .map { $0 }
     }
-    
-    func getSpO2Timeline(
-        for record: SeizureRecord
-    ) -> [SpO2TimelinePoint] {
 
-        // Only automatic records have SpO2 context
-        guard record.entryType == .automatic else {
-            return []
-        }
-
-        return SpO2TimelineBuilder.generateTimeline(
-            seizureTime: record.dateTime
-        )
+    func getSpO2Timeline(for record: SeizureRecord) -> [SpO2TimelinePoint] {
+        guard record.entryType == .automatic else { return [] }
+        return SpO2TimelineBuilder.generateTimeline(seizureTime: record.dateTime)
     }
 }

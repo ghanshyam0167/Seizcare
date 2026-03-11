@@ -9,14 +9,54 @@ import Foundation
 final class SleepDataModel {
 
     static let shared = SleepDataModel()
+
+    /// In-memory cache populated by `refreshSleepData()`.
+    private var cachedEntries: [SleepEntry] = []
+
     private init() {}
 
-    struct SleepEntry {
+    // MARK: - SleepEntry (Codable so it maps to Supabase sleep_data table)
+    struct SleepEntry: Codable {
         let date: Date
         let hours: Double
     }
 
+    // MARK: - Async Refresh (call from ViewControllers / scene setup)
+
+    /// Fetches sleep entries for the current user from Supabase and updates the cache.
+    func refreshSleepData() async {
+        guard let userId = UserDataModel.shared.getCurrentUser()?.id else { return }
+        do {
+            let dtos = try await SupabaseService.shared.fetchSleepEntries(userId: userId)
+            cachedEntries = dtos.map { SleepEntry(date: $0.date, hours: $0.hours) }
+                .sorted { $0.date < $1.date }
+        } catch {
+            print("⚠️ [SleepDataModel] refreshSleepData failed:", error.localizedDescription)
+        }
+    }
+
+    /// Inserts a new sleep entry for the current user into Supabase.
+    func addSleepEntry(date: Date, hours: Double) {
+        let entry = SleepEntry(date: date, hours: hours)
+        cachedEntries.append(entry)
+        cachedEntries.sort { $0.date < $1.date }
+        Task {
+            guard let userId = UserDataModel.shared.getCurrentUser()?.id else { return }
+            do {
+                let dto = SleepEntryDTO(userId: userId, date: date, hours: hours)
+                try await SupabaseService.shared.insertSleepEntry(dto)
+            } catch {
+                print("⚠️ [SleepDataModel] addSleepEntry failed:", error.localizedDescription)
+            }
+        }
+    }
+
+    // MARK: - Synchronous Accessors (used by DashboardDataModel analytics – unchanged interface)
+
+    /// Returns the cached sleep entries. Falls back to 30-day mock data if cache is empty.
     func getDailySleepData() -> [SleepEntry] {
+        if !cachedEntries.isEmpty { return cachedEntries }
+        // Fallback mock data so Dashboard charts always have something to render
         let cal = Calendar.current
         return (0..<30).map {
             SleepEntry(

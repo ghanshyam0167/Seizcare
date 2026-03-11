@@ -2,24 +2,20 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>Privacy - Health Share Usage Description
-Privacy - Health Share Usage Description
-</key>
-	<string>Seizcare reads heart rate, oxygen saturation, and sleep data to detect potential seizure risk patterns and provide health insights.
-Seizcare reads heart rate, oxygen saturation, and sleep data to detect potential seizure risk patterns and provide health insights.
-Seizcare reads heart rate, oxygen saturation, and sleep data to detect potential seizure risk patterns and provide health insights.
-Seizcare read heart rate , oxygen saturation and sleep data to detect potential seizure risk patterns and provide health insights
-&lt;!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"&gt;
-&lt;plist version="1.0"&gt;
-&lt;string&gt;&lt;/string&gt;
-&lt;/plist&gt;
-</string>
-	<key>Privacy - Health Update Usage Description
-Privacy - Health Update Usage Description
-Privacy - Health Update Usage Description
-Privacy - Health Update Usage Description
-Privacy - Health Update Usage Descripption</key>
-	<string>Seizcare may store detected seizure events in Healthkit to maintain accurate health records.</string>
+<key>NSHealthShareUsageDescription</key>
+<string>Seizcare reads heart rate, oxygen saturation, and sleep data to detect potential seizure risk patterns and provide health insights.</string>
+
+<key>NSHealthUpdateUsageDescription</key>
+<string>Seizcare may store detected seizure events in HealthKit to maintain accurate health records.</string>
+
+<key>NSContactsUsageDescription</key>
+<string>Seizcare needs access to your contacts so you can add emergency contacts who will be notified during a seizure event.</string>
+
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>Seizcare needs your location to share your live location with emergency contacts during a seizure episode.</string>
+
+<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+<string>Seizcare needs your location to share your live location with emergency contacts during a seizure episode, even if the app is in the background.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

@@ -240,13 +240,8 @@ class SignUpTableViewController: UITableViewController {
                        return
                    }
 
-           if UserDataModel.shared.getAllUsers().contains(where: { $0.email == email }) {
-               showAlert("An account with this email already exists.")
-               return
-           }
-
            // -------------------------
-           // Create User
+           // Create User + Supabase Sign Up
            // -------------------------
            let newUser = User(
                fullName: fullName,
@@ -257,12 +252,33 @@ class SignUpTableViewController: UITableViewController {
                password: password
            )
 
-           UserDataModel.shared.addUser(newUser)
-           let loginSuccess = UserDataModel.shared.loginUser(emailOrPhone: email, password: password)
-               print("Auto-login status → \(loginSuccess)")
+           // Disable button and show loading to prevent double-taps
+           sender.isEnabled = false
+           sender.setTitle("Creating account…", for: .normal)
 
-           // Navigate after signup
-           performSegue(withIdentifier: "goToSignupSuccess", sender: self)
+           Task {
+               do {
+                   // 1. Create Supabase Auth user, insert profile row,
+                   //    set currentUser + UserDefaults — all in one awaited call.
+                   try await UserDataModel.shared.signUpUserAsync(user: newUser)
+
+                   // 2. Verify session is ready before navigating.
+                   guard UserDataModel.shared.getCurrentUser() != nil else {
+                       throw SupabaseServiceError.authFailed("Session not established after sign-up.")
+                   }
+
+                   // 3. Navigate on the main thread.
+                   await MainActor.run {
+                       self.performSegue(withIdentifier: "goToSignupSuccess", sender: self)
+                   }
+               } catch {
+                   await MainActor.run {
+                       sender.isEnabled = true
+                       sender.setTitle("Create Account", for: .normal)
+                       self.showAlert("Sign up failed: \(error.localizedDescription)")
+                   }
+               }
+           }
        }
     // MARK: - Validate Password
     

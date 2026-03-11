@@ -1,8 +1,6 @@
 //
-//  User.swift
-//  SeizureDetection
-//
-//  Created by Diya Sharma on 10/11/25.
+//  UserDataModel.swift
+//  Seizcare
 //
 
 import Foundation
@@ -23,13 +21,13 @@ struct User: Identifiable, Codable, Equatable {
     var contactNumber: String
     var gender: Gender
     var dateOfBirth: Date
-    var password: String
-    
-    // Vitals (Basic profile info only)
+    var password: String       // Kept for model compatibility; auth is handled by Supabase Auth
+
+    // Vitals
     var height: Double?
     var weight: Double?
     var bloodGroup: String?
-    
+
     init(
         id: UUID = UUID(),
         fullName: String,
@@ -42,18 +40,18 @@ struct User: Identifiable, Codable, Equatable {
         weight: Double? = nil,
         bloodGroup: String? = nil
     ) {
-        self.id = id
-        self.fullName = fullName
-        self.email = email
+        self.id            = id
+        self.fullName      = fullName
+        self.email         = email
         self.contactNumber = contactNumber
-        self.gender = gender
-        self.dateOfBirth = dateOfBirth
-        self.password = password
-        self.height = height
-        self.weight = weight
-        self.bloodGroup = bloodGroup
+        self.gender        = gender
+        self.dateOfBirth   = dateOfBirth
+        self.password      = password
+        self.height        = height
+        self.weight        = weight
+        self.bloodGroup    = bloodGroup
     }
-    
+
     static func == (lhs: User, rhs: User) -> Bool {
         lhs.id == rhs.id
     }
@@ -61,13 +59,13 @@ struct User: Identifiable, Codable, Equatable {
 
 //  User Data Model
 class UserDataModel {
-    
+
     static let shared = UserDataModel()
-    
-    private let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-    private let archiveURL: URL
-    
-    private var users: [User] = []
+
+    // In-memory session — Supabase is the only source of truth.
+    // This is populated by signUpUserAsync / loginUserAsync / restoreSession.
+    private(set) var currentUser: User?
+
     private let currentUserKey = "currentUserId"
     private var currentUser: User?
     
@@ -89,26 +87,36 @@ class UserDataModel {
         // Ensure someone is logged in
         guard let current = currentUser else { return }
 
-        // Replace the existing user with the updated one
-        if let index = users.firstIndex(where: { $0.id == current.id }) {
-            users[index] = updatedUser
-            currentUser = updatedUser
-            saveUsers()
+    private init() {}
 
-            // Store updated ID just to keep consistency
-            UserDefaults.standard.set(updatedUser.id.uuidString, forKey: currentUserKey)
+    // MARK: - Session Restore
+    // Call this once from SceneDelegate/AppDelegate after the app launches.
+    // Restores the authenticated session entirely from Supabase (not from a local cache).
+
+    /// Re-authenticates the Supabase session and fetches the user profile.
+    /// Call from SceneDelegate.sceneWillEnterForeground or AppDelegate.didFinishLaunching.
+    func restoreSession() async {
+        do {
+            // Ask Supabase Auth for the current session user id
+            guard let uid = await SupabaseService.shared.currentUserId() else {
+                currentUser = nil
+                return
+            }
+            let dto = try await SupabaseService.shared.fetchUser(id: uid)
+            currentUser = dto?.toDomain()
+            if let id = currentUser?.id {
+                UserDefaults.standard.set(id.uuidString, forKey: currentUserKey)
+            }
+        } catch {
+            print("⚠️ [UserDataModel] restoreSession failed:", error.localizedDescription)
+            currentUser = nil
         }
     }
 
-    
-    func deleteUser(at index: Int) {
-        guard users.indices.contains(index) else { return }
-        users.remove(at: index)
-        saveUsers()
-    }
-    
-    func getAllUsers() -> [User] {
-        return users
+    // MARK: - Current User
+
+    func getCurrentUser() -> User? {
+        return currentUser
     }
     
     //Private Storage Helpers
@@ -119,83 +127,120 @@ class UserDataModel {
             users = loadSampleUsers()
         }
     }
-    
-    private func loadUsersFromDisk() -> [User]? {
-        guard let data = try? Data(contentsOf: archiveURL) else { return nil }
-        let decoder = PropertyListDecoder()
-        return try? decoder.decode([User].self, from: data)
+
+    /// Updates the current user's profile in Supabase and refreshes the local session.
+    func updateCurrentUser(_ updatedUser: User) {
+        currentUser = updatedUser
+        UserDefaults.standard.set(updatedUser.id.uuidString, forKey: currentUserKey)
+        Task {
+            do {
+                try await SupabaseService.shared.updateUser(UserDTO(from: updatedUser))
+            } catch {
+                print("⚠️ [UserDataModel] updateCurrentUser failed:", error.localizedDescription)
+            }
+        }
     }
-    
-    private func saveUsers() {
-        let encoder = PropertyListEncoder()
-        let data = try? encoder.encode(users)
-        try? data?.write(to: archiveURL, options: .noFileProtection)
-    }
-    
-    private func loadSampleUsers() -> [User] {
-        let user1 = User(
-            id: UUID(uuidString: "A44B2A65-159A-46EF-812C-66CF308E809E")!,
-            fullName: "Ghanshyam Agrawal",
-            email: "ghanshyam@example.com",
-            contactNumber: "+91 9876543210",
-            gender: .male,
-            dateOfBirth: Date(timeIntervalSince1970: 946684800), // 2000-01-01
-            password: "password121",
-            height: 172.0,
-            weight: 68.0,
-            bloodGroup: "O+"
-        )
-        
-        let user2 = User(
-            fullName: "Diya Sharma",
-            email: "diya@example.com",
-            contactNumber: "+91 9988776655",
-            gender: .female,
-            dateOfBirth: Date(timeIntervalSince1970: 883612800), // 1998-01-01
-            password: "password121",
-            height: 160.0,
-            weight: 55.0,
-            bloodGroup: "A+"
-        )
-        
-        return [user1, user2]
+
+    // MARK: - Backward Compat (used by some VCs)
+
+    /// Returns the current user in an array if set, otherwise empty — replaces the old getAllUsers().
+    func getAllUsers() -> [User] {
+        return currentUser.map { [$0] } ?? []
     }
 }
 
 //  - Authentication Extension
 extension UserDataModel {
-    
-    func loginUser(emailOrPhone: String, password: String) -> Bool {
-        if let user = validateUser(identifier: emailOrPhone, password: password) {
+
+    /// Async sign-in. Fetches user profile from Supabase after auth succeeds.
+    /// Await this before navigating to protected screens.
+    func loginUserAsync(email: String, password: String) async throws {
+        print("[Auth] Attempting sign-in for: \(email)")
+
+        // Step 1 — Supabase Auth. This throws if credentials are wrong OR
+        // if the account email has not been confirmed yet.
+        let uid: UUID
+        do {
+            uid = try await SupabaseService.shared.signIn(email: email, password: password)
+            print("[Auth] Supabase Auth OK — uid: \(uid)")
+        } catch {
+            print("[Auth] Supabase signIn FAILED:", error.localizedDescription)
+            // Re-throw so the VC can surface the real reason
+            throw error
+        }
+
+        // Step 2 — Fetch profile row from the users table.
+        let dto: UserDTO?
+        do {
+            dto = try await SupabaseService.shared.fetchUser(id: uid)
+        } catch {
+            print("[Auth] fetchUser FAILED:", error.localizedDescription)
+            dto = nil   // treat as missing profile; fall through to graceful path
+        }
+
+        if let user = dto?.toDomain() {
+            print("[Auth] Profile found: \(user.fullName)")
             currentUser = user
-            UserDefaults.standard.set(user.id.uuidString, forKey: currentUserKey)
-            return true
+        } else {
+            // Auth succeeded but no profile row exists yet (e.g. row was never
+            // inserted, or the users table is empty). Build a minimal session
+            // from what we know so the app still navigates correctly.
+            print("[Auth] No profile row found — creating minimal session for uid \(uid)")
+            let minimal = User(
+                id:            uid,
+                fullName:      "",
+                email:         email,
+                contactNumber: "",
+                gender:        .unspecified,
+                dateOfBirth:   Date(),
+                password:      ""
+            )
+            currentUser = minimal
         }
-        
-        return false
+        UserDefaults.standard.set(uid.uuidString, forKey: currentUserKey)
     }
-    
+
+    /// Legacy synchronous wrapper — kept for backward compatibility.
+    /// Prefer loginUserAsync for new or refactored call sites.
+    @discardableResult
+    func loginUser(emailOrPhone: String, password: String) -> Bool {
+        Task {
+            do {
+                try await loginUserAsync(email: emailOrPhone, password: password)
+            } catch {
+                print("⚠️ [UserDataModel] loginUser failed:", error.localizedDescription)
+            }
+        }
+        return true   // optimistic; real result comes via currentUser being set
+    }
+
+    /// Register via Supabase Auth, insert a profile row, and establish the local session.
+    /// Await this before navigating to protected screens.
+    func signUpUserAsync(user: User) async throws {
+        let uid = try await SupabaseService.shared.signUp(email: user.email, password: user.password)
+        // Use the Supabase auth uid as the profile id so all foreign keys align.
+        let profileUser = User(
+            id:            uid,
+            fullName:      user.fullName,
+            email:         user.email,
+            contactNumber: user.contactNumber,
+            gender:        user.gender,
+            dateOfBirth:   user.dateOfBirth,
+            password:      "",
+            height:        user.height,
+            weight:        user.weight,
+            bloodGroup:    user.bloodGroup
+        )
+        try await SupabaseService.shared.insertUser(UserDTO(from: profileUser))
+        // Session is live — set currentUser before returning so callers can verify.
+        currentUser = profileUser
+        UserDefaults.standard.set(profileUser.id.uuidString, forKey: currentUserKey)
+    }
+
     func logoutUser(completion: @escaping (Bool) -> Void) {
-        // Clear stored user data
-        UserDefaults.standard.removeObject(forKey: "loggedInUser")
-
+        currentUser = nil
+        UserDefaults.standard.removeObject(forKey: currentUserKey)
+        Task { try? await SupabaseService.shared.signOut() }
         completion(true)
-    }
-
-    
-    func getCurrentUser() -> User? {
-        return currentUser
-    }
-    
-    private func loadCurrentUser() {
-        if let userIdString = UserDefaults.standard.string(forKey: currentUserKey),
-           let userId = UUID(uuidString: userIdString),
-           let savedUser = users.first(where: { $0.id == userId }) {
-            currentUser = savedUser
-        }
-    }
-    
-    private func validateUser(identifier: String, password: String) -> User? {
-        return users.first(where: { ($0.email == identifier || $0.contactNumber == identifier) && $0.password == password })
     }
 }
