@@ -23,40 +23,64 @@ class SignInViewController: UIViewController,UITextFieldDelegate {
 
     // MARK: - Sign In Action
     @IBAction func SignInAction(_ sender: Any) {
-        let email = (emailField.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let email    = (emailField.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         let password = passwordField.text ?? ""
-
-        debugLog("User entered → Email: \(email), Password: \(password)")
 
         if email.isEmpty || password.isEmpty {
             showAlert(message: "Please enter email or phone and password.")
             return
         }
 
-        debugLog("Attempting login with UserDataModel…")
-        let loginSuccess = UserDataModel.shared.loginUser(emailOrPhone: email, password: password)
+        // Disable button while request is in-flight
+        signInButton.isEnabled = false
+        signInButton.setTitle("Signing in…", for: .normal)
 
-        if loginSuccess {
-            debugLog("Login SUCCESS → UserDataModel accepted credentials.")
-            // Go directly to Dashboard for existing users (skip onboarding)
-            let dashboardStoryboard = UIStoryboard(name: "Dashboard", bundle: nil)
-            if let dashboardVC = dashboardStoryboard.instantiateInitialViewController() {
-                let navController = UINavigationController(rootViewController: dashboardVC)
-                if let scene = view.window?.windowScene,
-                   let sceneDelegate = scene.delegate as? UIWindowSceneDelegate,
-                   let window = sceneDelegate.window ?? view.window {
-                    let transition = CATransition()
-                    transition.duration = 0.3
-                    transition.type = .push
-                    transition.subtype = .fromRight
-                    transition.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-                    window.layer.add(transition, forKey: kCATransition)
-                    window.rootViewController = navController
+        Task {
+            do {
+                // Awaits Supabase Auth + profile fetch — currentUser is set before returning
+                try await UserDataModel.shared.loginUserAsync(email: email, password: password)
+
+                guard UserDataModel.shared.getCurrentUser() != nil else {
+                    throw SupabaseServiceError.authFailed("Session not established after login.")
+                }
+
+                await MainActor.run {
+                    debugLog("Login SUCCESS — navigating to Dashboard")
+                    let dashboardStoryboard = UIStoryboard(name: "Dashboard", bundle: nil)
+                    if let dashboardVC = dashboardStoryboard.instantiateInitialViewController() {
+                        let navController = UINavigationController(rootViewController: dashboardVC)
+                        if let scene = self.view.window?.windowScene,
+                           let sceneDelegate = scene.delegate as? UIWindowSceneDelegate,
+                           let window = sceneDelegate.window ?? self.view.window {
+                            let transition = CATransition()
+                            transition.duration = 0.3
+                            transition.type = .push
+                            transition.subtype = .fromRight
+                            transition.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+                            window.layer.add(transition, forKey: kCATransition)
+                            window.rootViewController = navController
+                        }
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    debugLog("Login FAILED: \(error.localizedDescription)")
+                    self.signInButton.isEnabled = true
+                    self.signInButton.setTitle("Sign In", for: .normal)
+
+                    // Show the real Supabase error so the problem is obvious
+                    let raw = error.localizedDescription
+                    let message: String
+                    if raw.lowercased().contains("email not confirmed") {
+                        message = "Please confirm your email address before signing in. Check your inbox."
+                    } else if raw.lowercased().contains("invalid login") || raw.lowercased().contains("invalid credentials") {
+                        message = "Incorrect email or password. Please try again."
+                    } else {
+                        message = raw   // show exactly what Supabase returned
+                    }
+                    self.showAlert(message: message)
                 }
             }
-        } else {
-            debugLog("Login FAILED → No matching user in stored users.")
-            showAlert(message: "Invalid email or password.")
         }
     }
 
