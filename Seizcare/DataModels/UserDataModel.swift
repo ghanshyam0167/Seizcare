@@ -1,7 +1,6 @@
 //
 //  UserDataModel.swift
 //  Seizcare
-//
 
 import Foundation
 
@@ -67,25 +66,6 @@ class UserDataModel {
     private(set) var currentUser: User?
 
     private let currentUserKey = "currentUserId"
-    private var currentUser: User?
-    
-    private init() {
-        archiveURL = documentsDirectory
-            .appendingPathComponent("users")
-            .appendingPathExtension("plist")
-        loadUsers()
-        loadCurrentUser()
-    }
-    
-    //  CRUD
-    func addUser(_ user: User) {
-        users.append(user)
-        saveUsers()
-    }
-    
-    func updateCurrentUser(_ updatedUser: User) {
-        // Ensure someone is logged in
-        guard let current = currentUser else { return }
 
     private init() {}
 
@@ -117,15 +97,6 @@ class UserDataModel {
 
     func getCurrentUser() -> User? {
         return currentUser
-    }
-    
-    //Private Storage Helpers
-    private func loadUsers() {
-        if let savedUsers = loadUsersFromDisk() {
-            users = savedUsers
-        } else {
-            users = loadSampleUsers()
-        }
     }
 
     /// Updates the current user's profile in Supabase and refreshes the local session.

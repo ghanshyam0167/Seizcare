@@ -1,7 +1,6 @@
 //
 //  EmergencyContactsDataModel.swift
 //  Seizcare
-//
 
 import Foundation
 
@@ -54,9 +53,9 @@ class EmergencyContactDataModel {
             print("⚠️ [EmergencyContactDataModel] refreshContacts failed:", error.localizedDescription)
         }
     }
-    
+
     //  Public Methods
-    
+
     /// Get all contacts (for debugging/admin)
     func getAllContacts() -> [EmergencyContact] {
         return cachedContacts
@@ -83,15 +82,12 @@ class EmergencyContactDataModel {
             contactNumber: contactNumber
         )
         cachedContacts.append(newContact)
-
-    
-    //  Private Methods
-    
-    private func loadContacts() {
-        if let savedContacts = loadContactsFromDisk() {
-            contacts = savedContacts
-        } else {
-            contacts = loadSampleContacts()
+        Task {
+            do {
+                try await SupabaseService.shared.insertContact(EmergencyContactDTO(from: newContact))
+            } catch {
+                print("⚠️ [EmergencyContactDataModel] addContact failed:", error.localizedDescription)
+            }
         }
     }
 

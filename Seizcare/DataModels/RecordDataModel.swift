@@ -1,7 +1,6 @@
 //
 //  RecordDataModel.swift
 //  Seizcare
-//
 
 import Foundation
 import Charts
@@ -85,9 +84,9 @@ struct SeizureRecord: Identifiable, Codable, Equatable {
     var triggers: [SeizureTrigger]?
     var timeBucket: SeizureTimeBucket
 
-    
+
     //  Init
-    
+
     init(
         id: UUID,
         userId: UUID,
@@ -147,18 +146,10 @@ final class SeizureRecordDataModel {
     /// In-memory cache – DashboardDataModel reads from this via the sync getters.
     private var records: [SeizureRecord] = []
 
-    
+
     //  Init
-    
-    private init() {
-        
-        archiveURL = documentsDirectory
-            .appendingPathComponent("seizureRecords")
-            .appendingPathExtension("plist")
-        loadRecords()
-        
-        
-        
+
+    private init() {}
 
     /// Fetches all records for the current user from Supabase (including triggers)
     /// and refreshes the local cache.
@@ -180,9 +171,9 @@ final class SeizureRecordDataModel {
         }
     }
 
-    
+
     //  Public Access
-    
+
     func getAllRecords() -> [SeizureRecord] {
         records
     }
@@ -195,8 +186,8 @@ final class SeizureRecordDataModel {
     }
 
 
-    //Add Records
-    
+    //  Add Records
+
     func addAutomaticRecord(
         type: SeizureType,
         dateTime: Date,
@@ -232,9 +223,9 @@ final class SeizureRecordDataModel {
         persistRecord(record)
     }
 
-   
+
     //  Update / Delete
-    
+
     func updateRecord(_ record: SeizureRecord) {
         if let index = records.firstIndex(where: { $0.id == record.id }) {
             records[index] = record
@@ -268,37 +259,36 @@ final class SeizureRecordDataModel {
         guard records.indices.contains(index) else { return }
         let recordId = records[index].id
         records.remove(at: index)
-        saveRecords()
-    }
-
-   
-    
-   
-    private func loadRecords() {
-        
-        if let saved = loadFromDisk() {
-            records = saved
-        } else {
-            // Start with an empty list for new users
-             records = loadSampleRecords()
-            saveRecords()
+        Task {
+            do {
+                try await SupabaseService.shared.deleteSeizureRecord(id: recordId)
+            } catch {
+                print("⚠️ [SeizureRecordDataModel] deleteRecord failed:", error.localizedDescription)
+            }
         }
     }
 
-    private func loadFromDisk() -> [SeizureRecord]? {
-        guard let data = try? Data(contentsOf: archiveURL) else { return nil }
-        return try? PropertyListDecoder().decode([SeizureRecord].self, from: data)
+
+    //  Persist Helper
+
+    private func persistRecord(_ record: SeizureRecord) {
+        Task {
+            do {
+                try await SupabaseService.shared.insertSeizureRecord(SeizureRecordDTO(from: record))
+                if let triggers = record.triggers, !triggers.isEmpty {
+                    let dtos = triggers.map { SeizureTriggerDTO(recordId: record.id, trigger: $0) }
+                    try await SupabaseService.shared.insertTriggers(dtos)
+                }
+            } catch {
+                print("⚠️ [SeizureRecordDataModel] persistRecord failed:", error.localizedDescription)
+            }
+        }
     }
 
-    private func saveRecords() {
-        let data = try? PropertyListEncoder().encode(records)
-        try? data?.write(to: archiveURL, options: .noFileProtection)
-    }
 
-    
-    //  Sample Data (UPDATED)
-    
-    private func loadSampleRecords() -> [SeizureRecord] {
+    //  Sample Data
+
+    func loadSampleRecords() -> [SeizureRecord] {
         guard let userId = UserDataModel.shared.getCurrentUser()?.id else { return [] }
 
         let calendar = Calendar.current
@@ -343,7 +333,7 @@ final class SeizureRecordDataModel {
             if isAutomatic {
                 records.append(
                     SeizureRecord(
-                        id : UUID(),
+                        id: UUID(),
                         userId: userId,
                         entryType: .automatic,
                         dateTime: date,
@@ -359,11 +349,12 @@ final class SeizureRecordDataModel {
             } else {
                 records.append(
                     SeizureRecord(
-                        id : UUID(),
+                        id: UUID(),
                         userId: userId,
                         entryType: .manual,
                         dateTime: date,
-                        type: SeizureType.allCases.randomElement()!, duration: TimeInterval(Int.random(in: 40...150)),
+                        type: SeizureType.allCases.randomElement()!,
+                        duration: TimeInterval(Int.random(in: 40...150)),
                         title: manualTitles.randomElement()!,
                         symptoms: (symptomsPool.randomElement() ?? []).map { $0.rawValue },
                         triggers: triggersPool.randomElement()!
@@ -371,6 +362,7 @@ final class SeizureRecordDataModel {
                 )
             }
         }
+        return records
     }
 }
 
