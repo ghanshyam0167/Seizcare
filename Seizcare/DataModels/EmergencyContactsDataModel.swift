@@ -1,8 +1,6 @@
 //
-//  EmergencyContacts.swift
-//  SeizureDetection
-//
-//  Created by Diya Sharma on 10/11/25.
+//  EmergencyContactsDataModel.swift
+//  Seizcare
 //
 
 import Foundation
@@ -13,103 +11,97 @@ struct EmergencyContact: Equatable, Codable {
     let userId: UUID
     var name: String
     var contactNumber: String
-    
-    init(userId: UUID,  name: String, contactNumber: String) {
-        self.id = UUID()
-        self.userId = userId
-        self.name = name
+
+    /// Convenience init for creating new contacts (generates a new UUID).
+    init(userId: UUID, name: String, contactNumber: String) {
+        self.id            = UUID()
+        self.userId        = userId
+        self.name          = name
         self.contactNumber = contactNumber
     }
-    
-    static func ==(lhs: EmergencyContact, rhs: EmergencyContact) -> Bool {
-        return lhs.id == rhs.id
+
+    /// Full memberwise init used by DTO → domain conversion.
+    init(id: UUID, userId: UUID, name: String, contactNumber: String) {
+        self.id            = id
+        self.userId        = userId
+        self.name          = name
+        self.contactNumber = contactNumber
+    }
+
+    static func == (lhs: EmergencyContact, rhs: EmergencyContact) -> Bool {
+        lhs.id == rhs.id
     }
 }
 
+// MARK: - Emergency Contact Data Model
 class EmergencyContactDataModel {
-    
+
     static let shared = EmergencyContactDataModel()
-    
-    private let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-    private let archiveURL: URL
-    
-    private var contacts: [EmergencyContact] = []
-    
-    private init() {
-        archiveURL = documentsDirectory
-            .appendingPathComponent("emergencyContacts")
-            .appendingPathExtension("plist")
-        loadContacts()
+
+    private var cachedContacts: [EmergencyContact] = []
+
+    private init() {}
+
+    // MARK: - Public Refresh (async, call from ViewControllers)
+
+    /// Fetches contacts for the current user from Supabase and updates the cache.
+    func refreshContacts() async {
+        guard let userId = UserDataModel.shared.getCurrentUser()?.id else { return }
+        do {
+            let dtos = try await SupabaseService.shared.fetchContacts(userId: userId)
+            cachedContacts = dtos.map { $0.toDomain() }
+        } catch {
+            print("⚠️ [EmergencyContactDataModel] refreshContacts failed:", error.localizedDescription)
+        }
     }
-    
+
     // MARK: - Public Methods
-    
-    /// Get all contacts (for debugging/admin)
+
+    /// Returns all contacts from the local cache (for debugging/admin).
     func getAllContacts() -> [EmergencyContact] {
-        return contacts
+        return cachedContacts
     }
-    
-    /// Get all contacts for the currently logged-in user
+
+    /// Returns contacts for the currently logged-in user from the local cache.
     func getContactsForCurrentUser() -> [EmergencyContact] {
         guard let currentUser = UserDataModel.shared.getCurrentUser() else {
             print("⚠️ No user logged in.")
             return []
         }
-        return contacts.filter { $0.userId == currentUser.id }
+        return cachedContacts.filter { $0.userId == currentUser.id }
     }
-    
-    /// Add a new contact for the currently logged-in user
+
+    /// Adds a new contact for the currently logged-in user.
     func addContact(name: String, contactNumber: String) {
         guard let currentUser = UserDataModel.shared.getCurrentUser() else {
             print("⚠️ Cannot add contact — no user logged in.")
             return
         }
-        
         let newContact = EmergencyContact(
             userId: currentUser.id,
             name: name,
             contactNumber: contactNumber
         )
-        
-        contacts.append(newContact)
-        saveContacts()
-    }
-        
-    func deleteContact(id: UUID) {
-        contacts.removeAll { $0.id == id }
-        saveContacts()
-    }
+        cachedContacts.append(newContact)
 
-    
-    // MARK: - Private Methods
-    
-    private func loadContacts() {
-        if let savedContacts = loadContactsFromDisk() {
-            contacts = savedContacts
-        } else {
-            contacts = loadSampleContacts()
+        Task {
+            do {
+                try await SupabaseService.shared.insertContact(EmergencyContactDTO(from: newContact))
+            } catch {
+                print("⚠️ [EmergencyContactDataModel] insertContact failed:", error.localizedDescription)
+            }
         }
     }
-    
-    private func loadContactsFromDisk() -> [EmergencyContact]? {
-        guard let codedContacts = try? Data(contentsOf: archiveURL) else { return nil }
-        let propertyListDecoder = PropertyListDecoder()
-        return try? propertyListDecoder.decode([EmergencyContact].self, from: codedContacts)
-    }
-    
-    private func saveContacts() {
-        let propertyListEncoder = PropertyListEncoder()
-        let codedContacts = try? propertyListEncoder.encode(contacts)
-        try? codedContacts?.write(to: archiveURL, options: .noFileProtection)
-    }
-    
-    private func loadSampleContacts() -> [EmergencyContact] {
-        // Attach sample contacts to first available user if exists
-        let sampleUserId = UserDataModel.shared.getAllUsers().first?.id ?? UUID()
-        
-        let contact1 = EmergencyContact(userId: sampleUserId, name: "Mom", contactNumber: "+91 9876543210")
-        let contact2 = EmergencyContact(userId: sampleUserId, name: "Doctor", contactNumber: "+91 9988776655")
-        let contact3 = EmergencyContact(userId: sampleUserId, name: "Friend", contactNumber: "+91 9123456789")
-        return [contact1, contact2, contact3]
+
+    /// Deletes a contact by ID.
+    func deleteContact(id: UUID) {
+        cachedContacts.removeAll { $0.id == id }
+        Task {
+            do {
+                try await SupabaseService.shared.deleteContact(id: id)
+            } catch {
+                print("⚠️ [EmergencyContactDataModel] deleteContact failed:", error.localizedDescription)
+            }
+        }
     }
 }
