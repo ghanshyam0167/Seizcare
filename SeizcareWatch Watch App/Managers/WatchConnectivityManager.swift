@@ -24,7 +24,7 @@ class WatchConnectivityManager: NSObject, WCSessionDelegate {
         print("Companion App Installed (iPhone): \(WCSession.default.isCompanionAppInstalled)")
     }
     
-    func sendMessage(_ message: [String: Any]) {
+    private func sendMessage(_ message: [String: Any]) {
         guard WCSession.default.activationState == .activated else {
             print("WCSession is not activated. Cannot send message.")
             return
@@ -43,6 +43,16 @@ class WatchConnectivityManager: NSObject, WCSessionDelegate {
         WCSession.default.sendMessage(message, replyHandler: nil) { error in
             print("Failed to send message: \(error.localizedDescription)")
         }
+    }
+    
+    func sendEmergencyAlert() {
+        let message = ["emergencyAlert": true]
+        sendMessage(message)
+    }
+    
+    func sendSensitivity(_ level: String) {
+        let message = ["sensitivity": level.lowercased()]
+        sendMessage(message)
     }
     
     func sendHeartRate(_ value: Double) {
