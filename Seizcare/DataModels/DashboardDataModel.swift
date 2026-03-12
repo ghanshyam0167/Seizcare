@@ -4,75 +4,7 @@ import Foundation
 
 
 
-//  Sleep Data Model (Mock for now)
 
-final class SleepDataModel {
-
-    static let shared = SleepDataModel()
-
-    /// In-memory cache populated by `refreshSleepData()`.
-    private var cachedEntries: [SleepEntry] = []
-
-    private init() {}
-
-    // MARK: - SleepEntry (Codable so it maps to Supabase sleep_data table)
-    struct SleepEntry: Codable {
-        let date: Date
-        let hours: Double
-    }
-
-    // MARK: - Async Refresh (call from ViewControllers / scene setup)
-
-    /// Fetches sleep entries for the current user from Supabase and updates the cache.
-    func refreshSleepData() async {
-        guard let userId = UserDataModel.shared.getCurrentUser()?.id else { return }
-        do {
-            let dtos = try await SupabaseService.shared.fetchSleepEntries(userId: userId)
-            cachedEntries = dtos.map { SleepEntry(date: $0.date, hours: $0.hours) }
-                .sorted { $0.date < $1.date }
-        } catch {
-            print("⚠️ [SleepDataModel] refreshSleepData failed:", error.localizedDescription)
-        }
-    }
-
-    /// Inserts a new sleep entry for the current user into Supabase.
-    func addSleepEntry(date: Date, hours: Double) {
-        let entry = SleepEntry(date: date, hours: hours)
-        cachedEntries.append(entry)
-        cachedEntries.sort { $0.date < $1.date }
-        Task {
-            guard let userId = UserDataModel.shared.getCurrentUser()?.id else { return }
-            do {
-                let dto = SleepEntryDTO(userId: userId, date: date, hours: hours)
-                try await SupabaseService.shared.insertSleepEntry(dto)
-            } catch {
-                print("⚠️ [SleepDataModel] addSleepEntry failed:", error.localizedDescription)
-            }
-        }
-    }
-
-    // MARK: - Synchronous Accessors (used by DashboardDataModel analytics – unchanged interface)
-
-    /// Returns the cached sleep entries. Falls back to 30-day mock data if cache is empty.
-    func getDailySleepData() -> [SleepEntry] {
-        if !cachedEntries.isEmpty { return cachedEntries }
-        // Fallback mock data so Dashboard charts always have something to render
-        let cal = Calendar.current
-        return (0..<30).map {
-            SleepEntry(
-                date: cal.date(byAdding: .day, value: -$0, to: Date())!,
-                hours: Double.random(in: 5.0...8.5)
-            )
-        }
-        .sorted { $0.date < $1.date }
-    }
-
-    func getAverageSleepLastMonth() -> Double {
-        getDailySleepData()
-            .map { $0.hours }
-            .averageOrZero()
-    }
-}
 // Dashboard Period
 enum DashboardPeriod {
     case current   // daily
@@ -147,11 +79,7 @@ final class DashboardDataModel {
             filteredRecords = recordsLastMonths(records, months: 1)
         }
 
-        guard !filteredRecords.isEmpty else {
-            return getOnboardingFallbackSummary()
-        }
-
-        let avgMonthly = Double(filteredRecords.count)
+        let avgMonthly = filteredRecords.isEmpty ? 0 : Double(filteredRecords.count)
 
         let mostCommonTime = Dictionary(
             grouping: filteredRecords.compactMap { $0.timeBucket },
@@ -176,58 +104,7 @@ final class DashboardDataModel {
         )
     }
 
-    private func getOnboardingFallbackSummary() -> DashboardSummary {
-        let defaults = UserDefaults.standard
 
-        // 1. Avg Monthly Seizures
-        let avgMonthly: Double = {
-            let choice = defaults.string(forKey: "avgSeizuresPerMonth") ?? ""
-            switch choice {
-            case "Less than 1": return 0.5
-            case "1–3": return 2.0
-            case "4–10": return 7.0
-            case "More than 10": return 15.0
-            default: return 0.0
-            }
-        }()
-
-        // 2. Most Common Time
-        let commonTime: SeizureTimeBucket = {
-            let choice = defaults.string(forKey: "commonSeizureTime") ?? ""
-            return SeizureTimeBucket(rawValue: choice) ?? .unknown
-        }()
-
-        // 3. Avg Duration (seconds)
-        let avgDur: Double = {
-            let choice = defaults.string(forKey: "typicalSeizureDuration") ?? ""
-            switch choice {
-            case "Less than 30 sec": return 15.0
-            case "30–60 sec": return 45.0
-            case "1–3 min": return 120.0
-            case "More than 3 min": return 240.0
-            default: return 60.0
-            }
-        }()
-
-        // 4. Avg Sleep Hours
-        let avgSleep: Double = {
-            let choice = defaults.string(forKey: "typicalSleepHours") ?? ""
-            switch choice {
-            case "Less than 5 hours": return 4.5
-            case "5–6 hours": return 5.5
-            case "6–8 hours": return 7.0
-            case "More than 8 hours": return 9.0
-            default: return SleepDataModel.shared.getAverageSleepLastMonth()
-            }
-        }()
-
-        return DashboardSummary(
-            avgMonthlySeizures: avgMonthly,
-            mostCommonTime: commonTime,
-            avgDuration: avgDur,
-            avgSleepHours: avgSleep
-        )
-    }
 
     func getSeizureFrequency(period: DashboardPeriod) -> [FrequencyPoint] {
         switch period {

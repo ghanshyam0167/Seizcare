@@ -227,26 +227,22 @@ class DetailRecordsTableViewController: UITableViewController {
             return
         }
 
-        let timeline =
-            HeartRateTimelineBuilder.generateTimeline(
-                seizureTime: record.dateTime,
-                seizureDuration: record.duration ?? 60
-            )
+        let hrData = HeartRateTimelineBuilder.generateTimeline(for: record)
 
-        guard !timeline.isEmpty else {
+        guard !hrData.isEmpty else {
             hideHeartRateChart()
             return
         }
 
         let chartView = HeartRateTimelineChart(
-            data: timeline,
+            data: hrData,
             seizureTime: record.dateTime,
             seizureDuration: record.duration ?? 60
         )
 
         let host = UIHostingController(rootView: chartView)
         host.view.translatesAutoresizingMaskIntoConstraints = false
-        host.view.backgroundColor = .clear
+        host.view.backgroundColor = UIColor.clear
 
         // Clean previous chart
         hrChartHost?.view.removeFromSuperview()
@@ -291,7 +287,7 @@ class DetailRecordsTableViewController: UITableViewController {
 
         let host = UIHostingController(rootView: chartView)
         host.view.translatesAutoresizingMaskIntoConstraints = false
-        host.view.backgroundColor = .clear
+        host.view.backgroundColor = UIColor.clear
 
         // Clean previous chart if exists
         spo2ChartHost?.view.removeFromSuperview()
