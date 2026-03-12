@@ -20,6 +20,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // and populates UserDataModel.currentUser before any VC loads.
         Task {
             await UserDataModel.shared.restoreSession()
+            // Populate all in-memory caches so the UI has data on first render.
+            await UserDataModel.shared.syncUserData()
         }
     }
 

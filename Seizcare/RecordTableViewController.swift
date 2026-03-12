@@ -62,6 +62,11 @@ class RecordTableViewController: UITableViewController,UISearchResultsUpdating {
         tableView.separatorStyle = .none
         tableView.backgroundColor = UIColor.systemGroupedBackground
     }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        loadAndGroupRecords()
+    }
     
     
     // MARK: - Load + Group

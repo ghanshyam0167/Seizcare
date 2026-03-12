@@ -123,6 +123,19 @@ class UserDataModel {
 //  - Authentication Extension
 extension UserDataModel {
 
+    // MARK: - Data Sync
+
+    /// Refreshes all user-related data caches from Supabase in parallel.
+    /// Call this immediately after a successful login or session restore.
+    func syncUserData() async {
+        await withTaskGroup(of: Void.self) { group in
+            group.addTask { await SeizureRecordDataModel.shared.refreshRecords() }
+            group.addTask { await EmergencyContactDataModel.shared.refreshContacts() }
+            group.addTask { await NotificationDataModel.shared.refreshNotifications() }
+            group.addTask { await SleepDataModel.shared.refreshSleepEntries() }
+        }
+    }
+
     /// Async sign-in. Fetches user profile from Supabase after auth succeeds.
     /// Await this before navigating to protected screens.
     func loginUserAsync(email: String, password: String) async throws {
