@@ -8,44 +8,70 @@ class WatchConnectivityManager: NSObject, WCSessionDelegate {
     
     private override init() {
         super.init()
+        print("📱 [WCM-iPhone] Initialising WatchConnectivityManager")
         if WCSession.isSupported() {
+            print("📱 [WCM-iPhone] WCSession is supported — activating")
             let session = WCSession.default
             session.delegate = self
             session.activate()
+        } else {
+            print("❌ [WCM-iPhone] WCSession NOT supported on this device")
         }
     }
     
-    // MARK: - WCSessionDelegate Method
-    func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
+    // MARK: - WCSessionDelegate Methods
+    // nonisolated is required because the project uses SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor
+    // WCSession delivers delegate callbacks on a background thread, so without nonisolated
+    // Swift will crash or silently drop the call.
+    
+    nonisolated func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
         if let error = error {
-            print("WatchConnectivity iPhone activation failed with error: \(error.localizedDescription)")
+            print("❌ [WCM-iPhone] WCSession activation FAILED: \(error.localizedDescription)")
             return
         }
-        print("WatchConnectivity iPhone activated with state: \(activationState.rawValue)")
-        print("Watch App Installed: \(WCSession.default.isWatchAppInstalled)")
-        if WCSession.default.isWatchAppInstalled {
-            print("Watch App is paired and installed on Apple Watch.")
-        } else {
-            print("No Apple Watch paired or Watch App is not installed.")
-        }
+        print("✅ [WCM-iPhone] WCSession activated — state: \(activationState.rawValue)")
+        print("📱 [WCM-iPhone] isWatchAppInstalled: \(session.isWatchAppInstalled)")
+        print("📱 [WCM-iPhone] isPaired: \(session.isPaired)")
     }
     
-    func sessionDidBecomeInactive(_ session: WCSession) {
-        print("WatchConnectivity iPhone session did become inactive")
+    nonisolated func sessionDidBecomeInactive(_ session: WCSession) {
+        print("⚠️ [WCM-iPhone] Session became inactive")
     }
     
-    func sessionDidDeactivate(_ session: WCSession) {
-        print("WatchConnectivity iPhone session did deactivate")
+    nonisolated func sessionDidDeactivate(_ session: WCSession) {
+        print("⚠️ [WCM-iPhone] Session deactivated — reactivating")
         WCSession.default.activate()
     }
     
-    func session(_ session: WCSession, didReceiveMessage message: [String : Any]) {
-        DispatchQueue.main.async {
-            if let heartRate = message["heartRate"] as? Double {
-                print("Heart Rate received from watch: \(Int(heartRate)) bpm")
-            } else {
-                print("Received message from Watch: \(message)")
+    nonisolated func session(_ session: WCSession, didReceiveMessage message: [String: Any]) {
+        print("📨 [WCM-iPhone] Received sendMessage from Watch: \(message)")
+        handleIncomingPayload(message)
+    }
+    
+    /// Handles the transferUserInfo fallback (used when iPhone is in background / not reachable)
+    nonisolated func session(_ session: WCSession, didReceiveUserInfo userInfo: [String: Any]) {
+        print("📦 [WCM-iPhone] Received transferUserInfo from Watch: \(userInfo)")
+        handleIncomingPayload(userInfo)
+    }
+    
+    private func handleIncomingPayload(_ payload: [String: Any]) {
+        if let isEmergency = payload["emergencyAlert"] as? Bool, isEmergency {
+            print("🚨 [WCM-iPhone] emergencyAlert=true — triggering countdown on main thread")
+            DispatchQueue.main.async {
+                EmergencyService.shared.triggerWithCountdown()
             }
+            return
+        }
+        
+        if let heartRate = payload["heartRate"] as? Double {
+            print("💓 [WCM-iPhone] Heart Rate from Watch: \(Int(heartRate)) bpm")
+        } else if let sensitivity = payload["sensitivity"] as? String {
+            print("📊 [WCM-iPhone] Sensitivity from Watch: \(sensitivity)")
+        } else {
+            print("ℹ️ [WCM-iPhone] Unhandled payload: \(payload)")
         }
     }
 }
+
+
+
