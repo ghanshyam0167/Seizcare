@@ -133,6 +133,8 @@ extension UserDataModel {
             group.addTask { await EmergencyContactDataModel.shared.refreshContacts() }
             group.addTask { await NotificationDataModel.shared.refreshNotifications() }
             group.addTask { await SleepDataModel.shared.refreshSleepEntries() }
+            group.addTask { await SensitivityDataModel.shared.refreshSensitivity() }
+            group.addTask { await LanguageDataModel.shared.refreshLanguage() }
         }
     }
 

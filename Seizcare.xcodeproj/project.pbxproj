@@ -274,7 +274,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.ghanshi.seizcare.2;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ghanshi.seizcare.4;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -315,7 +315,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.ghanshi.seizcare.2;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ghanshi.seizcare.4;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -461,13 +461,13 @@
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "SeizcareWatch needs access to your heart rate to monitor seizure risk.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "SeizcareWatch may write health data related to seizure monitoring.";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.ghanshi.seizcare.2;
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.ghanshi.seizcare.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.ghanshi.seizcare.2.watchkitapp;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ghanshi.seizcare.4.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
@@ -497,13 +497,13 @@
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "SeizcareWatch needs access to your heart rate to monitor seizure risk.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "SeizcareWatch may write health data related to seizure monitoring.";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.ghanshi.seizcare.2;
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.ghanshi.seizcare.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.ghanshi.seizcare.2.watchkitapp;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ghanshi.seizcare.4.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
