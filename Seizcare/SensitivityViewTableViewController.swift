@@ -117,7 +117,10 @@ class SensitivityViewTableViewController: UIViewController {
         selectedIndex = index
 
         // Persist
-        UserDefaults.standard.set(sensitivities[selectedIndex], forKey: "sensitivityLevel")
+        let selectedSensitivityString = sensitivities[selectedIndex].lowercased()
+        if let newLevel = SensitivityLevel(rawValue: selectedSensitivityString) {
+            SensitivityDataModel.shared.setSensitivity(level: newLevel)
+        }
 
         // Animate change
         rowControls[previous].setChecked(false, animated: true)
@@ -127,8 +130,8 @@ class SensitivityViewTableViewController: UIViewController {
     // MARK: - Persistence
 
     private func loadSavedPreference() {
-        if let savedLevel = UserDefaults.standard.string(forKey: "sensitivityLevel"),
-           let index = sensitivities.firstIndex(of: savedLevel) {
+        let savedLevel = SensitivityDataModel.shared.getCurrentSensitivity().rawValue.capitalized
+        if let index = sensitivities.firstIndex(of: savedLevel) {
             selectedIndex = index
         }
     }
