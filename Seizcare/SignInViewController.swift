@@ -44,6 +44,11 @@ class SignInViewController: UIViewController,UITextFieldDelegate {
                     throw SupabaseServiceError.authFailed("Session not established after login.")
                 }
 
+                // Sync all user data from Supabase before navigating to Dashboard.
+                // This ensures records, contacts, notifications, and sleep entries
+                // are loaded into their in-memory caches before the UI renders.
+                await UserDataModel.shared.syncUserData()
+
                 await MainActor.run {
                     debugLog("Login SUCCESS — navigating to Dashboard")
                     let dashboardStoryboard = UIStoryboard(name: "Dashboard", bundle: nil)

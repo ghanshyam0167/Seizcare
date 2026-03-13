@@ -286,84 +286,7 @@ final class SeizureRecordDataModel {
     }
 
 
-    //  Sample Data
 
-    func loadSampleRecords() -> [SeizureRecord] {
-        guard let userId = UserDataModel.shared.getCurrentUser()?.id else { return [] }
-
-        let calendar = Calendar.current
-        let now = Date()
-
-        let locations = ["Bedroom", "Office", "Living Room", "Bathroom"]
-        let autoDescriptions = [
-            "Auto detected during rest",
-            "Detected during sleep",
-            "Detected after physical exertion",
-            "Detected during stress period"
-        ]
-        let manualTitles = [
-            "Aura Episode",
-            "Night Seizure",
-            "Post Medication Miss",
-            "Stress Triggered Episode"
-        ]
-        let symptomsPool: [[Symptom]] = [
-            [.dizziness, .visualChange],
-            [.confused, .headache],
-            [.tired],
-            [.bodyAche, .weakness]
-        ]
-
-        let triggersPool: [[SeizureTrigger]] = [
-            [.stress],
-            [.sleepDeprivation],
-            [.missedMedication],
-            [.alcohol],
-            [.stress, .sleepDeprivation]
-        ]
-
-        var records: [SeizureRecord] = []
-
-        for _ in 0..<50 {
-            let daysAgo = Int.random(in: 0...180) // past 6 months
-            let date = calendar.date(byAdding: .day, value: -daysAgo, to: now)!
-
-            let isAutomatic = Bool.random()
-
-            if isAutomatic {
-                records.append(
-                    SeizureRecord(
-                        id: UUID(),
-                        userId: userId,
-                        entryType: .automatic,
-                        dateTime: date,
-                        description: autoDescriptions.randomElement()!,
-                        type: SeizureType.allCases.randomElement()!,
-                        duration: TimeInterval(Int.random(in: 30...180)),
-                        spo2: Int.random(in: 85...97),
-                        heartRate: Int.random(in: 90...160),
-                        location: locations.randomElement()!,
-                        triggers: triggersPool.randomElement()!
-                    )
-                )
-            } else {
-                records.append(
-                    SeizureRecord(
-                        id: UUID(),
-                        userId: userId,
-                        entryType: .manual,
-                        dateTime: date,
-                        type: SeizureType.allCases.randomElement()!,
-                        duration: TimeInterval(Int.random(in: 40...150)),
-                        title: manualTitles.randomElement()!,
-                        symptoms: (symptomsPool.randomElement() ?? []).map { $0.rawValue },
-                        triggers: triggersPool.randomElement()!
-                    )
-                )
-            }
-        }
-        return records
-    }
 }
 
 
@@ -379,6 +302,6 @@ extension SeizureRecordDataModel {
 
     func getSpO2Timeline(for record: SeizureRecord) -> [SpO2TimelinePoint] {
         guard record.entryType == .automatic else { return [] }
-        return SpO2TimelineBuilder.generateTimeline(seizureTime: record.dateTime)
+        return SpO2TimelineBuilder.generateTimeline(for: record)
     }
 }
