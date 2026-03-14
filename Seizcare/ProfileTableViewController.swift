@@ -60,7 +60,7 @@ class ProfileTableViewController: UITableViewController {
 
     private let prefsRows: [SettingsRow] = [
         SettingsRow(icon: "globe", title: "Language", segueID: "goToLanguage"),
-        SettingsRow(icon: "applewatch", title: "Connect your watch", segueID: "")
+        SettingsRow(icon: "applewatch", title: "Connect your watch", segueID: "goToWatchConnection")
     ]
 
     // MARK: - Lifecycle
@@ -387,7 +387,13 @@ class ProfileTableViewController: UITableViewController {
 
     @objc private func settingsRowTapped(_ gesture: UITapGestureRecognizer) {
         guard let segueID = gesture.view?.accessibilityIdentifier, !segueID.isEmpty else { return }
-        performSegue(withIdentifier: segueID, sender: self)
+        
+        if segueID == "goToWatchConnection" {
+            let watchVC = WatchConnectionViewController()
+            navigationController?.pushViewController(watchVC, animated: true)
+        } else {
+            performSegue(withIdentifier: segueID, sender: self)
+        }
     }
 
     @objc private func logoutTapped() {
