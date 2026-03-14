@@ -269,10 +269,13 @@ final class DashboardDataModel {
         let sleepEntries = sleepModel.getDailySleepData()
         let records = recordModel.getRecordsForCurrentUser()
 
-        return sleepEntries.map { entry in
+        return sleepEntries.compactMap { entry in
             let count = records.filter {
                 Calendar.current.isDate($0.dateTime, inSameDayAs: entry.date)
             }.count
+
+            // Only return point if at least one seizure occurred on that day
+            guard count > 0 else { return nil }
 
             return SleepSeizurePoint(
                 date: entry.date,

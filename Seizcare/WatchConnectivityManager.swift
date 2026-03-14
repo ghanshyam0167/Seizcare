@@ -1,10 +1,19 @@
 import Foundation
 import WatchConnectivity
 import os
+import Combine
 
-class WatchConnectivityManager: NSObject, WCSessionDelegate {
+extension Notification.Name {
+    static let didReceiveSleepData = Notification.Name("didReceiveSleepData")
+}
+
+class WatchConnectivityManager: NSObject, WCSessionDelegate, ObservableObject {
     
     static let shared = WatchConnectivityManager()
+    
+    @Published var heartRate: Double?
+    @Published var spo2: Double?
+    @Published var sleepHours: Double?
     
     private override init() {
         super.init()
@@ -63,11 +72,42 @@ class WatchConnectivityManager: NSObject, WCSessionDelegate {
             return
         }
         
+        var hrValue: Double = 0
+        var spo2Value: Double = 0
+        var sleepValue: Double = 0
+        var foundHealthData = false
+        
         if let heartRate = payload["heartRate"] as? Double {
-            print("💓 [WCM-iPhone] Heart Rate from Watch: \(Int(heartRate)) bpm")
-        } else if let sensitivity = payload["sensitivity"] as? String {
+            hrValue = heartRate
+            foundHealthData = true
+            DispatchQueue.main.async { self.heartRate = heartRate }
+        }
+        if let spo2 = payload["spo2"] as? Double {
+            spo2Value = spo2
+            foundHealthData = true
+            DispatchQueue.main.async { self.spo2 = spo2 }
+        }
+        if let sleepHours = payload["sleepHours"] as? Double {
+            sleepValue = sleepHours
+            foundHealthData = true
+            print("📥 [WCM-iPhone] Received sleep data from Watch: \(String(format: "%.1f", sleepHours)) hrs")
+            // Update the legacy property just in case
+            DispatchQueue.main.async { self.sleepHours = sleepHours }
+            // Update the new HealthDataManager for real-time UI refresh
+            HealthDataManager.shared.updateSleepData(hours: sleepHours)
+            
+            // Post notification for UIKit Dashboard
+            print("📣 [WCM-iPhone] Posting NotificationCenter broadcast: didReceiveSleepData")
+            NotificationCenter.default.post(name: .didReceiveSleepData, object: nil, userInfo: ["sleepHours": sleepHours])
+        }
+        
+        if foundHealthData {
+            print("📲 [WCM-iPhone] Received Health Data → HR: \(hrValue), SpO2: \(spo2Value), Sleep: \(sleepValue)")
+        }
+        
+        if let sensitivity = payload["sensitivity"] as? String {
             print("📊 [WCM-iPhone] Sensitivity from Watch: \(sensitivity)")
-        } else {
+        } else if payload["emergencyAlert"] == nil && payload["heartRate"] == nil && !foundHealthData {
             print("ℹ️ [WCM-iPhone] Unhandled payload: \(payload)")
         }
     }
