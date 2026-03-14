@@ -590,17 +590,19 @@
                             <outlet property="delegate" destination="q7b-AN-xDw" id="YZp-Fr-ukS"/>
                         </connections>
                     </tableView>
-                    <navigationItem key="navigationItem" title="Hey Anmol" id="O8B-d6-9XZ">
-                        <barButtonItem key="leftBarButtonItem" title="Item" image="person.fill" catalog="system" id="8Ov-Yo-Dhr">
-                            <connections>
-                                <segue destination="2Xl-bb-311" kind="show" id="Fyc-jB-oOt"/>
-                            </connections>
-                        </barButtonItem>
-                        <barButtonItem key="rightBarButtonItem" title="Item" image="bell.fill" catalog="system" id="oFq-MO-aMV">
-                            <connections>
-                                <segue destination="0g3-9k-LPN" kind="show" id="Ffl-7b-n1v"/>
-                            </connections>
-                        </barButtonItem>
+                    <navigationItem key="navigationItem" id="O8B-d6-9XZ">
+                        <rightBarButtonItems>
+                            <barButtonItem title="Item" image="person.fill" catalog="system" id="8Ov-Yo-Dhr">
+                                <connections>
+                                    <segue destination="2Xl-bb-311" kind="show" id="Fyc-jB-oOt"/>
+                                </connections>
+                            </barButtonItem>
+                            <barButtonItem title="Item" image="bell.fill" catalog="system" id="oFq-MO-aMV">
+                                <connections>
+                                    <segue destination="0g3-9k-LPN" kind="show" id="Ffl-7b-n1v"/>
+                                </connections>
+                            </barButtonItem>
+                        </rightBarButtonItems>
                     </navigationItem>
                     <connections>
                         <outlet property="TriggerCorrelationChartContainerView" destination="kRK-CE-Zkb" id="eCS-5H-uzB"/>

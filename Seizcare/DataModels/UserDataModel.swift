@@ -118,6 +118,7 @@ class UserDataModel {
     func getAllUsers() -> [User] {
         return currentUser.map { [$0] } ?? []
     }
+    
 }
 
 //  - Authentication Extension
