@@ -1509,7 +1509,12 @@
                         <segue destination="YOR-FA-G9P" kind="show" identifier="goToLanguage" id="o5y-1B-eAU"/>
                     </connections>
                 </tapGestureRecognizer>
-                <tapGestureRecognizer id="KwK-Hu-HYt"/>
+                <tapGestureRecognizer id="KwK-Hu-HYt">
+                    <connections>
+                        <action selector="connectWatchTapped:" destination="sPq-IT-T38" eventType="touchUpInside" id="WCA-Gx-001"/>
+                    </connections>
+                </tapGestureRecognizer>
+
                 <tapGestureRecognizer id="3ON-HQ-brM">
                     <connections>
                         <segue destination="Uih-d7-lU7" kind="show" identifier="goToNextScreen" id="MWL-bh-j2z"/>
