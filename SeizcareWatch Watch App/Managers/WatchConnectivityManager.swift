@@ -65,8 +65,25 @@ class WatchConnectivityManager: NSObject, WCSessionDelegate {
         sendMessage(["sensitivity": level.lowercased()])
     }
     
-    func sendHeartRate(_ value: Double) {
-        sendMessage(["heartRate": value])
+    func sendHealthData(heartRate: Double?, spo2: Double?, sleepHours: Double?) {
+        var payload: [String: Any] = [:]
+        if let hr = heartRate { payload["heartRate"] = hr }
+        if let spo2 = spo2 { payload["spo2"] = spo2 }
+        if let sleep = sleepHours { 
+            payload["sleepHours"] = sleep 
+            print("📨 [WCM-Watch] Sending sleep data: \(String(format: "%.1f", sleep)) hrs")
+        }
+        
+        guard !payload.isEmpty else { return }
+        
+        print("📨 [WCM-Watch] Sending Health Data → HR: \(heartRate ?? 0), SpO2: \(spo2 ?? 0)")
+        sendMessage(payload)
+        
+        do {
+            try WCSession.default.updateApplicationContext(payload)
+        } catch {
+            print("❌ [WCM-Watch] updateContext error: \(error.localizedDescription)")
+        }
     }
     
     // MARK: - Private helpers

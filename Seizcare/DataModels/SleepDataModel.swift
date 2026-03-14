@@ -36,6 +36,10 @@ struct SleepEntry: Identifiable, Codable, Equatable {
 
 // MARK: - SleepDataModel
 
+extension Notification.Name {
+    static let didSyncSleepData = Notification.Name("didSyncSleepData")
+}
+
 final class SleepDataModel {
 
     static let shared = SleepDataModel()
@@ -105,5 +109,38 @@ final class SleepDataModel {
         let data = getDailySleepData().map { $0.hours }
         guard !data.isEmpty else { return 0 }
         return data.reduce(0, +) / Double(data.count)
+    }
+
+    // MARK: - Sync
+    
+    /// Syncs local daily totals (e.g. from HealthKit) to Supabase, avoiding duplicates for the same day.
+    func syncSleepData(dailyTotals: [Date: Double]) {
+        guard let currentUser = UserDataModel.shared.getCurrentUser() else { return }
+        let calendar = Calendar.current
+        
+        Task {
+            // 1. Fetch existing entries to avoid duplicates
+            await refreshSleepEntries()
+            let existingEntries = getSleepEntriesForCurrentUser()
+            
+            // Map existing entries to startOfDay to easily compare
+            let existingDays = Set(existingEntries.map { calendar.startOfDay(for: $0.date) })
+            
+            for (date, hours) in dailyTotals {
+                let day = calendar.startOfDay(for: date)
+                
+                // 2. Only insert if this day doesn't exist yet
+                if !existingDays.contains(day) {
+                    print("💾 [SleepDataModel] Syncing new sleep entry to Supabase: \(day) -> \(String(format: "%.1f", hours)) hrs")
+                    addSleepEntry(date: day, hours: hours)
+                }
+            }
+            
+            // 3. Notify that the daily history is now ready for charts
+            DispatchQueue.main.async {
+                print("📣 [SleepDataModel] Posting NotificationCenter broadcast: didSyncSleepData")
+                NotificationCenter.default.post(name: .didSyncSleepData, object: nil)
+            }
+        }
     }
 }

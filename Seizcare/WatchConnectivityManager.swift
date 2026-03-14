@@ -2,23 +2,16 @@ import Foundation
 import UIKit
 import WatchConnectivity
 import os
+import Combine
 
 // MARK: - Connection Status
 
-/// Represents every possible state of the Apple Watch connection.
 enum WatchConnectionStatus {
-    /// WCSession is not supported on this device (iPad / non-Apple-Watch territory)
     case notSupported
-    /// WCSession is supported but no Apple Watch has been paired
     case notPaired
-    /// A Watch is paired but the Seizcare Watch app is not installed on it
     case notInstalled
-    /// The Watch app is installed but is not currently reachable (Watch not nearby / app not foregrounded)
     case notReachable
-    /// The Watch app is installed and actively reachable
     case connected
-
-    // MARK: Display helpers
 
     var title: String {
         switch self {
@@ -40,7 +33,6 @@ enum WatchConnectionStatus {
         }
     }
 
-    /// SF Symbol name for the current state
     var symbolName: String {
         switch self {
         case .notSupported:  return "applewatch.slash"
@@ -51,7 +43,6 @@ enum WatchConnectionStatus {
         }
     }
 
-    /// Accent colour matching the state severity
     var accentColor: UIColor {
         switch self {
         case .notSupported:  return .systemGray
@@ -63,19 +54,23 @@ enum WatchConnectionStatus {
     }
 }
 
-// MARK: - Notification Name
+// MARK: - Notification Names
 
 extension Notification.Name {
-    /// Posted on the main queue whenever the WCSession activation state changes.
+    static let didReceiveSleepData = Notification.Name("didReceiveSleepData")
     static let watchSessionActivated = Notification.Name("WatchSessionActivated")
 }
 
 // MARK: - Manager
 
-class WatchConnectivityManager: NSObject, WCSessionDelegate {
+class WatchConnectivityManager: NSObject, WCSessionDelegate, ObservableObject {
 
     static let shared = WatchConnectivityManager()
 
+    @Published var heartRate: Double?
+    @Published var spo2: Double?
+    @Published var sleepHours: Double?
+  
     private override init() {
         super.init()
         print("📱 [WCM-iPhone] Initialising WatchConnectivityManager")
@@ -165,12 +160,44 @@ class WatchConnectivityManager: NSObject, WCSessionDelegate {
             }
             return
         }
-
+        
+        var hrValue: Double = 0
+        var spo2Value: Double = 0
+        var sleepValue: Double = 0
+        var foundHealthData = false
+        
         if let heartRate = payload["heartRate"] as? Double {
-            print("💓 [WCM-iPhone] Heart Rate from Watch: \(Int(heartRate)) bpm")
-        } else if let sensitivity = payload["sensitivity"] as? String {
+            hrValue = heartRate
+            foundHealthData = true
+            print("📥 [WCM-iPhone] Received heart rate data from Watch: \(Int(heartRate)) BPM")
+            DispatchQueue.main.async { self.heartRate = heartRate }
+        }
+        if let spo2 = payload["spo2"] as? Double {
+            spo2Value = spo2
+            foundHealthData = true
+            DispatchQueue.main.async { self.spo2 = spo2 }
+        }
+        if let sleepHours = payload["sleepHours"] as? Double {
+            sleepValue = sleepHours
+            foundHealthData = true
+            print("📥 [WCM-iPhone] Received sleep data from Watch: \(String(format: "%.1f", sleepHours)) hrs")
+            // Update the legacy property just in case
+            DispatchQueue.main.async { self.sleepHours = sleepHours }
+            // Update the new HealthDataManager for real-time UI refresh
+            HealthDataManager.shared.updateSleepData(hours: sleepHours)
+            
+            // Post notification for UIKit Dashboard
+            print("📣 [WCM-iPhone] Posting NotificationCenter broadcast: didReceiveSleepData")
+            NotificationCenter.default.post(name: .didReceiveSleepData, object: nil, userInfo: ["sleepHours": sleepHours])
+        }
+        
+        if foundHealthData {
+            print("📲 [WCM-iPhone] Received Health Data → HR: \(hrValue), SpO2: \(spo2Value), Sleep: \(sleepValue)")
+        }
+        
+        if let sensitivity = payload["sensitivity"] as? String {
             print("📊 [WCM-iPhone] Sensitivity from Watch: \(sensitivity)")
-        } else {
+        } else if payload["emergencyAlert"] == nil && payload["heartRate"] == nil && !foundHealthData {
             print("ℹ️ [WCM-iPhone] Unhandled payload: \(payload)")
         }
     }
