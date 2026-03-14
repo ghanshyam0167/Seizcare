@@ -19,13 +19,30 @@ class EmergencyContactsTableViewController: UITableViewController, CNContactPick
         super.viewDidLoad()
         applyDefaultTableBackground()
         navigationController?.applyWhiteNavBar()
-        loadContacts()
-
     }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        refreshFromSupabase()
+    }
+
+    // MARK: - Data Loading
+
+    /// Fetches contacts from Supabase, updates the cache, and reloads the table.
+    private func refreshFromSupabase() {
+        Task {
+            await EmergencyContactDataModel.shared.refreshContacts()
+            await MainActor.run {
+                contacts = EmergencyContactDataModel.shared.getContactsForCurrentUser()
+                tableView.reloadData()
+            }
+        }
+    }
+
     private func loadContacts() {
-           contacts = EmergencyContactDataModel.shared.getContactsForCurrentUser()
-           tableView.reloadData()
-       }
+        contacts = EmergencyContactDataModel.shared.getContactsForCurrentUser()
+        tableView.reloadData()
+    }
 
     // MARK: - Table view data source
 
@@ -84,7 +101,8 @@ class EmergencyContactsTableViewController: UITableViewController, CNContactPick
         )
 
         picker.dismiss(animated: true) {
-            self.loadContacts()
+            // Refresh from Supabase so the newly saved contact appears
+            self.refreshFromSupabase()
         }
     }
 

@@ -32,9 +32,7 @@ struct HeartRateTimelineChart: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
 
-            // ======================
-            // Header
-            // ======================
+            
             VStack(alignment: .leading, spacing: 4) {
                 Text("Heart Rate Pattern")
                     .font(.callout)
@@ -45,12 +43,10 @@ struct HeartRateTimelineChart: View {
                     .foregroundStyle(.tertiary)
             }
 
-            // ======================
-            // Chart + Y label
-            // ======================
+            
             HStack(alignment: .center, spacing: 6) {
 
-                // Y-axis label
+                
                 VStack(spacing: 1) {
                     Image(systemName: "arrow.up")
                         .font(.caption2)

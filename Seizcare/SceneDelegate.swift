@@ -13,10 +13,16 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
-        // Use this method to optionally configure and attach the UIWindow `window` to the provided UIWindowScene `scene`.
-        // If using a storyboard, the `window` property will automatically be initialized and attached to the scene.
-        // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
         guard let _ = (scene as? UIWindowScene) else { return }
+
+        // Restore Supabase Auth session on every cold launch.
+        // This fetches the authenticated user's profile from the `users` table
+        // and populates UserDataModel.currentUser before any VC loads.
+        Task {
+            await UserDataModel.shared.restoreSession()
+            // Populate all in-memory caches so the UI has data on first render.
+            await UserDataModel.shared.syncUserData()
+        }
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {

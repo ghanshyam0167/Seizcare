@@ -1,41 +1,11 @@
 import Foundation
 
-//====================================================
-// MARK: - Seizure Time Bucket
-//====================================================
 
 
-//====================================================
-// MARK: - Sleep Data Model (Mock for now)
-//====================================================
-final class SleepDataModel {
 
-    static let shared = SleepDataModel()
-    private init() {}
 
-    struct SleepEntry {
-        let date: Date
-        let hours: Double
-    }
 
-    func getDailySleepData() -> [SleepEntry] {
-        let cal = Calendar.current
-        return (0..<30).map {
-            SleepEntry(
-                date: cal.date(byAdding: .day, value: -$0, to: Date())!,
-                hours: Double.random(in: 5.0...8.5)
-            )
-        }
-        .sorted { $0.date < $1.date }
-    }
-
-    func getAverageSleepLastMonth() -> Double {
-        getDailySleepData()
-            .map { $0.hours }
-            .averageOrZero()
-    }
-}
-// MARK: - Dashboard Period
+// Dashboard Period
 enum DashboardPeriod {
     case current   // daily
     case weekly
@@ -43,9 +13,9 @@ enum DashboardPeriod {
 }
 
 
-//====================================================
-// MARK: - Dashboard Models
-//====================================================
+
+//  Dashboard Models
+
 struct DashboardSummary {
     let avgMonthlySeizures: Double
     let mostCommonTime: SeizureTimeBucket
@@ -79,9 +49,9 @@ struct TriggerCorrelation: Identifiable {
     let percent: Double
 }
 
-//====================================================
-// MARK: - Dashboard Data Model
-//====================================================
+
+//  Dashboard Data Model
+
 final class DashboardDataModel {
 
     static let shared = DashboardDataModel()
@@ -90,9 +60,9 @@ final class DashboardDataModel {
     private let recordModel = SeizureRecordDataModel.shared
     private let sleepModel = SleepDataModel.shared
 
-    //====================================================
-    // MARK: TOP 4 CARDS
-    //====================================================
+    
+    //  TOP 4 CARDS
+  
     func getDashboardSummary(forPreviousMonth: Bool = false) -> DashboardSummary {
 
         let records = recordModel.getRecordsForCurrentUser()
@@ -102,19 +72,14 @@ final class DashboardDataModel {
         if forPreviousMonth {
             filteredRecords = recordsLastMonths(records, months: 2)
                 .filter { record in
-                    // keep only previous month records
-                    // adjust logic if you already have helpers
+                    
                     true
                 }
         } else {
             filteredRecords = recordsLastMonths(records, months: 1)
         }
 
-        guard !filteredRecords.isEmpty else {
-            return getOnboardingFallbackSummary()
-        }
-
-        let avgMonthly = Double(filteredRecords.count)
+        let avgMonthly = filteredRecords.isEmpty ? 0 : Double(filteredRecords.count)
 
         let mostCommonTime = Dictionary(
             grouping: filteredRecords.compactMap { $0.timeBucket },
@@ -139,58 +104,7 @@ final class DashboardDataModel {
         )
     }
 
-    private func getOnboardingFallbackSummary() -> DashboardSummary {
-        let defaults = UserDefaults.standard
 
-        // 1. Avg Monthly Seizures
-        let avgMonthly: Double = {
-            let choice = defaults.string(forKey: "avgSeizuresPerMonth") ?? ""
-            switch choice {
-            case "Less than 1": return 0.5
-            case "1–3": return 2.0
-            case "4–10": return 7.0
-            case "More than 10": return 15.0
-            default: return 0.0
-            }
-        }()
-
-        // 2. Most Common Time
-        let commonTime: SeizureTimeBucket = {
-            let choice = defaults.string(forKey: "commonSeizureTime") ?? ""
-            return SeizureTimeBucket(rawValue: choice) ?? .unknown
-        }()
-
-        // 3. Avg Duration (seconds)
-        let avgDur: Double = {
-            let choice = defaults.string(forKey: "typicalSeizureDuration") ?? ""
-            switch choice {
-            case "Less than 30 sec": return 15.0
-            case "30–60 sec": return 45.0
-            case "1–3 min": return 120.0
-            case "More than 3 min": return 240.0
-            default: return 60.0
-            }
-        }()
-
-        // 4. Avg Sleep Hours
-        let avgSleep: Double = {
-            let choice = defaults.string(forKey: "typicalSleepHours") ?? ""
-            switch choice {
-            case "Less than 5 hours": return 4.5
-            case "5–6 hours": return 5.5
-            case "6–8 hours": return 7.0
-            case "More than 8 hours": return 9.0
-            default: return SleepDataModel.shared.getAverageSleepLastMonth()
-            }
-        }()
-
-        return DashboardSummary(
-            avgMonthlySeizures: avgMonthly,
-            mostCommonTime: commonTime,
-            avgDuration: avgDur,
-            avgSleepHours: avgSleep
-        )
-    }
 
     func getSeizureFrequency(period: DashboardPeriod) -> [FrequencyPoint] {
         switch period {
@@ -299,9 +213,9 @@ final class DashboardDataModel {
         return Double(filtered.count)
     }
 
-    //====================================================
-    // MARK: SEIZURE FREQUENCY
-    //====================================================
+    
+    //  SEIZURE FREQUENCY
+  
     func getDailyFrequency() -> [FrequencyPoint] {
         groupBy(.day)
     }
@@ -328,9 +242,9 @@ final class DashboardDataModel {
         .sorted { $0.date < $1.date }
     }
 
-    //====================================================
-    // MARK: TIME OF DAY PATTERN
-    //====================================================
+    
+    //  TIME OF DAY PATTERN
+ 
     func getTimeOfDayPattern(months: Int = 3) -> [TimeOfDayPattern] {
 
         let records = recordsLastMonths(months)
@@ -347,9 +261,9 @@ final class DashboardDataModel {
         }
     }
 
-    //====================================================
-    // MARK: SLEEP VS SEIZURE
-    //====================================================
+    
+    //  SLEEP VS SEIZURE
+    
     func getSleepVsSeizure() -> [SleepSeizurePoint] {
 
         let sleepEntries = sleepModel.getDailySleepData()
@@ -368,9 +282,8 @@ final class DashboardDataModel {
         }
     }
 
-    //====================================================
-    // MARK: TRIGGER CORRELATION
-    //====================================================
+        //  TRIGGER CORRELATION
+   
     func getTriggerCorrelation() -> [TriggerCorrelation] {
 
         let records = recordModel.getRecordsForCurrentUser()
@@ -392,9 +305,9 @@ final class DashboardDataModel {
         .sorted { $0.percent > $1.percent }
     }
 
-    //====================================================
-    // MARK: HELPERS
-    //====================================================
+  
+    //  HELPERS
+    
     private func recordsLastMonths(_ records: [SeizureRecord], months: Int) -> [SeizureRecord] {
         let cal = Calendar.current
         let cut = cal.date(byAdding: .month, value: -months, to: Date())!
@@ -410,9 +323,9 @@ final class DashboardDataModel {
 
 }
 
-//====================================================
-// MARK: - Array Helpers
-//====================================================
+
+// Array Helpers
+
 extension Array where Element == Double {
     func averageOrZero() -> Double {
         guard !isEmpty else { return 0 }

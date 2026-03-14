@@ -7,14 +7,14 @@
 
 import Foundation
 
-// MARK: - Heart Rate Phase
+//  Heart Rate Phase
 enum HeartRatePhase: String, Codable {
     case before
     case during
     case after
 }
 
-// MARK: - Timeline Point
+//  Timeline Point
 struct HeartRateTimelinePoint: Identifiable {
     let id = UUID()
 
@@ -23,51 +23,11 @@ struct HeartRateTimelinePoint: Identifiable {
     let phase: HeartRatePhase
 }
 
-// MARK: - Builder (Mock / Server-ready)
+//  Builder (Mock / Server-ready)
 struct HeartRateTimelineBuilder {
 
-    /// Generates HR timeline: 2h before → during → 2h after
-    static func generateTimeline(
-        seizureTime: Date,
-        seizureDuration: TimeInterval,
-        intervalMinutes: Int = 5
-    ) -> [HeartRateTimelinePoint] {
-
-        var points: [HeartRateTimelinePoint] = []
-
-        for minuteOffset in stride(from: -120, through: 120, by: intervalMinutes) {
-
-            let time = Calendar.current.date(
-                byAdding: .minute,
-                value: minuteOffset,
-                to: seizureTime
-            )!
-
-            let phase: HeartRatePhase =
-                minuteOffset < 0 ? .before :
-                minuteOffset <= Int(seizureDuration / 60) ? .during :
-                .after
-
-            let bpm: Int = {
-                switch phase {
-                case .before:
-                    return Int.random(in: 65...90)
-                case .during:
-                    return Int.random(in: 110...160)
-                case .after:
-                    return Int.random(in: 75...100)
-                }
-            }()
-
-            points.append(
-                HeartRateTimelinePoint(
-                    timestamp: time,
-                    bpm: bpm,
-                    phase: phase
-                )
-            )
-        }
-
-        return points
+    static func generateTimeline(for record: SeizureRecord) -> [HeartRateTimelinePoint] {
+        guard let hr = record.heartRate else { return [] }
+        return [HeartRateTimelinePoint(timestamp: record.dateTime, bpm: hr, phase: .during)]
     }
 }

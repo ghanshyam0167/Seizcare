@@ -11,11 +11,11 @@ import ContactsUI
 
 class NUAddEmergencyContactsTableViewController: UITableViewController, CNContactPickerDelegate {
 
-    // MARK: - Properties
+    //  Properties
     var contacts: [EmergencyContact] = []
     private var continueButton: UIButton!
 
-    // MARK: - Lifecycle
+    //  Lifecycle
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -25,14 +25,14 @@ class NUAddEmergencyContactsTableViewController: UITableViewController, CNContac
         updateContinueButtonState()
     }
 
-    // MARK: - Data Loading
+    //  Data Loading
 
     private func loadContacts() {
         contacts = EmergencyContactDataModel.shared.getContactsForCurrentUser()
         tableView.reloadData()
     }
 
-    // MARK: - Continue Button Setup (Programmatic)
+    //  Continue Button Setup (Programmatic)
 
     private func setupContinueButton() {
         continueButton = UIButton(type: .system)
@@ -60,7 +60,7 @@ class NUAddEmergencyContactsTableViewController: UITableViewController, CNContac
         tableView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 80, right: 0)
     }
 
-    // MARK: - Actions
+    //  Actions
 
     @IBAction func addButtonTapped(_ sender: Any) {
         // Check limit before opening picker
@@ -88,7 +88,7 @@ class NUAddEmergencyContactsTableViewController: UITableViewController, CNContac
         navigationController?.pushViewController(sensitivityVC, animated: true)
     }
 
-    // MARK: - CNContactPickerDelegate
+    // CNContactPickerDelegate
 
     func contactPicker(_ picker: CNContactPickerViewController, didSelect contact: CNContact) {
 
@@ -113,7 +113,7 @@ class NUAddEmergencyContactsTableViewController: UITableViewController, CNContac
             return
         }
 
-        // ---- STEP 2: Duplicate check ----
+        //  Duplicate check
         let exists = contacts.contains { existing in
             existing.name.lowercased() == name.lowercased() &&
             existing.contactNumber.replacingOccurrences(of: " ", with: "") ==
@@ -133,7 +133,7 @@ class NUAddEmergencyContactsTableViewController: UITableViewController, CNContac
             return
         }
 
-        // ---- STEP 3: Save Contact ----
+        //  Save Contact
         EmergencyContactDataModel.shared.addContact(
             name: name,
             contactNumber: phone
@@ -145,7 +145,7 @@ class NUAddEmergencyContactsTableViewController: UITableViewController, CNContac
         }
     }
 
-    // MARK: - Table view data source
+    //  Table view data source
 
     override func numberOfSections(in tableView: UITableView) -> Int {
         return 1
@@ -168,7 +168,7 @@ class NUAddEmergencyContactsTableViewController: UITableViewController, CNContac
         return 80
     }
 
-    // MARK: - Swipe to Delete
+    // Swipe to Delete
 
     override func tableView(_ tableView: UITableView,
         trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath)
@@ -187,7 +187,7 @@ class NUAddEmergencyContactsTableViewController: UITableViewController, CNContac
         return UISwipeActionsConfiguration(actions: [deleteAction])
     }
 
-    // MARK: - Helpers
+    //  Helpers
 
     private func updateContinueButtonState() {
         let isEnabled = !contacts.isEmpty

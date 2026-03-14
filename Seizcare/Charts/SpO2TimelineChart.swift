@@ -54,9 +54,9 @@ struct SpO2TimelineChart: View {
                 }
                 Chart {
                     
-                    // ─────────────────────────────
+                   
                     // DURING PHASE (SHADED BAND)
-                    // ─────────────────────────────
+                    
                     let start = seizureTime
                     let end = seizureTime.addingTimeInterval(seizureDuration)
                     
@@ -66,9 +66,9 @@ struct SpO2TimelineChart: View {
                     )
                     .foregroundStyle(.red.opacity(0.10))
                     
-                    // ─────────────────────────────
+                   
                     // SpO₂ LINE
-                    // ─────────────────────────────
+                    
                     ForEach(data) { point in
                         LineMark(
                             x: .value("Time", point.timestamp),
@@ -79,16 +79,16 @@ struct SpO2TimelineChart: View {
                         .foregroundStyle(spo2Color)
                     }
                     
-                    // ─────────────────────────────
+                    
                     // SEIZURE MOMENT (CENTER LINE)
-                    // ─────────────────────────────
+                   
                     RuleMark(x: .value("Seizure", seizureTime))
                         .foregroundStyle(.red.opacity(0.5))
                         .lineStyle(StrokeStyle(lineWidth: 2, dash: [4]))
                     
-                    // ─────────────────────────────
+                    
                     // SELECTED POINT
-                    // ─────────────────────────────
+               
                     if let selected {
                         PointMark(
                             x: .value("Time", selected.timestamp),

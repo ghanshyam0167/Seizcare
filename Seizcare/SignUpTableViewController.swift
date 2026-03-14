@@ -38,6 +38,7 @@ class SignUpTableViewController: UITableViewController {
         emailField.autocorrectionType = .no
 
         // Phone
+        phoneField.delegate = self
         phoneField.keyboardType = .numberPad
         phoneField.textContentType = .telephoneNumber
 
@@ -230,13 +231,8 @@ class SignUpTableViewController: UITableViewController {
                        return
                    }
 
-           if UserDataModel.shared.getAllUsers().contains(where: { $0.email == email }) {
-               showAlert("An account with this email already exists.")
-               return
-           }
-
            // -------------------------
-           // Create User
+           // Create User + Supabase Sign Up
            // -------------------------
            let newUser = User(
                fullName: fullName,
@@ -247,12 +243,33 @@ class SignUpTableViewController: UITableViewController {
                password: password
            )
 
-           UserDataModel.shared.addUser(newUser)
-           let loginSuccess = UserDataModel.shared.loginUser(emailOrPhone: email, password: password)
-               print("Auto-login status → \(loginSuccess)")
+           // Disable button and show loading to prevent double-taps
+           sender.isEnabled = false
+           sender.setTitle("Creating account…", for: .normal)
 
-           // Navigate after signup
-           performSegue(withIdentifier: "goToSignupSuccess", sender: self)
+           Task {
+               do {
+                   // 1. Create Supabase Auth user, insert profile row,
+                   //    set currentUser + UserDefaults — all in one awaited call.
+                   try await UserDataModel.shared.signUpUserAsync(user: newUser)
+
+                   // 2. Verify session is ready before navigating.
+                   guard UserDataModel.shared.getCurrentUser() != nil else {
+                       throw SupabaseServiceError.authFailed("Session not established after sign-up.")
+                   }
+
+                   // 3. Navigate on the main thread.
+                   await MainActor.run {
+                       self.performSegue(withIdentifier: "goToSignupSuccess", sender: self)
+                   }
+               } catch {
+                   await MainActor.run {
+                       sender.isEnabled = true
+                       sender.setTitle("Create Account", for: .normal)
+                       self.showAlert("Sign up failed: \(error.localizedDescription)")
+                   }
+               }
+           }
        }
     // MARK: - Validate Password
     
@@ -317,3 +334,27 @@ class SignUpTableViewController: UITableViewController {
         return phonePred.evaluate(with: phone)
     }
    }
+
+extension SignUpTableViewController: UITextFieldDelegate {
+    func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
+        // Only valid for phone field
+        guard textField == phoneField else { return true }
+        
+        // Allow backspace
+        if string.isEmpty { return true }
+        
+        // 1. Check if the new characters are only digits
+        let allowedCharacters = CharacterSet.decimalDigits
+        let characterSet = CharacterSet(charactersIn: string)
+        guard allowedCharacters.isSuperset(of: characterSet) else {
+            return false
+        }
+        
+        // 2. Check maximum length (10 digits)
+        let currentText = textField.text ?? ""
+        guard let stringRange = Range(range, in: currentText) else { return false }
+        let updatedText = currentText.replacingCharacters(in: stringRange, with: string)
+        
+        return updatedText.count <= 10
+    }
+}

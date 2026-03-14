@@ -9,7 +9,7 @@ import UIKit
 
 class NUAdjustSensitivityViewController: UIViewController {
 
-    // MARK: - Data
+    //  Data
     private let sensitivities = ["Low", "Medium", "High"]
 
     private let descriptions = [
@@ -20,7 +20,7 @@ class NUAdjustSensitivityViewController: UIViewController {
 
     private var selectedIndex = 1 // Default = Medium
 
-    // MARK: - Views
+    //  Views
     private let cardView: UIView = {
         let v = UIView()
         v.backgroundColor = .white
@@ -45,7 +45,7 @@ class NUAdjustSensitivityViewController: UIViewController {
     private var rowControls: [NUSensitivityRowView] = []
     private var continueButton: UIButton!
 
-    // MARK: - Lifecycle
+    // Lifecycle
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -58,7 +58,7 @@ class NUAdjustSensitivityViewController: UIViewController {
         setupContinueButton()
     }
 
-    // MARK: - Setup
+    //  Setup
 
     private func setupViews() {
         view.addSubview(cardView)
@@ -134,7 +134,10 @@ class NUAdjustSensitivityViewController: UIViewController {
         selectedIndex = index
 
         // Persist
-        UserDefaults.standard.set(sensitivities[selectedIndex], forKey: "sensitivityLevel")
+        let selectedSensitivityString = sensitivities[selectedIndex].lowercased()
+        if let newLevel = SensitivityLevel(rawValue: selectedSensitivityString) {
+            SensitivityDataModel.shared.setSensitivity(level: newLevel)
+        }
 
         // Animate change
         rowControls[previous].setChecked(false, animated: true)
@@ -143,7 +146,10 @@ class NUAdjustSensitivityViewController: UIViewController {
 
     @objc private func continueButtonTapped() {
         // Save selection
-        UserDefaults.standard.set(sensitivities[selectedIndex], forKey: "sensitivityLevel")
+        let selectedSensitivityString = sensitivities[selectedIndex].lowercased()
+        if let newLevel = SensitivityLevel(rawValue: selectedSensitivityString) {
+            SensitivityDataModel.shared.setSensitivity(level: newLevel)
+        }
 
         // Navigate to Seizure Duration screen
         let durationVC = storyboard?.instantiateViewController(withIdentifier: "NUSeizureDurationVC") as! NUSeizureDurationViewController
@@ -153,8 +159,8 @@ class NUAdjustSensitivityViewController: UIViewController {
     // MARK: - Persistence
 
     private func loadSavedPreference() {
-        if let savedLevel = UserDefaults.standard.string(forKey: "sensitivityLevel"),
-           let index = sensitivities.firstIndex(of: savedLevel) {
+        let savedLevel = SensitivityDataModel.shared.getCurrentSensitivity().rawValue.capitalized
+        if let index = sensitivities.firstIndex(of: savedLevel) {
             selectedIndex = index
         }
     }
