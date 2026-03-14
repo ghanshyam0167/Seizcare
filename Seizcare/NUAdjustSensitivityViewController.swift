@@ -136,7 +136,13 @@ class NUAdjustSensitivityViewController: UIViewController {
         // Persist
         let selectedSensitivityString = sensitivities[selectedIndex].lowercased()
         if let newLevel = SensitivityLevel(rawValue: selectedSensitivityString) {
-            SensitivityDataModel.shared.setSensitivity(level: newLevel)
+            if UserDataModel.shared.getCurrentUser() == nil {
+                // Not signed in yet — save to temporary onboarding preferences
+                OnboardingPreferences.shared.sensitivity = newLevel
+            } else {
+                // Signed in — save to database
+                SensitivityDataModel.shared.setSensitivity(level: newLevel)
+            }
         }
 
         // Animate change
@@ -148,7 +154,13 @@ class NUAdjustSensitivityViewController: UIViewController {
         // Save selection
         let selectedSensitivityString = sensitivities[selectedIndex].lowercased()
         if let newLevel = SensitivityLevel(rawValue: selectedSensitivityString) {
-            SensitivityDataModel.shared.setSensitivity(level: newLevel)
+            if UserDataModel.shared.getCurrentUser() == nil {
+                // Not signed in yet — save to temporary onboarding preferences
+                OnboardingPreferences.shared.sensitivity = newLevel
+            } else {
+                // Signed in — save to database
+                SensitivityDataModel.shared.setSensitivity(level: newLevel)
+            }
         }
 
         // Navigate to Seizure Duration screen
@@ -159,7 +171,15 @@ class NUAdjustSensitivityViewController: UIViewController {
     // MARK: - Persistence
 
     private func loadSavedPreference() {
-        let savedLevel = SensitivityDataModel.shared.getCurrentSensitivity().rawValue.capitalized
+        let savedLevel: String
+        if UserDataModel.shared.getCurrentUser() == nil {
+            // Not signed in yet — load from temporary onboarding preferences
+            savedLevel = OnboardingPreferences.shared.sensitivity.rawValue.capitalized
+        } else {
+            // Signed in — load from cache
+            savedLevel = SensitivityDataModel.shared.getCurrentSensitivity().rawValue.capitalized
+        }
+
         if let index = sensitivities.firstIndex(of: savedLevel) {
             selectedIndex = index
         }

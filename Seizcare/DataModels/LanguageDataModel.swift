@@ -64,8 +64,16 @@ final class LanguageDataModel {
         
         Task {
             do {
-                let dto = LanguageDTO(userId: userId, languageCode: language.rawValue)
-                try await SupabaseService.shared.updateLanguage(dto: dto)
+                // Check if a record exists
+                if let _ = try await SupabaseService.shared.fetchLanguage(userId: userId) {
+                    // Update existing record
+                    let dto = LanguageDTO(userId: userId, languageCode: language.rawValue)
+                    try await SupabaseService.shared.updateLanguage(dto: dto)
+                } else {
+                    // Insert new record
+                    let dto = LanguageDTO(userId: userId, languageCode: language.rawValue)
+                    try await SupabaseService.shared.insertLanguage(dto: dto)
+                }
             } catch {
                 print("⚠️ [LanguageDataModel] setLanguage failed: \(error.localizedDescription)")
             }
