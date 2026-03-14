@@ -413,133 +413,39 @@ class AddRecordTableViewController: UITableViewController {
     }
 
     @objc private func openDatePicker() {
+        // Parse existing date from field
+        let formatter = DateFormatter()
+        formatter.dateFormat = "dd/MM/yyyy"
+        let currentDate = formatter.date(from: dateTextField.text ?? "") ?? Date()
 
-        let pickerVC = UIViewController()
-        pickerVC.view.backgroundColor = .systemBackground
-        pickerVC.modalPresentationStyle = .pageSheet
-        
-        let datePicker = UIDatePicker()
-        datePicker.datePickerMode = .date
-        datePicker.preferredDatePickerStyle = .inline
-        
-        // Allow all of today by setting max to end of today (23:59:59)
+        // Max = end of today
         let calendar = Calendar.current
-        if let endOfToday = calendar.date(bySettingHour: 23, minute: 59, second: 59, of: Date()) {
-            datePicker.maximumDate = endOfToday
-        } else {
-            datePicker.maximumDate = Date()
-        }
+        let maxDate = calendar.date(bySettingHour: 23, minute: 59, second: 59, of: Date()) ?? Date()
 
-        datePicker.translatesAutoresizingMaskIntoConstraints = false
-        pickerVC.view.addSubview(datePicker)
-        
-        // Add Done button
-        let doneButton = UIButton(type: .system)
-        doneButton.setTitle("Done", for: .normal)
-        doneButton.titleLabel?.font = .systemFont(ofSize: 17, weight: .semibold)
-        doneButton.translatesAutoresizingMaskIntoConstraints = false
-        pickerVC.view.addSubview(doneButton)
-
-        NSLayoutConstraint.activate([
-            datePicker.topAnchor.constraint(equalTo: pickerVC.view.topAnchor, constant: 60),
-            datePicker.leadingAnchor.constraint(equalTo: pickerVC.view.leadingAnchor, constant: 16),
-            datePicker.trailingAnchor.constraint(equalTo: pickerVC.view.trailingAnchor, constant: -16),
-            datePicker.bottomAnchor.constraint(equalTo: pickerVC.view.bottomAnchor, constant: -20),
-            
-            doneButton.topAnchor.constraint(equalTo: pickerVC.view.topAnchor, constant: 20),
-            doneButton.trailingAnchor.constraint(equalTo: pickerVC.view.trailingAnchor, constant: -20)
-        ])
-
-        // Handle selection with Done button
-        doneButton.addAction(UIAction { [weak self] _ in
+        let sheet = SeizPickerSheet.datePicker(
+            title: "Select Date",
+            mode: .date,
+            style: .inline,
+            current: currentDate,
+            maximumDate: maxDate
+        ) { [weak self] selectedDate in
             guard let self else { return }
-            let formatter = DateFormatter()
-            formatter.dateFormat = "dd/MM/yyyy"
-            self.dateTextField.text = formatter.string(from: datePicker.date)
-            self.updateTimeBucket(from: datePicker.date)
+            self.dateTextField.text = formatter.string(from: selectedDate)
+            self.updateTimeBucket(from: selectedDate)
             self.validateForm()
-            self.dismiss(animated: true)
-        }, for: .touchUpInside)
-
-        // Sheet style (iOS 15+)
-        if let sheet = pickerVC.sheetPresentationController {
-            sheet.detents = [.medium()]
-            sheet.prefersGrabberVisible = true
-            sheet.preferredCornerRadius = 20
         }
-
-        present(pickerVC, animated: true)
+        present(sheet, animated: true)
     }
     
-    // MARK: - Duration Picker Logic (Custom UIPickerView)
     @objc private func openDurationPicker() {
-        let pickerVC = UIViewController()
-        pickerVC.view.backgroundColor = .systemBackground
-        pickerVC.modalPresentationStyle = .pageSheet
-        
-        // Title Label
-        let titleLabel = UILabel()
-        titleLabel.text = "Select Duration"
-        titleLabel.font = .systemFont(ofSize: 17, weight: .semibold)
-        titleLabel.textAlignment = .center
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        pickerVC.view.addSubview(titleLabel)
-        
-        // Picker
-        let pickerView = UIPickerView()
-        pickerView.translatesAutoresizingMaskIntoConstraints = false
-        pickerVC.view.addSubview(pickerView)
-        
-        // Done Button
-        let doneButton = UIButton(type: .system)
-        doneButton.setTitle("Done", for: .normal)
-        doneButton.titleLabel?.font = .systemFont(ofSize: 17, weight: .semibold)
-        doneButton.translatesAutoresizingMaskIntoConstraints = false
-        pickerVC.view.addSubview(doneButton)
-        
-        NSLayoutConstraint.activate([
-            titleLabel.topAnchor.constraint(equalTo: pickerVC.view.topAnchor, constant: 20),
-            titleLabel.centerXAnchor.constraint(equalTo: pickerVC.view.centerXAnchor),
-            
-            doneButton.topAnchor.constraint(equalTo: pickerVC.view.topAnchor, constant: 20),
-            doneButton.trailingAnchor.constraint(equalTo: pickerVC.view.trailingAnchor, constant: -20),
-            
-            pickerView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 20),
-            pickerView.leadingAnchor.constraint(equalTo: pickerVC.view.leadingAnchor),
-            pickerView.trailingAnchor.constraint(equalTo: pickerVC.view.trailingAnchor),
-            pickerView.heightAnchor.constraint(equalToConstant: 200)
-        ])
-        
-        let adapter = DurationPickerAdapter(initialDuration: duration) { [weak self] newDuration in
+        let sheet = SeizPickerSheet.durationPicker(
+            title: "Select Duration",
+            currentDuration: duration
+        ) { [weak self] newDuration in
             self?.duration = newDuration
         }
-        
-       
-        self.currentDurationAdapter = adapter
-        pickerView.delegate = adapter
-        pickerView.dataSource = adapter
-        
-        // Select current row
-        let min = Int(duration) / 60
-        let sec = Int(duration) % 60
-        pickerView.selectRow(min, inComponent: 0, animated: false)
-        pickerView.selectRow(sec, inComponent: 1, animated: false)
-        
-        doneButton.addAction(UIAction { [weak self] _ in
-            self?.dismiss(animated: true)
-            self?.currentDurationAdapter = nil // Cleanup
-        }, for: .touchUpInside)
-
-        if let sheet = pickerVC.sheetPresentationController {
-            sheet.detents = [.medium()]
-            sheet.prefersGrabberVisible = true
-            sheet.preferredCornerRadius = 20
-        }
-        present(pickerVC, animated: true)
+        present(sheet, animated: true)
     }
-    
-    // Hold reference to the adapter
-    var currentDurationAdapter: DurationPickerAdapter?
 
     private func updateDurationLabel() {
         let min = Int(duration) / 60
@@ -601,46 +507,5 @@ extension AddRecordTableViewController: UITextViewDelegate {
             textView.text = placeholderText
             textView.textColor = .tertiaryLabel
         }
-    }
-}
-
-
-//  Duration Picker Adapter
-class DurationPickerAdapter: NSObject, UIPickerViewDelegate, UIPickerViewDataSource {
-    let onUpdate: (TimeInterval) -> Void
-    
-    init(initialDuration: TimeInterval, onUpdate: @escaping (TimeInterval) -> Void) {
-        self.onUpdate = onUpdate
-        super.init()
-    }
-    
-    
-    
-    func numberOfComponents(in pickerView: UIPickerView) -> Int {
-        return 2
-    }
-    
-    func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
-        if component == 0 { return 121 } // 0-120 mins
-        return 60 // 0-59 secs
-    }
-    
-    func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
-        if component == 0 {
-            return "\(row) min"
-        } else {
-            return "\(row) sec"
-        }
-    }
-    
-    func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
-        let min = pickerView.selectedRow(inComponent: 0)
-        let sec = pickerView.selectedRow(inComponent: 1)
-        let totalSeconds = TimeInterval((min * 60) + sec)
-        onUpdate(totalSeconds)
-    }
-    
-    func pickerView(_ pickerView: UIPickerView, widthForComponent component: Int) -> CGFloat {
-        return 100
     }
 }

@@ -61,8 +61,16 @@ final class SensitivityDataModel {
         
         Task {
             do {
-                let dto = SensitivityDTO(userId: userId, sensitivityLevel: level.rawValue)
-                try await SupabaseService.shared.updateSensitivity(dto: dto)
+                // Check if a record exists
+                if let _ = try await SupabaseService.shared.fetchSensitivity(userId: userId) {
+                    // Update existing record
+                    let dto = SensitivityDTO(userId: userId, sensitivityLevel: level.rawValue)
+                    try await SupabaseService.shared.updateSensitivity(dto: dto)
+                } else {
+                    // Insert new record
+                    let dto = SensitivityDTO(userId: userId, sensitivityLevel: level.rawValue)
+                    try await SupabaseService.shared.insertSensitivity(dto: dto)
+                }
             } catch {
                 print("⚠️ [SensitivityDataModel] setSensitivity failed: \(error.localizedDescription)")
             }

@@ -487,6 +487,9 @@
                                                                     <rect key="frame" x="92" y="119.99999999999999" width="185" height="35.333333333333329"/>
                                                                     <state key="normal" title="Button"/>
                                                                     <buttonConfiguration key="configuration" style="plain" title="Change Profile Photo"/>
+                                                                    <connections>
+                                                                        <action selector="changePhotoTapped:" destination="msZ-YG-fgQ" eventType="touchUpInside" id="cPh-oT-o1A"/>
+                                                                    </connections>
                                                                 </button>
                                                             </subviews>
                                                         </stackView>
@@ -800,6 +803,7 @@
                         <outlet property="heightTextField" destination="sFg-lZ-x3R" id="tm1-Q0-Zfs"/>
                         <outlet property="nameTextField" destination="LF5-vM-uFI" id="Wee-e5-ecB"/>
                         <outlet property="phoneTextField" destination="XRu-jY-gq9" id="0V7-Ii-zSE"/>
+                        <outlet property="profileImageView" destination="4xe-Kn-nmB" id="pIm-gV-w1A"/>
                         <outlet property="section0CardContainer" destination="Sy6-m9-NoV" id="fCB-Fi-VdF"/>
                         <outlet property="section1CardContainer" destination="KuZ-zy-dvw" id="lfg-To-gri"/>
                         <outlet property="weightTextField" destination="Udm-bf-Zh7" id="j69-iW-Pba"/>
@@ -1191,6 +1195,7 @@
                         <outlet property="heightRightLabel" destination="mOz-BT-oPt" id="Xyx-T0-zQU"/>
                         <outlet property="nameRightLabel" destination="Lpf-4Q-Nho" id="Rdn-mc-dic"/>
                         <outlet property="phoneRightLabel" destination="UqA-NJ-cTZ" id="ttl-fp-KNR"/>
+                        <outlet property="profileImageView" destination="bl3-7h-aDK" id="pRo-fI-lE1"/>
                         <outlet property="section0CardContainer" destination="ktm-h2-dBh" id="C74-TE-X6G"/>
                         <outlet property="section1CardContainer" destination="TrZ-fz-Ya3" id="xmp-AP-Zou"/>
                         <outlet property="weightRightLabel" destination="uXU-p0-4br" id="rsJ-z7-cld"/>
@@ -1491,17 +1496,17 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="vFN-fi-YbA" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
                 <tapGestureRecognizer id="yTe-cE-nDz">
                     <connections>
-                        <segue destination="gHm-eL-28k" kind="show" id="AbW-gn-HzH"/>
+                        <segue destination="gHm-eL-28k" kind="show" identifier="goToEmergencyContacts" id="AbW-gn-HzH"/>
                     </connections>
                 </tapGestureRecognizer>
                 <tapGestureRecognizer id="d24-bb-G5A">
                     <connections>
-                        <segue destination="5BO-KC-qf7" kind="show" id="Sv8-Yb-DPq"/>
+                        <segue destination="5BO-KC-qf7" kind="show" identifier="goToSensitivity" id="Sv8-Yb-DPq"/>
                     </connections>
                 </tapGestureRecognizer>
                 <tapGestureRecognizer id="84Q-cp-dpL">
                     <connections>
-                        <segue destination="YOR-FA-G9P" kind="show" id="o5y-1B-eAU"/>
+                        <segue destination="YOR-FA-G9P" kind="show" identifier="goToLanguage" id="o5y-1B-eAU"/>
                     </connections>
                 </tapGestureRecognizer>
                 <tapGestureRecognizer id="KwK-Hu-HYt">
