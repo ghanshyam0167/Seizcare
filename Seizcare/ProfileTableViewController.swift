@@ -34,6 +34,12 @@ class ProfileTableViewController: UITableViewController {
     @objc func imageTapped() {
         performSegue(withIdentifier: "goToNextScreen", sender: self)
     }
+
+    @IBAction func connectWatchTapped(_ sender: UITapGestureRecognizer) {
+        let watchVC = WatchConnectionViewController()
+        navigationController?.pushViewController(watchVC, animated: true)
+    }
+
     func updateUI(){
         user = UserDataModel.shared.getCurrentUser()
         guard let user = user else { return }
