@@ -2,113 +2,233 @@ import UIKit
 
 class IntroViewController: UIViewController {
 
+    // MARK: - Lifecycle
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupUI()
+        view.backgroundColor = .systemGray6
+        navigationController?.setNavigationBarHidden(true, animated: false)
+        view.subviews.forEach { $0.isHidden = true }
+        buildUI()
     }
 
-    private func setupUI() {
-        // Tag 101: Logo ImageView
-        // Tag 102: Title Label
-        // Tag 103: Subtitle Label
-        // Tag 104: Text Group Stack (Logo+Title+Subtitle)
-        // Tag 107: Main Content Stack (contains TextGroup, Feature1, Feature2)
-        
-        // 1. Logo Styling
-        if let logo = view.viewWithTag(101) as? UIImageView {
-             // Logo size is handled in Storyboard constraints (280x280)
-             // Ensure content mode if needed, but it looked fine.
-        }
-        
-        // 2. Title Styling
-        if let titleLabel = view.viewWithTag(102) as? UILabel {
-            titleLabel.font = .systemFont(ofSize: 28, weight: .semibold)
-            titleLabel.textAlignment = .center
-            titleLabel.numberOfLines = 0
-            // Max width 85% handled by parent stack padding or explicit constraint?
-            // Let's rely on stack padding first, or add constraint if needed.
-        }
-        
-        // 3. Subtitle Styling
-        if let subtitleLabel = view.viewWithTag(103) as? UILabel {
-            subtitleLabel.font = .systemFont(ofSize: 16, weight: .regular)
-            subtitleLabel.textColor = .secondaryLabel
-            subtitleLabel.numberOfLines = 3
-            subtitleLabel.textAlignment = .center
-            
-            // Paragraph style for line spacing
-            let paragraphStyle = NSMutableParagraphStyle()
-            paragraphStyle.lineSpacing = 5
-            paragraphStyle.alignment = .center
-            let attrString = NSMutableAttributedString(string: subtitleLabel.text ?? "")
-            attrString.addAttribute(.paragraphStyle, value: paragraphStyle, range: NSRange(location: 0, length: attrString.length))
-            subtitleLabel.attributedText = attrString
-        }
-        
-        // 4. Spacing Configuration
-        if let textStack = view.viewWithTag(104) as? UIStackView {
-            // Stack contains [Logo, Title, Subtitle]
-            // Default spacing might be set in Storyboard (e.g. 20)
-            
-            // Logo (index 0) -> Title (index 1): 12pt
-            if textStack.arrangedSubviews.count >= 2 {
-                let logoView = textStack.arrangedSubviews[0]
-                textStack.setCustomSpacing(12, after: logoView)
-            }
-            
-            // Title (index 1) -> Subtitle (index 2): 20pt
-            if textStack.arrangedSubviews.count >= 3 {
-                let titleView = textStack.arrangedSubviews[1]
-                textStack.setCustomSpacing(20, after: titleView)
-            }
-        }
-        
-        if let mainContentStack = view.viewWithTag(107) as? UIStackView {
-            // Stack contains [TextStack, Feature1, Feature2]
-            
-            // TextStack -> Feature 1: 24pt
-            if mainContentStack.arrangedSubviews.count >= 1 {
-                let textStackView = mainContentStack.arrangedSubviews[0]
-                mainContentStack.setCustomSpacing(24, after: textStackView)
-            }
-            
-            // Feature 1 -> Feature 2: 28pt
-            if mainContentStack.arrangedSubviews.count >= 2 {
-                let feature1 = mainContentStack.arrangedSubviews[1]
-                mainContentStack.setCustomSpacing(28, after: feature1)
-            }
-        }
-        
-        // 5. Feature Styling (Recursively find feature labels if tags obscure)
-        // We know Feature 1 Stack is Tag 105, Feature 2 is Tag 106.
-        // Inside them, we have icon and logic.
-        // Let's refine based on the known structure.
-        
-        styleFeatureStack(tag: 105)
-        styleFeatureStack(tag: 106)
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.setNavigationBarHidden(true, animated: animated)
     }
-    
-    private func styleFeatureStack(tag: Int) {
-        guard let stack = view.viewWithTag(tag) as? UIStackView else { return }
-        
-        // Spacing between Icon and TextStack: 12pt
-        stack.spacing = 12
-        stack.alignment = .top // Ensure top alignment
-        
-        // The text stack is the second arranged subview usually
-        if stack.arrangedSubviews.count > 1, let textStack = stack.arrangedSubviews[1] as? UIStackView {
-            textStack.spacing = 8 // Feature Title -> Description
-            
-            // Title Label (First item in textStack)
-            if let titleLabel = textStack.arrangedSubviews.first as? UILabel {
-                titleLabel.font = .systemFont(ofSize: 17, weight: .medium)
-            }
-            
-            // Desc Label (Second item)
-            if textStack.arrangedSubviews.count > 1, let descLabel = textStack.arrangedSubviews[1] as? UILabel {
-                descLabel.font = .systemFont(ofSize: 15, weight: .regular)
-                descLabel.textColor = .secondaryLabel
-            }
-        }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        navigationController?.setNavigationBarHidden(false, animated: animated)
+    }
+
+    // MARK: - Build UI
+
+    private func buildUI() {
+
+        // ── Centering wrapper ──
+        let wrapper = UIView()
+        wrapper.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(wrapper)
+
+        NSLayoutConstraint.activate([
+            wrapper.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
+            wrapper.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -24),
+            wrapper.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: -20)
+        ])
+
+        // ── Main stack ──
+        let stack = UIStackView()
+        stack.axis = .vertical
+        stack.alignment = .center
+        stack.spacing = 0
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        wrapper.addSubview(stack)
+
+        NSLayoutConstraint.activate([
+            stack.topAnchor.constraint(equalTo: wrapper.topAnchor),
+            stack.leadingAnchor.constraint(equalTo: wrapper.leadingAnchor),
+            stack.trailingAnchor.constraint(equalTo: wrapper.trailingAnchor),
+            stack.bottomAnchor.constraint(equalTo: wrapper.bottomAnchor)
+        ])
+
+        // ── 1. App Logo ──
+        let logo = UIImageView(image: UIImage(named: "Image"))
+        logo.contentMode = .scaleAspectFit
+        logo.translatesAutoresizingMaskIntoConstraints = false
+        logo.layer.shadowColor = UIColor.black.cgColor
+        logo.layer.shadowOpacity = 0.08
+        logo.layer.shadowRadius = 12
+        logo.layer.shadowOffset = CGSize(width: 0, height: 6)
+        stack.addArrangedSubview(logo)
+        NSLayoutConstraint.activate([
+            logo.widthAnchor.constraint(equalToConstant: 250),
+            logo.heightAnchor.constraint(equalToConstant: 250)
+        ])
+        stack.setCustomSpacing(28, after: logo)
+
+        // ── 2. Title ──
+        let titleLabel = UILabel()
+        titleLabel.text = "Your Seizure Safety\nCompanion"
+        titleLabel.font = .systemFont(ofSize: 26, weight: .bold)
+        titleLabel.textColor = .label
+        titleLabel.textAlignment = .center
+        titleLabel.numberOfLines = 0
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        stack.addArrangedSubview(titleLabel)
+        titleLabel.widthAnchor.constraint(equalTo: stack.widthAnchor).isActive = true
+        stack.setCustomSpacing(12, after: titleLabel)
+
+        // ── 3. Subtitle ──
+        let subtitleLabel = UILabel()
+        subtitleLabel.numberOfLines = 0
+        subtitleLabel.textAlignment = .center
+        subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
+        let para = NSMutableParagraphStyle()
+        para.lineSpacing = 5
+        para.alignment = .center
+        subtitleLabel.attributedText = NSAttributedString(
+            string: "Real-time vitals from your Apple Watch with smart detection to help manage epilepsy confidently.",
+            attributes: [
+                .font: UIFont.systemFont(ofSize: 15, weight: .regular),
+                .foregroundColor: UIColor.secondaryLabel,
+                .paragraphStyle: para
+            ])
+        stack.addArrangedSubview(subtitleLabel)
+        subtitleLabel.widthAnchor.constraint(equalTo: stack.widthAnchor, constant: -24).isActive = true
+        stack.setCustomSpacing(32, after: subtitleLabel)
+
+        // ── 4. Features Card ──
+        let featuresCard = makeFeaturesCard()
+        stack.addArrangedSubview(featuresCard)
+        featuresCard.widthAnchor.constraint(equalTo: stack.widthAnchor).isActive = true
+        stack.setCustomSpacing(36, after: featuresCard)
+
+        // ── 5. CTA Button ──
+        let ctaButton = UIButton(type: .system)
+        ctaButton.setTitle("Start Setup", for: .normal)
+        ctaButton.titleLabel?.font = .systemFont(ofSize: 17, weight: .semibold)
+        ctaButton.setTitleColor(.white, for: .normal)
+        ctaButton.backgroundColor = .systemBlue
+        ctaButton.layer.cornerRadius = 26
+        ctaButton.layer.shadowColor = UIColor.black.cgColor
+        ctaButton.layer.shadowOpacity = 0.12
+        ctaButton.layer.shadowRadius = 10
+        ctaButton.layer.shadowOffset = CGSize(width: 0, height: 4)
+        ctaButton.layer.masksToBounds = false
+        ctaButton.translatesAutoresizingMaskIntoConstraints = false
+        ctaButton.addTarget(self, action: #selector(ctaTapped), for: .touchUpInside)
+        stack.addArrangedSubview(ctaButton)
+        NSLayoutConstraint.activate([
+            ctaButton.widthAnchor.constraint(equalTo: stack.widthAnchor),
+            ctaButton.heightAnchor.constraint(equalToConstant: 52)
+        ])
+    }
+
+    // MARK: - Features Card
+
+    private func makeFeaturesCard() -> UIView {
+        let card = UIView()
+        card.backgroundColor = .white
+        card.layer.cornerRadius = 22
+        card.layer.shadowColor = UIColor.black.cgColor
+        card.layer.shadowOpacity = 0.06
+        card.layer.shadowRadius = 14
+        card.layer.shadowOffset = CGSize(width: 0, height: 6)
+        card.translatesAutoresizingMaskIntoConstraints = false
+
+        let cardStack = UIStackView()
+        cardStack.axis = .vertical
+        cardStack.spacing = 0
+        cardStack.translatesAutoresizingMaskIntoConstraints = false
+        card.addSubview(cardStack)
+
+        NSLayoutConstraint.activate([
+            cardStack.topAnchor.constraint(equalTo: card.topAnchor, constant: 18),
+            cardStack.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 18),
+            cardStack.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -18),
+            cardStack.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -18)
+        ])
+
+        // Feature Row 1
+        let row1 = makeFeatureRow(
+            icon: "heart.circle.fill",
+            title: "Real-Time Vitals",
+            desc: "Continuous tracking of key health metrics"
+        )
+        cardStack.addArrangedSubview(row1)
+        cardStack.setCustomSpacing(14, after: row1)
+
+        // Separator
+        let sep = UIView()
+        sep.backgroundColor = .separator.withAlphaComponent(0.3)
+        sep.translatesAutoresizingMaskIntoConstraints = false
+        sep.heightAnchor.constraint(equalToConstant: 0.5).isActive = true
+        cardStack.addArrangedSubview(sep)
+        cardStack.setCustomSpacing(14, after: sep)
+
+        // Feature Row 2
+        let row2 = makeFeatureRow(
+            icon: "exclamationmark.triangle.fill",
+            title: "Swift Alerts",
+            desc: "Instantly notify emergency contacts"
+        )
+        cardStack.addArrangedSubview(row2)
+
+        return card
+    }
+
+    private func makeFeatureRow(icon: String, title: String, desc: String) -> UIView {
+        let row = UIView()
+        row.translatesAutoresizingMaskIntoConstraints = false
+
+        // Icon
+        let iconView = UIImageView()
+        iconView.translatesAutoresizingMaskIntoConstraints = false
+        iconView.image = UIImage(systemName: icon)
+        iconView.tintColor = .systemBlue
+        iconView.contentMode = .scaleAspectFit
+        row.addSubview(iconView)
+
+        // Title
+        let titleLabel = UILabel()
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        titleLabel.text = title
+        titleLabel.font = .systemFont(ofSize: 16, weight: .semibold)
+        titleLabel.textColor = .label
+        row.addSubview(titleLabel)
+
+        // Desc
+        let descLabel = UILabel()
+        descLabel.translatesAutoresizingMaskIntoConstraints = false
+        descLabel.text = desc
+        descLabel.font = .systemFont(ofSize: 14, weight: .regular)
+        descLabel.textColor = .secondaryLabel
+        descLabel.numberOfLines = 2
+        row.addSubview(descLabel)
+
+        NSLayoutConstraint.activate([
+            iconView.leadingAnchor.constraint(equalTo: row.leadingAnchor),
+            iconView.topAnchor.constraint(equalTo: row.topAnchor, constant: 2),
+            iconView.widthAnchor.constraint(equalToConstant: 22),
+            iconView.heightAnchor.constraint(equalToConstant: 22),
+
+            titleLabel.topAnchor.constraint(equalTo: row.topAnchor),
+            titleLabel.leadingAnchor.constraint(equalTo: iconView.trailingAnchor, constant: 12),
+            titleLabel.trailingAnchor.constraint(equalTo: row.trailingAnchor),
+
+            descLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 3),
+            descLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
+            descLabel.trailingAnchor.constraint(equalTo: row.trailingAnchor),
+            descLabel.bottomAnchor.constraint(equalTo: row.bottomAnchor)
+        ])
+
+        return row
+    }
+
+    // MARK: - Actions
+
+    @objc private func ctaTapped() {
+        performSegue(withIdentifier: "startSetupSegue", sender: self)
     }
 }

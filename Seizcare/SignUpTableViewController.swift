@@ -160,34 +160,25 @@ class SignUpTableViewController: UITableViewController {
             setupGenderMenu()
         }
     private func configureDatePickerForDOB() {
-           if #available(iOS 13.4, *) {
-               datePicker.preferredDatePickerStyle = .wheels
-           }
-           datePicker.datePickerMode = .date
+        // Disable default keyboard/inputView — we'll present our own sheet
+        dobField.inputView = UIView() // empty view prevents keyboard
+        dobField.tintColor = .clear   // hide cursor
+        let tap = UITapGestureRecognizer(target: self, action: #selector(openDOBPicker))
+        dobField.addGestureRecognizer(tap)
+        dobField.isUserInteractionEnabled = true
+    }
 
-           // Optional: set reasonable range (last 100 years → today)
-           let calendar = Calendar.current
-           if let min = calendar.date(byAdding: .year, value: -100, to: Date()) {
-               datePicker.minimumDate = min
-           }
-           datePicker.maximumDate = Date()
-
-           // connect picker as inputView for dobField
-           dobField.inputView = datePicker
-
-           // toolbar with done button for the picker
-           let toolbar = UIToolbar()
-           toolbar.sizeToFit()
-           let done = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(dobDoneTapped))
-           let spacer = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
-           toolbar.setItems([spacer, done], animated: false)
-           dobField.inputAccessoryView = toolbar
-       }
-    @objc private func dobDoneTapped() {
-            let selectedDate = datePicker.date
-            dobField.text = dateFormatter.string(from: selectedDate)
-            dobField.resignFirstResponder()
+    @objc private func openDOBPicker() {
+        let sheet = SeizPickerSheet.dobPicker(
+            title: "Date of Birth",
+            current: datePicker.date
+        ) { [weak self] selectedDate in
+            guard let self else { return }
+            self.datePicker.date = selectedDate
+            self.dobField.text = self.dateFormatter.string(from: selectedDate)
         }
+        present(sheet, animated: true)
+    }
 
        // MARK: - Create Account
        @IBAction func createAccountTapped(_ sender: UIButton) {

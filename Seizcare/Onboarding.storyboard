@@ -128,6 +128,9 @@ metrics</string>
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" id="cD7-fT-9V0"/>
+                    <connections>
+                        <segue destination="aCL-ti-tVb" kind="show" identifier="startSetupSegue" id="sSg-In-t0A"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="AYg-SW-yMr" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>

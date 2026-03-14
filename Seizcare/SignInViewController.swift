@@ -5,12 +5,14 @@
 
 import UIKit
 
-class SignInViewController: UIViewController,UITextFieldDelegate {
+class SignInViewController: UIViewController, UITextFieldDelegate {
 
     @IBOutlet weak var EmailOrPhNo: UITextField!
     @IBOutlet weak var PasswordTextField: UITextField!
 
     // MARK: - Properties for Programmatic UI
+    private let scrollView = UIScrollView()
+    private let contentView = UIView()
     private let inputsContainer = UIView()
     private let emailField = UITextField()
     private let passwordField = UITextField()
@@ -19,7 +21,7 @@ class SignInViewController: UIViewController,UITextFieldDelegate {
     private let emailIcon = UIImageView()
     private let passwordIcon = UIImageView()
     private let signInButton = UIButton(type: .system)
-    // Removed gradientLayer for simpler look
+    private var iconView: UIImageView!
 
     // MARK: - Sign In Action
     @IBAction func SignInAction(_ sender: Any) {
@@ -38,7 +40,6 @@ class SignInViewController: UIViewController,UITextFieldDelegate {
 
         if loginSuccess {
             debugLog("Login SUCCESS → UserDataModel accepted credentials.")
-            // Go directly to Dashboard for existing users (skip onboarding)
             let dashboardStoryboard = UIStoryboard(name: "Dashboard", bundle: nil)
             if let dashboardVC = dashboardStoryboard.instantiateInitialViewController() {
                 let navController = UINavigationController(rootViewController: dashboardVC)
@@ -62,96 +63,157 @@ class SignInViewController: UIViewController,UITextFieldDelegate {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        // Setup Navigation Bar
+
         navigationController?.applyWhiteNavBar()
         navigationItem.setHidesBackButton(true, animated: false)
-        navigationItem.title = "Sign In" // You might want to remove this if you want a cleaner look, but keeping per logic
-        
-        // Build Custom UI
+        navigationItem.title = "Sign In"
+
         setupUI()
+        registerKeyboardNotifications()
+
+        let tap = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
+        tap.cancelsTouchesInView = false
+        view.addGestureRecognizer(tap)
     }
-    
-    // Removed viewDidLayoutSubviews as gradient is gone
+
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+
+    // MARK: - Keyboard Handling
+
+    private func registerKeyboardNotifications() {
+        NotificationCenter.default.addObserver(
+            self, selector: #selector(keyboardWillShow(_:)),
+            name: UIResponder.keyboardWillShowNotification, object: nil)
+        NotificationCenter.default.addObserver(
+            self, selector: #selector(keyboardWillHide(_:)),
+            name: UIResponder.keyboardWillHideNotification, object: nil)
+    }
+
+    @objc private func keyboardWillShow(_ notification: Notification) {
+        guard let info = notification.userInfo,
+              let kbFrame = (info[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue,
+              let duration = info[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double,
+              let curveValue = info[UIResponder.keyboardAnimationCurveUserInfoKey] as? UInt else { return }
+
+        let kbHeight = kbFrame.height
+        let bottomInset = kbHeight - view.safeAreaInsets.bottom
+        let insets = UIEdgeInsets(top: 0, left: 0, bottom: bottomInset + 20, right: 0)
+
+        let options = UIView.AnimationOptions(rawValue: curveValue << 16)
+
+        // Scroll so the sign-in button is visible above the keyboard
+        let buttonFrame = self.signInButton.convert(self.signInButton.bounds, to: self.scrollView)
+        let targetRect = buttonFrame.insetBy(dx: 0, dy: -30)
+
+        UIView.animate(withDuration: duration, delay: 0, options: options) {
+            self.scrollView.contentInset = insets
+            self.scrollView.scrollIndicatorInsets = insets
+            self.iconView.alpha = 0
+            self.scrollView.scrollRectToVisible(targetRect, animated: false)
+        }
+    }
+
+    @objc private func keyboardWillHide(_ notification: Notification) {
+        guard let info = notification.userInfo,
+              let duration = info[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double,
+              let curveValue = info[UIResponder.keyboardAnimationCurveUserInfoKey] as? UInt else { return }
+
+        let options = UIView.AnimationOptions(rawValue: curveValue << 16)
+        UIView.animate(withDuration: duration, delay: 0, options: options) {
+            self.scrollView.contentInset = .zero
+            self.scrollView.scrollIndicatorInsets = .zero
+            self.iconView.alpha = 1
+        }
+    }
+
+    @objc private func dismissKeyboard() {
+        view.endEditing(true)
+    }
 
     // MARK: - Programmatic UI Setup
     private func setupUI() {
         view.subviews.forEach { $0.removeFromSuperview() }
         view.backgroundColor = .systemGray6
-        
+
+        // --- Scroll View ---
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.alwaysBounceVertical = true
+        scrollView.keyboardDismissMode = .interactive
+        view.addSubview(scrollView)
+
+        contentView.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.addSubview(contentView)
+
+        NSLayoutConstraint.activate([
+            scrollView.topAnchor.constraint(equalTo: view.topAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+
+            contentView.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor),
+            contentView.leadingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.leadingAnchor),
+            contentView.trailingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.trailingAnchor),
+            contentView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor),
+            contentView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor),
+        ])
+
         // 1. Logo
-        let iconView = UIImageView(image: UIImage(named: "Image"))
+        iconView = UIImageView(image: UIImage(named: "Image"))
         iconView.contentMode = .scaleAspectFit
-        
-        // Logo Constraints (Explicit Size: 240pt)
         iconView.translatesAutoresizingMaskIntoConstraints = false
-        iconView.widthAnchor.constraint(equalToConstant: 240).isActive = true
-        iconView.heightAnchor.constraint(equalToConstant: 240).isActive = true
-        
-        // Logo Shadow
         iconView.layer.shadowColor = UIColor.black.cgColor
         iconView.layer.shadowOpacity = 0.08
         iconView.layer.shadowRadius = 12
         iconView.layer.shadowOffset = CGSize(width: 0, height: 6)
-        
-        // 2. Input Container (Softer White Surface)
+
+        // 2. Input Container
         inputsContainer.backgroundColor = .white
         inputsContainer.layer.cornerRadius = 22
-        // Subtle Shadow (Opacity 0.06, Radius 14, Offset 0,6)
         inputsContainer.layer.shadowColor = UIColor.black.cgColor
         inputsContainer.layer.shadowOpacity = 0.06
         inputsContainer.layer.shadowRadius = 14
         inputsContainer.layer.shadowOffset = CGSize(width: 0, height: 6)
         inputsContainer.translatesAutoresizingMaskIntoConstraints = false
-        
+
         // 3. Email Field Row
         let emailStack = createInputStack(
-            label: "Email or Phone",
-            field: emailField,
+            label: "Email or Phone", field: emailField,
             placeholder: "Enter email or phone",
-            underline: emailUnderline,
-            iconView: emailIcon,
-            iconName: "envelope"
+            underline: emailUnderline, iconView: emailIcon, iconName: "envelope"
         )
-        
+
         // 4. Password Field Row
         let passwordStack = createInputStack(
-            label: "Password",
-            field: passwordField,
+            label: "Password", field: passwordField,
             placeholder: "Enter password",
-            underline: passwordUnderline,
-            iconView: passwordIcon,
-            iconName: "lock",
+            underline: passwordUnderline, iconView: passwordIcon, iconName: "lock",
             isSecure: true
         )
-        
-        // Combine into main stack inside container
+
         let inputsStack = UIStackView(arrangedSubviews: [emailStack, passwordStack])
         inputsStack.axis = .vertical
-        inputsStack.spacing = 20 // Increased to 20pt
+        inputsStack.spacing = 20
         inputsStack.translatesAutoresizingMaskIntoConstraints = false
-        
         inputsContainer.addSubview(inputsStack)
-        
+
         // 5. Sign In Button
         signInButton.setTitle("Sign In", for: .normal)
         signInButton.titleLabel?.font = .systemFont(ofSize: 17, weight: .semibold)
         signInButton.setTitleColor(.white, for: .normal)
         signInButton.backgroundColor = .systemBlue
-        signInButton.layer.cornerRadius = 27 // Pill style (Height 54 / 2)
-        
-        // Button Shadow (Opacity 0.12, Radius 10, Offset 0,4)
+        signInButton.layer.cornerRadius = 27
         signInButton.layer.shadowColor = UIColor.black.cgColor
         signInButton.layer.shadowOpacity = 0.12
         signInButton.layer.shadowRadius = 10
         signInButton.layer.shadowOffset = CGSize(width: 0, height: 4)
         signInButton.layer.masksToBounds = false
-        
         signInButton.addTarget(self, action: #selector(SignInAction(_:)), for: .touchUpInside)
         signInButton.addTarget(self, action: #selector(animateButtonPress), for: .touchDown)
         signInButton.addTarget(self, action: #selector(animateButtonRelease), for: [.touchUpInside, .touchUpOutside, .touchCancel])
         signInButton.translatesAutoresizingMaskIntoConstraints = false
-        
+
         // 6. Bottom Links
         let noAccountButton = UIButton(type: .system)
         let signUpAttributed = NSMutableAttributedString(
@@ -164,64 +226,60 @@ class SignInViewController: UIViewController,UITextFieldDelegate {
         ))
         noAccountButton.setAttributedTitle(signUpAttributed, for: .normal)
         noAccountButton.addTarget(self, action: #selector(goToSignUp), for: .touchUpInside)
-        
+
         let forgotPasswordButton = UIButton(type: .system)
         forgotPasswordButton.setTitle("Forgot Password?", for: .normal)
-        forgotPasswordButton.titleLabel?.font = .systemFont(ofSize: 14, weight: .medium) // Slightly smaller
+        forgotPasswordButton.titleLabel?.font = .systemFont(ofSize: 14, weight: .medium)
         forgotPasswordButton.setTitleColor(.systemBlue, for: .normal)
         forgotPasswordButton.addTarget(self, action: #selector(forgotPasswordTapped), for: .touchUpInside)
-        
+
         let bottomStack = UIStackView(arrangedSubviews: [noAccountButton, forgotPasswordButton])
         bottomStack.axis = .vertical
-        bottomStack.spacing = 14 // Increased to 14pt
+        bottomStack.spacing = 14
         bottomStack.alignment = .center
         bottomStack.translatesAutoresizingMaskIntoConstraints = false
-        
-        // Add to main view
-        view.addSubview(iconView)
-        view.addSubview(inputsContainer)
-        view.addSubview(signInButton)
-        view.addSubview(bottomStack)
-        
+
+        // Add subviews to contentView
+        contentView.addSubview(iconView)
+        contentView.addSubview(inputsContainer)
+        contentView.addSubview(signInButton)
+        contentView.addSubview(bottomStack)
+
         // Constraints
         NSLayoutConstraint.activate([
-            // Logo: 20pt from top safe area (Title) - Tighter Spacing
-            iconView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
-            iconView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            
-            // Container: 20pt below Logo - Tighter Spacing
+            iconView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 20),
+            iconView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            iconView.widthAnchor.constraint(equalToConstant: 240),
+            iconView.heightAnchor.constraint(equalToConstant: 240),
+
             inputsContainer.topAnchor.constraint(equalTo: iconView.bottomAnchor, constant: 20),
-            inputsContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24), // Margins 24
-            inputsContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -24),
-            
-            // Inputs Stack: Vertical Padding 20 inside container
+            inputsContainer.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 24),
+            inputsContainer.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -24),
+
             inputsStack.topAnchor.constraint(equalTo: inputsContainer.topAnchor, constant: 20),
             inputsStack.leadingAnchor.constraint(equalTo: inputsContainer.leadingAnchor, constant: 20),
             inputsStack.trailingAnchor.constraint(equalTo: inputsContainer.trailingAnchor, constant: -20),
             inputsStack.bottomAnchor.constraint(equalTo: inputsContainer.bottomAnchor, constant: -20),
-            
-            // Button: 30pt below Container - Standard Spacing
+
             signInButton.topAnchor.constraint(equalTo: inputsContainer.bottomAnchor, constant: 30),
-            signInButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24), // Margins 24
-            signInButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -24),
+            signInButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 24),
+            signInButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -24),
             signInButton.heightAnchor.constraint(equalToConstant: 54),
-            
-            // Bottom Stack: 20pt below Button
+
             bottomStack.topAnchor.constraint(equalTo: signInButton.bottomAnchor, constant: 20),
-            bottomStack.centerXAnchor.constraint(equalTo: view.centerXAnchor)
+            bottomStack.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            bottomStack.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -30),
         ])
     }
-    
+
     // MARK: - Helper: Create Input Stack
     private func createInputStack(label: String, field: UITextField, placeholder: String, underline: UIView, iconView: UIImageView, iconName: String, isSecure: Bool = false) -> UIStackView {
-        
-        // 1. Label
+
         let labelView = UILabel()
         labelView.text = label
-        labelView.font = .systemFont(ofSize: 16, weight: .semibold) // Semibold 16
-        labelView.textColor = .label // Default label color (black/white)
-        
-        // 2. Icon Setup
+        labelView.font = .systemFont(ofSize: 16, weight: .semibold)
+        labelView.textColor = .label
+
         let config = UIImage.SymbolConfiguration(weight: .regular)
         iconView.image = UIImage(systemName: iconName, withConfiguration: config)
         iconView.tintColor = .systemGray3
@@ -229,42 +287,38 @@ class SignInViewController: UIViewController,UITextFieldDelegate {
         iconView.translatesAutoresizingMaskIntoConstraints = false
         iconView.widthAnchor.constraint(equalToConstant: 20).isActive = true
         iconView.heightAnchor.constraint(equalToConstant: 20).isActive = true
-        
-        // 3. Field Setup
+
         field.placeholder = placeholder
         field.font = .systemFont(ofSize: 16, weight: .regular)
         field.textColor = .label
         field.borderStyle = .none
         field.isSecureTextEntry = isSecure
-        
+
         if label.contains("Email") {
             field.autocapitalizationType = .none
             field.keyboardType = .emailAddress
         }
         field.delegate = self
-        
+
         if let ph = field.placeholder {
-            field.attributedPlaceholder = NSAttributedString(string: ph, attributes: [.foregroundColor: UIColor.secondaryLabel]) // Secondary label color
+            field.attributedPlaceholder = NSAttributedString(string: ph, attributes: [.foregroundColor: UIColor.secondaryLabel])
         }
-        
-        // Stack for Icon + Field
+
         let fieldStack = UIStackView(arrangedSubviews: [iconView, field])
         fieldStack.axis = .horizontal
         fieldStack.spacing = 12
         fieldStack.alignment = .center
-        
-        // 4. Underline / Separator
-        underline.backgroundColor = .separator.withAlphaComponent(0.4) // Light separator
+
+        underline.backgroundColor = .separator.withAlphaComponent(0.4)
         underline.translatesAutoresizingMaskIntoConstraints = false
         underline.heightAnchor.constraint(equalToConstant: 0.5).isActive = true
-        
-        // Combine all
+
         let mainStack = UIStackView(arrangedSubviews: [labelView, fieldStack, underline])
         mainStack.axis = .vertical
         mainStack.spacing = 8
         mainStack.setCustomSpacing(8, after: labelView)
-        mainStack.setCustomSpacing(10, after: fieldStack) // Space between field and underline
-        
+        mainStack.setCustomSpacing(10, after: fieldStack)
+
         return mainStack
     }
 
@@ -274,7 +328,7 @@ class SignInViewController: UIViewController,UITextFieldDelegate {
             self.signInButton.transform = CGAffineTransform(scaleX: 0.97, y: 0.97)
         }
     }
-    
+
     @objc private func animateButtonRelease() {
         UIView.animate(withDuration: 0.1) {
             self.signInButton.transform = .identity
@@ -287,9 +341,10 @@ class SignInViewController: UIViewController,UITextFieldDelegate {
             navigationController?.pushViewController(signUpVC, animated: true)
         }
     }
-    
+
     @objc private func forgotPasswordTapped() {
-        debugLog("Forgot Password Tapped")
+        let forgotVC = ForgotPasswordViewController()
+        navigationController?.pushViewController(forgotVC, animated: true)
     }
 
     // MARK: - Navigation
@@ -311,50 +366,46 @@ class SignInViewController: UIViewController,UITextFieldDelegate {
     func debugLog(_ message: String) {
         print("[DEBUG] \(message)")
     }
-    
+
     // MARK: - UITextFieldDelegate
     func textFieldDidBeginEditing(_ textField: UITextField) {
         let isEmail = (textField == emailField)
         let underline = isEmail ? emailUnderline : passwordUnderline
         let icon = isEmail ? emailIcon : passwordIcon
-        
-        // Animate Container Shadow Opacity
+
         let shadowAnim = CABasicAnimation(keyPath: "shadowOpacity")
         shadowAnim.fromValue = 0.04
         shadowAnim.toValue = 0.08
         shadowAnim.duration = 0.2
         inputsContainer.layer.add(shadowAnim, forKey: "shadowOpacity")
         inputsContainer.layer.shadowOpacity = 0.08
-        
-        // Animate Underline & Icon
+
         UIView.animate(withDuration: 0.25) {
             underline.backgroundColor = .systemBlue
             underline.transform = CGAffineTransform(scaleX: 1.0, y: 2.0)
             icon.tintColor = .systemBlue
         }
     }
-    
+
     func textFieldDidEndEditing(_ textField: UITextField) {
         let isEmail = (textField == emailField)
         let underline = isEmail ? emailUnderline : passwordUnderline
         let icon = isEmail ? emailIcon : passwordIcon
-        
-        // Revert Container Shadow Opacity
+
         let shadowAnim = CABasicAnimation(keyPath: "shadowOpacity")
         shadowAnim.fromValue = 0.08
         shadowAnim.toValue = 0.04
         shadowAnim.duration = 0.2
         inputsContainer.layer.add(shadowAnim, forKey: "shadowOpacity")
         inputsContainer.layer.shadowOpacity = 0.04
-        
-        // Revert Underline & Icon
+
         UIView.animate(withDuration: 0.25) {
             underline.backgroundColor = .systemGray5
             underline.transform = .identity
             icon.tintColor = .systemGray3
         }
     }
-    
+
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         if textField == emailField {
             passwordField.becomeFirstResponder()
@@ -365,4 +416,3 @@ class SignInViewController: UIViewController,UITextFieldDelegate {
         return true
     }
 }
-

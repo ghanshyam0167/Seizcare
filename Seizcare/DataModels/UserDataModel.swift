@@ -113,10 +113,11 @@ class UserDataModel {
     
     // MARK: - Private Storage Helpers
     private func loadUsers() {
-        if let savedUsers = loadUsersFromDisk() {
+        if let savedUsers = loadUsersFromDisk(), !savedUsers.isEmpty {
             users = savedUsers
         } else {
             users = loadSampleUsers()
+            saveUsers() // Persist sample users so they survive future launches
         }
     }
     
@@ -158,8 +159,10 @@ class UserDataModel {
             bloodGroup: "A+"
         )
         
+        
         return [user1, user2]
     }
+    
 }
 
 // MARK: - Authentication Extension
