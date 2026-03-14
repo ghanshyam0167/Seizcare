@@ -16,6 +16,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Initialize WatchConnectivity
         _ = WatchConnectivityManager.shared
         
+        // Start location services early so GPS is warm when an emergency fires
+        LocationManager.shared.requestAuthorization()
+        LocationManager.shared.startUpdatingLocation()
+        
         // Request HealthKit authorization
         HealthKitManager.shared.requestAuthorization { success, error in
             if success {

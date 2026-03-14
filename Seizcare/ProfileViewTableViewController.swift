@@ -22,6 +22,7 @@ class ProfileViewTableViewController: UITableViewController {
     
     @IBOutlet weak var section1CardContainer: UIView!
     @IBOutlet weak var section0CardContainer: UIView!
+    @IBOutlet weak var profileImageView: UIImageView!
     var user: User?
 
     override func viewDidLoad() {
@@ -65,6 +66,14 @@ class ProfileViewTableViewController: UITableViewController {
             weightRightLabel.text = "\(w) kg"
         }
         bloodGroupRightLabel.text = user.bloodGroup ?? "-"
+
+        // Load saved profile photo
+        if let savedPhoto = ProfilePhotoManager.shared.load() {
+            profileImageView.image = savedPhoto
+            profileImageView.contentMode = .scaleAspectFill
+            profileImageView.layer.cornerRadius = profileImageView.frame.height / 2
+            profileImageView.clipsToBounds = true
+        }
     }
     
     @IBAction func unwindToProfile(_ segue: UIStoryboardSegue) {
