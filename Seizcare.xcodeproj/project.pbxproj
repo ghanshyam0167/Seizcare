@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		05E3FE42645C551F7E391D87 /* EmailVerificationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45BE288DFA93F92E0ADA11CD /* EmailVerificationViewController.swift */; };
 		C9A4321E2F6169D100BC09A9 /* SeizcareWatch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = C9A432142F6169D000BC09A9 /* SeizcareWatch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		D81DEE432F616E8D00C736E5 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = D81DEE422F616E8D00C736E5 /* Supabase */; };
 /* End PBXBuildFile section */
@@ -37,6 +38,7 @@
 
 /* Begin PBXFileReference section */
 		3F9A8C232ECD7CB500DF37E6 /* Seizcare.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Seizcare.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		45BE288DFA93F92E0ADA11CD /* EmailVerificationViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = EmailVerificationViewController.swift; path = Seizcare/EmailVerificationViewController.swift; sourceTree = "<group>"; };
 		C9A432142F6169D000BC09A9 /* SeizcareWatch Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "SeizcareWatch Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -61,6 +63,8 @@
 		};
 		C9A432152F6169D000BC09A9 /* SeizcareWatch Watch App */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
 			path = "SeizcareWatch Watch App";
 			sourceTree = "<group>";
 		};
@@ -92,6 +96,7 @@
 				C9A432152F6169D000BC09A9 /* SeizcareWatch Watch App */,
 				D81DEE412F616E8D00C736E5 /* Frameworks */,
 				3F9A8C242ECD7CB500DF37E6 /* Products */,
+				45BE288DFA93F92E0ADA11CD /* EmailVerificationViewController.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -155,8 +160,6 @@
 				C9A432152F6169D000BC09A9 /* SeizcareWatch Watch App */,
 			);
 			name = "SeizcareWatch Watch App";
-			packageProductDependencies = (
-			);
 			productName = "SeizcareWatch Watch App";
 			productReference = C9A432142F6169D000BC09A9 /* SeizcareWatch Watch App.app */;
 			productType = "com.apple.product-type.application";
@@ -225,6 +228,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				05E3FE42645C551F7E391D87 /* EmailVerificationViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

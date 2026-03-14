@@ -3,6 +3,8 @@
 //  Seizcare
 
 import Foundation
+import Auth
+import Supabase
 
 //  Enum for Gender
 enum Gender: String, Codable {
@@ -201,11 +203,57 @@ extension UserDataModel {
         return true   // optimistic; real result comes via currentUser being set
     }
 
-    /// Register via Supabase Auth, insert a profile row, and establish the local session.
-    /// Await this before navigating to protected screens.
-    func signUpUserAsync(user: User) async throws {
-        let uid = try await SupabaseService.shared.signUp(email: user.email, password: user.password)
-        // Use the Supabase auth uid as the profile id so all foreign keys align.
+    /// Register via Supabase Auth without establishing a profile yet.
+    /// This triggers the OTP email from Supabase natively.
+    /// Returns true if the user was already registered but unverified (OTP resent), false otherwise.
+    func initiateSignUpAsync(user: User) async throws -> Bool {
+        do {
+            let authUser: Auth.User = try await SupabaseService.shared.signUp(email: user.email, password: user.password)
+            
+            // Check if the user is already confirmed/verified
+            if authUser.confirmedAt != nil {
+                throw SupabaseServiceError.authFailed("This email is already registered and verified. Please log in.")
+            }
+            
+            // If the user already existed but was NOT confirmed, Supabase might not send an email
+            // (especially in the 'user_repeated_signup' scenario seen in logs).
+            // If identities is empty or count is same but unconfirmed, we force a resend.
+            if authUser.identities?.isEmpty ?? true {
+                try await SupabaseService.shared.resendSignUpOTP(email: user.email)
+                return true
+            }
+            
+            return false
+        } catch {
+            let errorDesc = error.localizedDescription.lowercased()
+            if errorDesc.contains("user already registered") {
+                // If the error explicitly says registered, force resend
+                try await SupabaseService.shared.resendSignUpOTP(email: user.email)
+                return true
+            }
+            throw error
+        }
+    }
+    
+    /// Called when the user submits a valid 8-digit OTP from their email.
+    /// Verifies the code, and if successful, establishes the user profile and local session.
+    /// - Parameter isResend: When true, the OTP was sent via signInWithOTP (type: .email).
+    ///                       When false, it was sent via signUp (type: .signup).
+    func finalizeSignUpAsync(user: User, otp: String, isResend: Bool = false) async throws {
+        print("[finalizeSignUp] Starting. isResend=\(isResend) email=\(user.email)")
+        
+        // 1. Verify OTP with Supabase Auth – pick the right type based on how OTP was sent
+        let uid: UUID
+        if isResend {
+            print("[finalizeSignUp] Verifying with type .email")
+            uid = try await SupabaseService.shared.verifyEmailOTP(email: user.email, otp: otp)
+        } else {
+            print("[finalizeSignUp] Verifying with type .signup")
+            uid = try await SupabaseService.shared.verifySignUpOTP(email: user.email, otp: otp)
+        }
+        print("[finalizeSignUp] OTP verified. uid=\(uid)")
+        
+        // 2. Establish Profile (upsert so we don't conflict if a partial row exists)
         let profileUser = User(
             id:            uid,
             fullName:      user.fullName,
@@ -218,14 +266,29 @@ extension UserDataModel {
             weight:        user.weight,
             bloodGroup:    user.bloodGroup
         )
-        try await SupabaseService.shared.insertUser(UserDTO(from: profileUser))
-        // Session is live — set currentUser before returning so callers can verify.
+        print("[finalizeSignUp] Inserting/upserting profile row...")
+        do {
+            try await SupabaseService.shared.insertUser(UserDTO(from: profileUser))
+            print("[finalizeSignUp] Profile inserted.")
+        } catch {
+            // If a row already exists (e.g., from a previous partial signup), that's okay
+            let msg = error.localizedDescription.lowercased()
+            if msg.contains("duplicate") || msg.contains("already exists") || msg.contains("unique") {
+                print("[finalizeSignUp] Profile row already exists – skipping insert.")
+            } else {
+                print("[finalizeSignUp] Insert error: \(error)")
+                throw error
+            }
+        }
+        
+        // 3. Establish Local Session
+        print("[finalizeSignUp] Setting currentUser and UserDefaults")
         currentUser = profileUser
         UserDefaults.standard.set(profileUser.id.uuidString, forKey: currentUserKey)
         
-        // Save the preferences captured during onboarding to Supabase now that
-        // the user's profile has been created.
+        // 4. Save the preferences captured during onboarding
         applyOnboardingPreferences()
+        print("[finalizeSignUp] Done.")
     }
 
     func logoutUser(completion: @escaping (Bool) -> Void) {
@@ -233,6 +296,23 @@ extension UserDataModel {
         UserDefaults.standard.removeObject(forKey: currentUserKey)
         Task { try? await SupabaseService.shared.signOut() }
         completion(true)
+    }
+    
+    // MARK: - Password Reset (OTP)
+    
+    /// Requests an OTP code to be sent to the user's email.
+    func sendPasswordResetOTPAsync(email: String) async throws {
+        try await SupabaseService.shared.sendPasswordResetOTP(email: email)
+    }
+    
+    /// Verifies the provided OTP code against the user's email.
+    func verifyPasswordResetOTPAsync(email: String, otp: String) async throws {
+        try await SupabaseService.shared.verifyPasswordResetOTP(email: email, otp: otp)
+    }
+    
+    /// Updates the password using the authenticated active session from the prior verified OTP.
+    func updateUserPasswordAsync(newPassword: String) async throws {
+        try await SupabaseService.shared.updateUserPassword(newPassword: newPassword)
     }
     
     // MARK: - Onboarding Preferences
