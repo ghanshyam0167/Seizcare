@@ -120,7 +120,9 @@ class LanguageTableViewController: UIViewController {
         selectedIndex = index
 
         // Persist language selection
-        UserDefaults.standard.set(languages[selectedIndex], forKey: "selectedLanguage")
+        if let newLanguage = AppLanguage(rawValue: languages[selectedIndex]) {
+            LanguageDataModel.shared.setLanguage(language: newLanguage)
+        }
 
         // Animate change
         rowControls[previous].setChecked(false, animated: true)
@@ -130,8 +132,8 @@ class LanguageTableViewController: UIViewController {
     //  Persistence
 
     private func loadSavedPreference() {
-        if let savedLanguage = UserDefaults.standard.string(forKey: "selectedLanguage"),
-           let index = languages.firstIndex(of: savedLanguage) {
+        let savedLanguage = LanguageDataModel.shared.getCurrentLanguage().rawValue
+        if let index = languages.firstIndex(of: savedLanguage) {
             selectedIndex = index
         }
     }

@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import PhotosUI
 
 class EditProfileTableViewController: UITableViewController {
     var user: User
@@ -30,6 +31,7 @@ class EditProfileTableViewController: UITableViewController {
     @IBOutlet weak var weightTextField: UITextField!
     @IBOutlet weak var genderButton: UIButton!
     @IBOutlet weak var bloodGroupTextField: UITextField!
+    @IBOutlet weak var profileImageView: UIImageView!
     
     @IBOutlet weak var section1CardContainer: UIView!
     @IBOutlet weak var section0CardContainer: UIView!
@@ -49,6 +51,105 @@ class EditProfileTableViewController: UITableViewController {
         }
         prefillUI()
         setupGenderMenu()
+        setupFieldPickers()
+        setupProfileImage()
+    }
+
+    // MARK: - Profile Image
+
+    private func setupProfileImage() {
+        profileImageView.layer.cornerRadius = profileImageView.frame.height / 2
+        profileImageView.clipsToBounds = true
+        profileImageView.contentMode = .scaleAspectFill
+        // Load saved photo
+        if let saved = ProfilePhotoManager.shared.load() {
+            profileImageView.image = saved
+        }
+    }
+
+    @IBAction func changePhotoTapped(_ sender: Any) {
+        var config = PHPickerConfiguration()
+        config.selectionLimit = 1
+        config.filter = .images
+        let picker = PHPickerViewController(configuration: config)
+        picker.delegate = self
+        present(picker, animated: true)
+    }
+
+    // MARK: - Field Pickers
+
+    private func setupFieldPickers() {
+        // Make fields non-editable, use tap gestures instead
+        let pickerFields: [(UITextField, Selector)] = [
+            (dobTextField, #selector(openDOBPicker)),
+            (heightTextField, #selector(openHeightPicker)),
+            (weightTextField, #selector(openWeightPicker)),
+            (bloodGroupTextField, #selector(openBloodGroupPicker))
+        ]
+
+        for (field, action) in pickerFields {
+            field.inputView = UIView()  // prevent keyboard
+            field.tintColor = .clear    // hide cursor
+            let tap = UITapGestureRecognizer(target: self, action: action)
+            field.addGestureRecognizer(tap)
+            field.isUserInteractionEnabled = true
+        }
+    }
+
+    @objc private func openDOBPicker() {
+        let current = dateFormatter.date(from: dobTextField.text ?? "") ?? user.dateOfBirth
+
+        let sheet = SeizPickerSheet.datePicker(
+            title: "Date of Birth",
+            mode: .date,
+            style: .inline,
+            current: current,
+            maximumDate: Date()
+        ) { [weak self] selectedDate in
+            guard let self else { return }
+            self.dobTextField.text = self.dateFormatter.string(from: selectedDate)
+        }
+        present(sheet, animated: true)
+    }
+
+    @objc private func openHeightPicker() {
+        let current = Double(heightTextField.text ?? "") ?? user.height ?? 170
+        let sheet = SeizPickerSheet.numericPicker(
+            title: "Height",
+            unit: "cm",
+            range: 100...250,
+            step: 1,
+            current: current
+        ) { [weak self] value in
+            self?.heightTextField.text = "\(Int(value))"
+        }
+        present(sheet, animated: true)
+    }
+
+    @objc private func openWeightPicker() {
+        let current = Double(weightTextField.text ?? "") ?? user.weight ?? 65
+        let sheet = SeizPickerSheet.numericPicker(
+            title: "Weight",
+            unit: "kg",
+            range: 20...200,
+            step: 1,
+            current: current
+        ) { [weak self] value in
+            self?.weightTextField.text = "\(Int(value))"
+        }
+        present(sheet, animated: true)
+    }
+
+    @objc private func openBloodGroupPicker() {
+        let bloodGroups = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]
+        let sheet = SeizPickerSheet.optionPicker(
+            title: "Blood Group",
+            options: bloodGroups,
+            selected: bloodGroupTextField.text
+        ) { [weak self] selected in
+            self?.bloodGroupTextField.text = selected
+        }
+        present(sheet, animated: true)
     }
     func prefillUI() {
            nameTextField.text = user.fullName
@@ -116,7 +217,23 @@ class EditProfileTableViewController: UITableViewController {
         cell.backgroundColor = .clear
         cell.contentView.backgroundColor = .clear
     }
+}
 
+// MARK: - PHPickerViewControllerDelegate
 
+extension EditProfileTableViewController: PHPickerViewControllerDelegate {
+    func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+        dismiss(animated: true)
 
+        guard let provider = results.first?.itemProvider,
+              provider.canLoadObject(ofClass: UIImage.self) else { return }
+
+        provider.loadObject(ofClass: UIImage.self) { [weak self] image, _ in
+            guard let self, let photo = image as? UIImage else { return }
+            DispatchQueue.main.async {
+                self.profileImageView.image = photo
+                ProfilePhotoManager.shared.save(photo)
+            }
+        }
+    }
 }

@@ -5,7 +5,7 @@ import WatchKit
 struct HomeView: View {
     @StateObject private var healthKitManager = HealthKitManager.shared
     @State private var selectedSensitivity = "Medium"
-    @State private var showingAlertConfirmation = false
+    @State private var showingCountdown = false
     
     let sensitivities = ["Low", "Medium", "High"]
     
@@ -13,28 +13,32 @@ struct HomeView: View {
         ScrollView {
             VStack(spacing: 16) {
                 
-                // 1. Emergency Alert (Moved back to top)
-                VStack(spacing: 4) {
-                    Button(action: sendEmergencyAlert) {
-                        HStack {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                            Text("Send Alert")
-                                .font(.headline.weight(.semibold))
+                // 1. Emergency Alert
+                Button(action: {
+                    WKInterfaceDevice.current().play(.notification)
+                    showingCountdown = true
+                }) {
+                    HStack {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                        Text("Send Alert")
+                            .font(.headline.weight(.semibold))
+                    }
+                    .frame(maxWidth: .infinity, minHeight: 48)
+                }
+                .background(Color(red: 1.0, green: 0.35, blue: 0.35))
+                .foregroundColor(.white)
+                .cornerRadius(24)
+                .padding(.horizontal)
+                .fullScreenCover(isPresented: $showingCountdown) {
+                    EmergencyCountdownView(
+                        onConfirm: {
+                            showingCountdown = false
+                            WatchConnectivityManager.shared.sendEmergencyAlert()
+                        },
+                        onCancel: {
+                            showingCountdown = false
                         }
-                        .frame(maxWidth: .infinity, minHeight: 48)
-                    }
-                    .background(Color(red: 1.0, green: 0.35, blue: 0.35))
-                    .foregroundColor(.white)
-                    .cornerRadius(24)
-                    .padding(.horizontal)
-                    
-                    if showingAlertConfirmation {
-                        Text("Alert sent")
-                            .font(.footnote)
-                            .foregroundColor(.green)
-                            .padding(.top, 2)
-                            .transition(.opacity)
-                    }
+                    )
                 }
                 
                 // 2. Live Heart Rate
@@ -140,20 +144,7 @@ struct HomeView: View {
         }
     }
     
-    private func sendEmergencyAlert() {
-        WKInterfaceDevice.current().play(.notification)
-        WatchConnectivityManager.shared.sendEmergencyAlert()
-        
-        withAnimation {
-            showingAlertConfirmation = true
-        }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-            withAnimation {
-                showingAlertConfirmation = false
-            }
-        }
-    }
+
     
     private func heartRateColor(_ hr: Double) -> Color {
         if hr < 60 || hr > 100 {
