@@ -99,6 +99,9 @@ class DashboardTableViewController: UITableViewController {
     private let previewCard0        = UIView()
     private let previewCard1        = UIView()
 
+    // Floating Action Button
+    private let floatingAddButton   = UIButton(type: .system)
+
 
     var user : User?
     let dashboardModel = DashboardDataModel.shared
@@ -111,6 +114,7 @@ class DashboardTableViewController: UITableViewController {
         applyDefaultTableBackground()
         navigationController?.applyWhiteNavBar()
         applySectionSpacing()
+        setupCurrentStatusHeader()
         
         pipeLabel0.setContentHuggingPriority(.required, for: .horizontal)
         pipeLabel1.setContentHuggingPriority(.required, for: .horizontal)
@@ -137,6 +141,8 @@ class DashboardTableViewController: UITableViewController {
         setupRecordsSection()
         setupPeriodMenu()
         setupPeriodButton()
+        
+        setupFloatingButton()
     }
     
     private func setupHealthDataObserver() {
@@ -200,11 +206,6 @@ class DashboardTableViewController: UITableViewController {
         }
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        updateUI()
-        refreshDashboardData()
-    }
     
     //  Dashboard Refresh Logic
     
@@ -224,6 +225,35 @@ class DashboardTableViewController: UITableViewController {
     private func fetchRecords() {
         
     }
+    private func setupCurrentStatusHeader() {
+            let headerLabel = UILabel()
+            headerLabel.text = "Current Status (This Month)"
+            headerLabel.font = .systemFont(ofSize: 13, weight: .regular)
+            headerLabel.textColor = .secondaryLabel
+            headerLabel.numberOfLines = 1
+
+            let padding: CGFloat = 16
+            let headerView = UIView()
+            headerLabel.translatesAutoresizingMaskIntoConstraints = false
+            headerView.addSubview(headerLabel)
+            NSLayoutConstraint.activate([
+                headerLabel.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: padding),
+                headerLabel.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -padding),
+                headerLabel.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 12),
+                headerLabel.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -4)
+            ])
+
+            // Size the header view to fit
+            headerView.setNeedsLayout()
+            headerView.layoutIfNeeded()
+            let targetSize = CGSize(width: tableView.bounds.width, height: UIView.layoutFittingCompressedSize.height)
+            let fittingSize = headerView.systemLayoutSizeFitting(targetSize,
+                withHorizontalFittingPriority: .required,
+                verticalFittingPriority: .fittingSizeLevel)
+            headerView.frame.size = fittingSize
+
+            tableView.tableHeaderView = headerView
+        }
     
     private func fetchHealthData() {
         let dispatchGroup = DispatchGroup()
@@ -886,15 +916,21 @@ class DashboardTableViewController: UITableViewController {
     }
 
     func updateUI(){
-        let user = UserDataModel.shared.getCurrentUser()
-        guard let user else {return}
-        
-        let fullName = user.fullName
-        let firstName = fullName.split(separator: " ").first.map(String.init) ?? fullName
-
-        navigationItem.title = "Hey \(firstName)" 
+        // Remove any previous greeting from the nav bar
+        navigationItem.title = nil
+        navigationItem.leftBarButtonItem = nil
     }
+override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
+    updateUI()
+    refreshDashboardData()
+    updateRecordsSection()
+}
 
+override func viewWillDisappear(_ animated: Bool) {
+    super.viewWillDisappear(animated)
+    floatingAddButton.isHidden = true
+}
 
     
     // MARK: - Records Section Setup
@@ -1139,7 +1175,10 @@ class DashboardTableViewController: UITableViewController {
                 previewCard1.isHidden = true
             }
         }
-        
+
+        // Show/hide floating button based on records
+        floatingAddButton.isHidden = recent.isEmpty
+
         // Force the table view to fully reload to ensure row heights are correct
         // This is more reliable than beginUpdates/endUpdates for dynamic content in static table views
         tableView.reloadData()
@@ -1190,6 +1229,42 @@ class DashboardTableViewController: UITableViewController {
 
     @objc private func viewAllRecordsTapped() {
         performSegue(withIdentifier: "showRecords", sender: nil)
+    }
+
+    // MARK: - Floating Action Button
+
+    private func setupFloatingButton() {
+        floatingAddButton.translatesAutoresizingMaskIntoConstraints = false
+        floatingAddButton.isHidden = true  // Hidden by default, shown by updateRecordsSection
+
+        // Style: matches nav bar person/bell icons — black, same size
+        let size: CGFloat = 44
+        floatingAddButton.backgroundColor = .white
+        floatingAddButton.layer.cornerRadius = size / 2
+        floatingAddButton.tintColor = .black
+
+        let config = UIImage.SymbolConfiguration(pointSize: 20, weight: .regular)
+        floatingAddButton.setImage(UIImage(systemName: "plus", withConfiguration: config), for: .normal)
+
+        // Subtle shadow for floating visibility
+        floatingAddButton.layer.shadowColor = UIColor.black.cgColor
+        floatingAddButton.layer.shadowOpacity = 0.12
+        floatingAddButton.layer.shadowRadius = 6
+        floatingAddButton.layer.shadowOffset = CGSize(width: 0, height: 3)
+        floatingAddButton.layer.masksToBounds = false
+
+        floatingAddButton.addTarget(self, action: #selector(addRecordTapped), for: .touchUpInside)
+
+        // Add to the navigation controller's view so it floats above the scroll
+        guard let parentView = navigationController?.view ?? view.superview ?? view else { return }
+        parentView.addSubview(floatingAddButton)
+
+        NSLayoutConstraint.activate([
+            floatingAddButton.widthAnchor.constraint(equalToConstant: size),
+            floatingAddButton.heightAnchor.constraint(equalToConstant: size),
+            floatingAddButton.trailingAnchor.constraint(equalTo: parentView.safeAreaLayoutGuide.trailingAnchor, constant: -20),
+            floatingAddButton.bottomAnchor.constraint(equalTo: parentView.safeAreaLayoutGuide.bottomAnchor, constant: -4)
+        ])
     }
 
     // Legacy updateCard kept for any external callers; new code uses populatePreviewCard.
@@ -1255,10 +1330,9 @@ class DashboardTableViewController: UITableViewController {
     // SECTION HEADER HEIGHT
     override func tableView(_ tableView: UITableView,
                             heightForHeaderInSection section: Int) -> CGFloat {
-        if section == 0 {
-            return UITableView.automaticDimension
-        }
-        return 2
+        // Section 0 header is now shown via tableHeaderView (non-sticky),
+        // so suppress the default sticky storyboard header.
+        return section == 0 ? 0 : 2
     }
 
     override func tableView(_ tableView: UITableView,

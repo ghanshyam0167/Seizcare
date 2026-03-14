@@ -118,6 +118,7 @@ class UserDataModel {
     func getAllUsers() -> [User] {
         return currentUser.map { [$0] } ?? []
     }
+    
 }
 
 //  - Authentication Extension
@@ -221,6 +222,10 @@ extension UserDataModel {
         // Session is live — set currentUser before returning so callers can verify.
         currentUser = profileUser
         UserDefaults.standard.set(profileUser.id.uuidString, forKey: currentUserKey)
+        
+        // Save the preferences captured during onboarding to Supabase now that
+        // the user's profile has been created.
+        applyOnboardingPreferences()
     }
 
     func logoutUser(completion: @escaping (Bool) -> Void) {
@@ -228,5 +233,14 @@ extension UserDataModel {
         UserDefaults.standard.removeObject(forKey: currentUserKey)
         Task { try? await SupabaseService.shared.signOut() }
         completion(true)
+    }
+    
+    // MARK: - Onboarding Preferences
+    
+    /// Called when the user signs up and the user row has been created in Supabase.
+    /// This pushes the temporary onboarding selections into Supabase right away.
+    private func applyOnboardingPreferences() {
+        LanguageDataModel.shared.setLanguage(language: OnboardingPreferences.shared.language)
+        SensitivityDataModel.shared.setSensitivity(level: OnboardingPreferences.shared.sensitivity)
     }
 }

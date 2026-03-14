@@ -124,10 +124,8 @@ class EmergencyContactsTableViewController: UITableViewController, CNContactPick
         -> UISwipeActionsConfiguration? {
 
         let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { _, _, completion in
-            
             let contactToDelete = self.contacts[indexPath.row]
             EmergencyContactDataModel.shared.deleteContact(id: contactToDelete.id)
-
             self.loadContacts()
             completion(true)
         }
@@ -139,6 +137,27 @@ class EmergencyContactsTableViewController: UITableViewController, CNContactPick
         return 80   
     }
 
+    override func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
+        guard !contacts.isEmpty else { return nil }
+
+        let footer = UIView()
+        let label = UILabel()
+        label.text = "Swipe left on a contact to delete it."
+        label.font = .systemFont(ofSize: 13, weight: .regular)
+        label.textColor = .tertiaryLabel
+        label.textAlignment = .center
+        label.translatesAutoresizingMaskIntoConstraints = false
+        footer.addSubview(label)
+
+        NSLayoutConstraint.activate([
+            label.topAnchor.constraint(equalTo: footer.topAnchor, constant: 16),
+            label.leadingAnchor.constraint(equalTo: footer.leadingAnchor, constant: 16),
+            label.trailingAnchor.constraint(equalTo: footer.trailingAnchor, constant: -16),
+            label.bottomAnchor.constraint(equalTo: footer.bottomAnchor, constant: -8)
+        ])
+
+        return footer
+    }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
