@@ -80,6 +80,7 @@ class WatchConnectivityManager: NSObject, WCSessionDelegate, ObservableObject {
         if let heartRate = payload["heartRate"] as? Double {
             hrValue = heartRate
             foundHealthData = true
+            print("📥 [WCM-iPhone] Received heart rate data from Watch: \(Int(heartRate)) BPM")
             DispatchQueue.main.async { self.heartRate = heartRate }
         }
         if let spo2 = payload["spo2"] as? Double {
