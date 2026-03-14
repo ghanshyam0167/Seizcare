@@ -237,7 +237,9 @@ class EmailVerificationViewController: UIViewController, UITextFieldDelegate {
             do {
                 try await UserDataModel.shared.finalizeSignUpAsync(user: pendingUser, otp: otp, isResend: isResend)
                 
-                // Session is ready. Navigate into the dashboard.
+                // Sync user data before navigating
+                await UserDataModel.shared.syncUserData()
+                
                 await MainActor.run {
                     self.verifyButton.isEnabled = true
                     self.verifyButton.setTitle("Complete Sign Up", for: .normal)
@@ -259,18 +261,27 @@ class EmailVerificationViewController: UIViewController, UITextFieldDelegate {
 
     private func transitionToDashboard() {
         print("[EmailVerifyVC] transitionToDashboard called")
-        let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        if let mainAppVC = storyboard.instantiateViewController(withIdentifier: "MainAppTabBarController") as? UITabBarController {
-            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-               let window = windowScene.windows.first {
-                window.rootViewController = mainAppVC
-                UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve, animations: nil, completion: nil)
+        let dashboardStoryboard = UIStoryboard(name: "Dashboard", bundle: nil)
+        if let dashboardVC = dashboardStoryboard.instantiateInitialViewController() {
+            let navController = UINavigationController(rootViewController: dashboardVC)
+            if let scene = view.window?.windowScene,
+               let sceneDelegate = scene.delegate as? UIWindowSceneDelegate,
+               let window = sceneDelegate.window ?? view.window {
+                let transition = CATransition()
+                transition.duration = 0.3
+                transition.type = .push
+                transition.subtype = .fromRight
+                transition.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+                window.layer.add(transition, forKey: kCATransition)
+                window.rootViewController = navController
                 print("[EmailVerifyVC] Navigation to dashboard complete.")
             } else {
                 print("[EmailVerifyVC] ERROR: Could not find window scene.")
+                navController.modalPresentationStyle = .fullScreen
+                present(navController, animated: true, completion: nil)
             }
         } else {
-            print("[EmailVerifyVC] ERROR: Could not instantiate MainAppTabBarController from storyboard.")
+            print("[EmailVerifyVC] ERROR: Could not instantiate Dashboard initial view controller.")
         }
     }
     

@@ -258,7 +258,6 @@ class ProfileTableViewController: UITableViewController {
         navigationController?.pushViewController(watchVC, animated: true)
     }
 
-    func updateUI(){
     // MARK: - Single Settings Row
 
     private func buildSettingsRow(icon: String, title: String, tag: Int, segueID: String, parent: UIView) -> UIView {
