@@ -139,6 +139,8 @@ class DashboardTableViewController: UITableViewController {
         setupRecordsSection()
         setupPeriodMenu()
         setupPeriodButton()
+        
+        setupFloatingButton()
     }
     
     
@@ -160,6 +162,35 @@ class DashboardTableViewController: UITableViewController {
     private func fetchRecords() {
         
     }
+    private func setupCurrentStatusHeader() {
+            let headerLabel = UILabel()
+            headerLabel.text = "Current Status (This Month)"
+            headerLabel.font = .systemFont(ofSize: 13, weight: .regular)
+            headerLabel.textColor = .secondaryLabel
+            headerLabel.numberOfLines = 1
+
+            let padding: CGFloat = 16
+            let headerView = UIView()
+            headerLabel.translatesAutoresizingMaskIntoConstraints = false
+            headerView.addSubview(headerLabel)
+            NSLayoutConstraint.activate([
+                headerLabel.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: padding),
+                headerLabel.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -padding),
+                headerLabel.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 12),
+                headerLabel.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -4)
+            ])
+
+            // Size the header view to fit
+            headerView.setNeedsLayout()
+            headerView.layoutIfNeeded()
+            let targetSize = CGSize(width: tableView.bounds.width, height: UIView.layoutFittingCompressedSize.height)
+            let fittingSize = headerView.systemLayoutSizeFitting(targetSize,
+                withHorizontalFittingPriority: .required,
+                verticalFittingPriority: .fittingSizeLevel)
+            headerView.frame.size = fittingSize
+
+            tableView.tableHeaderView = headerView
+        }
     
     private func fetchHealthData() {
         let dispatchGroup = DispatchGroup()
@@ -831,6 +862,11 @@ override func viewWillAppear(_ animated: Bool) {
     updateUI()
     refreshDashboardData()
     updateRecordsSection()
+}
+
+override func viewWillDisappear(_ animated: Bool) {
+    super.viewWillDisappear(animated)
+    floatingAddButton.isHidden = true
 }
 
     
