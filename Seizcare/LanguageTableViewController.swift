@@ -121,7 +121,13 @@ class LanguageTableViewController: UIViewController {
 
         // Persist language selection
         if let newLanguage = AppLanguage(rawValue: languages[selectedIndex]) {
-            LanguageDataModel.shared.setLanguage(language: newLanguage)
+            if UserDataModel.shared.getCurrentUser() == nil {
+                // Not signed in yet — save to temporary onboarding preferences
+                OnboardingPreferences.shared.language = newLanguage
+            } else {
+                // Signed in — save to database
+                LanguageDataModel.shared.setLanguage(language: newLanguage)
+            }
         }
 
         // Animate change
@@ -132,7 +138,15 @@ class LanguageTableViewController: UIViewController {
     //  Persistence
 
     private func loadSavedPreference() {
-        let savedLanguage = LanguageDataModel.shared.getCurrentLanguage().rawValue
+        let savedLanguage: String
+        if UserDataModel.shared.getCurrentUser() == nil {
+            // Not signed in yet — load from temporary onboarding preferences
+            savedLanguage = OnboardingPreferences.shared.language.rawValue
+        } else {
+            // Signed in — load from cache
+            savedLanguage = LanguageDataModel.shared.getCurrentLanguage().rawValue
+        }
+
         if let index = languages.firstIndex(of: savedLanguage) {
             selectedIndex = index
         }
