@@ -7,6 +7,8 @@
 
 import Foundation
 import Supabase
+import Auth
+import PostgREST
 
 // MARK: - SupabaseService
 
@@ -31,11 +33,11 @@ final class SupabaseService {
         return session.user.id
     }
 
-    /// Sign up with email and password. Returns the Supabase user UUID on success.
-    func signUp(email: String, password: String) async throws -> UUID {
+    /// Sign up with email and password. Returns the Supabase user on success.
+    func signUp(email: String, password: String) async throws -> Auth.User {
         let response = try await client.auth.signUp(email: email, password: password)
         // In Supabase Swift SDK v2, AuthResponse.user is non-optional
-        return response.user.id
+        return response.user
     }
 
     /// Sign out the current user.
@@ -43,9 +45,55 @@ final class SupabaseService {
         try await client.auth.signOut()
     }
 
+    // MARK: - Password Reset (OTP)
+
+    /// Ask Supabase to send an 8-digit OTP to the given email for password reset.
+    func sendPasswordResetOTP(email: String) async throws {
+        try await client.auth.signInWithOTP(
+            email: email,
+            shouldCreateUser: false
+        )
+    }
+
+    /// Verifies the OTP code sent to the email address.
+    func verifyPasswordResetOTP(email: String, otp: String) async throws {
+        try await client.auth.verifyOTP(email: email, token: otp, type: .email)
+    }
+
+    /// Updates the user's password once an active session (via verified OTP) is established.
+    func updateUserPassword(newPassword: String) async throws {
+        let attributes = UserAttributes(password: newPassword)
+        _ = try await client.auth.update(user: attributes)
+    }
+
     /// Returns the currently authenticated user's UUID, or nil if not logged in.
     func currentUserId() async -> UUID? {
         return try? await client.auth.user().id
+    }
+
+    // MARK: - Sign Up (OTP)
+    
+    /// Verifies the OTP code from initial sign-up (Supabase uses type `.signup`).
+    @discardableResult
+    func verifySignUpOTP(email: String, otp: String) async throws -> UUID {
+        let session = try await client.auth.verifyOTP(email: email, token: otp, type: .signup)
+        return session.user.id
+    }
+    
+    /// Verifies an OTP that was sent via `signInWithOTP` (resend path). Supabase uses type `.email`.
+    @discardableResult
+    func verifyEmailOTP(email: String, otp: String) async throws -> UUID {
+        let session = try await client.auth.verifyOTP(email: email, token: otp, type: .email)
+        return session.user.id
+    }
+    
+    /// Resends the signup OTP for users whose email is already registered but unverified.
+    /// Uses signInWithOTP which reliably sends a numeric OTP code.
+    func resendSignUpOTP(email: String) async throws {
+        try await client.auth.signInWithOTP(
+            email: email,
+            shouldCreateUser: false
+        )
     }
 
     // MARK: - Users Table

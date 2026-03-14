@@ -1,5 +1,5 @@
 //
-//  ForgotPasswordViewController.swift
+//  ResetPasswordViewController.swift
 //  Seizcare
 //
 //  Created on 12/03/26.
@@ -7,14 +7,17 @@
 
 import UIKit
 
-class ForgotPasswordViewController: UIViewController, UITextFieldDelegate {
+class ResetPasswordViewController: UIViewController, UITextFieldDelegate {
 
     // MARK: - Programmatic Views
     private let inputsContainer = UIView()
-    private let emailField = UITextField()
-    private let emailUnderline = UIView()
-    private let emailIcon = UIImageView()
-    private let resetButton = UIButton(type: .system)
+    private let passwordField = UITextField()
+    private let passwordUnderline = UIView()
+    private let passwordIcon = UIImageView()
+    private let confirmField = UITextField()
+    private let confirmUnderline = UIView()
+    private let confirmIcon = UIImageView()
+    private let updateButton = UIButton(type: .system)
     private let successView = UIView()
 
     // MARK: - Lifecycle
@@ -22,8 +25,9 @@ class ForgotPasswordViewController: UIViewController, UITextFieldDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         navigationController?.applyWhiteNavBar()
-        navigationItem.title = "Forgot Password"
-        // Let the default back button handle popping back
+        navigationItem.title = "Set New Password"
+        // Prevent going back to OTP directly after this point as the session is logically advanced
+        navigationItem.hidesBackButton = true
         setupUI()
     }
 
@@ -41,21 +45,21 @@ class ForgotPasswordViewController: UIViewController, UITextFieldDelegate {
 
         let lockIcon = UIImageView()
         lockIcon.translatesAutoresizingMaskIntoConstraints = false
-        lockIcon.image = UIImage(systemName: "lock.rotation")
+        lockIcon.image = UIImage(systemName: "lock.fill")
         lockIcon.tintColor = .systemBlue
         lockIcon.contentMode = .scaleAspectFit
         lockCircle.addSubview(lockIcon)
 
         // ── Title & Subtitle ─────────────────────────────────────
         let titleLabel = UILabel()
-        titleLabel.text = "Reset Your Password"
+        titleLabel.text = "Create New Password"
         titleLabel.font = .systemFont(ofSize: 24, weight: .bold)
         titleLabel.textColor = .label
         titleLabel.textAlignment = .center
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
 
         let subtitleLabel = UILabel()
-        subtitleLabel.text = "Enter your email address and we'll send\nyou an OTP to to securely reset your password."
+        subtitleLabel.text = "Your new password must be at least\n6 characters long."
         subtitleLabel.font = .systemFont(ofSize: 15, weight: .regular)
         subtitleLabel.textColor = .secondaryLabel
         subtitleLabel.textAlignment = .center
@@ -75,40 +79,52 @@ class ForgotPasswordViewController: UIViewController, UITextFieldDelegate {
         inputsContainer.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(inputsContainer)
 
-        let emailStack = createInputStack(
-            label: "Email Address",
-            field: emailField,
-            placeholder: "Enter your registered email",
-            underline: emailUnderline,
-            iconView: emailIcon,
-            iconName: "envelope"
+        let passwordStack = createInputStack(
+            label: "New Password",
+            field: passwordField,
+            placeholder: "Minimum 6 characters",
+            underline: passwordUnderline,
+            iconView: passwordIcon,
+            iconName: "lock",
+            isSecure: true
         )
-        emailStack.translatesAutoresizingMaskIntoConstraints = false
-        inputsContainer.addSubview(emailStack)
+        passwordStack.translatesAutoresizingMaskIntoConstraints = false
+        inputsContainer.addSubview(passwordStack)
 
-        // ── Reset Button ─────────────────────────────────────────
-        resetButton.setTitle("Send OTP", for: .normal)
-        resetButton.titleLabel?.font = .systemFont(ofSize: 17, weight: .semibold)
-        resetButton.setTitleColor(.white, for: .normal)
-        resetButton.backgroundColor = .systemBlue
-        resetButton.layer.cornerRadius = 27
-        resetButton.layer.shadowColor = UIColor.black.cgColor
-        resetButton.layer.shadowOpacity = 0.12
-        resetButton.layer.shadowRadius = 10
-        resetButton.layer.shadowOffset = CGSize(width: 0, height: 4)
-        resetButton.layer.masksToBounds = false
-        resetButton.addTarget(self, action: #selector(resetButtonTapped), for: .touchUpInside)
-        resetButton.addTarget(self, action: #selector(animateButtonPress), for: .touchDown)
-        resetButton.addTarget(self, action: #selector(animateButtonRelease), for: [.touchUpInside, .touchUpOutside, .touchCancel])
-        resetButton.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(resetButton)
+        let confirmStack = createInputStack(
+            label: "Confirm Password",
+            field: confirmField,
+            placeholder: "Minimum 6 characters",
+            underline: confirmUnderline,
+            iconView: confirmIcon,
+            iconName: "lock.fill",
+            isSecure: true
+        )
+        confirmStack.translatesAutoresizingMaskIntoConstraints = false
+        inputsContainer.addSubview(confirmStack)
+
+        // ── Update Button ─────────────────────────────────────────
+        updateButton.setTitle("Update Password", for: .normal)
+        updateButton.titleLabel?.font = .systemFont(ofSize: 17, weight: .semibold)
+        updateButton.setTitleColor(.white, for: .normal)
+        updateButton.backgroundColor = .systemBlue
+        updateButton.layer.cornerRadius = 27
+        updateButton.layer.shadowColor = UIColor.black.cgColor
+        updateButton.layer.shadowOpacity = 0.12
+        updateButton.layer.shadowRadius = 10
+        updateButton.layer.shadowOffset = CGSize(width: 0, height: 4)
+        updateButton.layer.masksToBounds = false
+        updateButton.addTarget(self, action: #selector(updateButtonTapped), for: .touchUpInside)
+        updateButton.addTarget(self, action: #selector(animateButtonPress(_:)), for: .touchDown)
+        updateButton.addTarget(self, action: #selector(animateButtonRelease(_:)), for: [.touchUpInside, .touchUpOutside, .touchCancel])
+        updateButton.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(updateButton)
 
         // ── Success View (hidden initially) ──────────────────────
         buildSuccessView()
 
         // ── Constraints ──────────────────────────────────────────
         NSLayoutConstraint.activate([
-            // Lock circle
             lockCircle.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 50),
             lockCircle.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             lockCircle.widthAnchor.constraint(equalToConstant: 96),
@@ -119,33 +135,32 @@ class ForgotPasswordViewController: UIViewController, UITextFieldDelegate {
             lockIcon.widthAnchor.constraint(equalToConstant: 40),
             lockIcon.heightAnchor.constraint(equalToConstant: 40),
 
-            // Title
             titleLabel.topAnchor.constraint(equalTo: lockCircle.bottomAnchor, constant: 24),
             titleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
             titleLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -24),
 
-            // Subtitle
             subtitleLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 10),
             subtitleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 32),
             subtitleLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -32),
 
-            // Input container
             inputsContainer.topAnchor.constraint(equalTo: subtitleLabel.bottomAnchor, constant: 32),
             inputsContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
             inputsContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -24),
 
-            emailStack.topAnchor.constraint(equalTo: inputsContainer.topAnchor, constant: 20),
-            emailStack.leadingAnchor.constraint(equalTo: inputsContainer.leadingAnchor, constant: 20),
-            emailStack.trailingAnchor.constraint(equalTo: inputsContainer.trailingAnchor, constant: -20),
-            emailStack.bottomAnchor.constraint(equalTo: inputsContainer.bottomAnchor, constant: -20),
+            passwordStack.topAnchor.constraint(equalTo: inputsContainer.topAnchor, constant: 20),
+            passwordStack.leadingAnchor.constraint(equalTo: inputsContainer.leadingAnchor, constant: 20),
+            passwordStack.trailingAnchor.constraint(equalTo: inputsContainer.trailingAnchor, constant: -20),
 
-            // Reset button
-            resetButton.topAnchor.constraint(equalTo: inputsContainer.bottomAnchor, constant: 28),
-            resetButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
-            resetButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -24),
-            resetButton.heightAnchor.constraint(equalToConstant: 54),
+            confirmStack.topAnchor.constraint(equalTo: passwordStack.bottomAnchor, constant: 20),
+            confirmStack.leadingAnchor.constraint(equalTo: inputsContainer.leadingAnchor, constant: 20),
+            confirmStack.trailingAnchor.constraint(equalTo: inputsContainer.trailingAnchor, constant: -20),
+            confirmStack.bottomAnchor.constraint(equalTo: inputsContainer.bottomAnchor, constant: -20),
 
-            // Success view
+            updateButton.topAnchor.constraint(equalTo: inputsContainer.bottomAnchor, constant: 28),
+            updateButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
+            updateButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -24),
+            updateButton.heightAnchor.constraint(equalToConstant: 54),
+
             successView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             successView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             successView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
@@ -162,7 +177,6 @@ class ForgotPasswordViewController: UIViewController, UITextFieldDelegate {
         successView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(successView)
 
-        // Checkmark circle
         let checkCircle = UIView()
         checkCircle.translatesAutoresizingMaskIntoConstraints = false
         checkCircle.backgroundColor = UIColor.systemGreen.withAlphaComponent(0.1)
@@ -177,7 +191,7 @@ class ForgotPasswordViewController: UIViewController, UITextFieldDelegate {
         checkCircle.addSubview(checkIcon)
 
         let successTitle = UILabel()
-        successTitle.text = "Email Sent!"
+        successTitle.text = "Password Reset!"
         successTitle.font = .systemFont(ofSize: 24, weight: .bold)
         successTitle.textColor = .label
         successTitle.textAlignment = .center
@@ -185,7 +199,7 @@ class ForgotPasswordViewController: UIViewController, UITextFieldDelegate {
         successView.addSubview(successTitle)
 
         let successSubtitle = UILabel()
-        successSubtitle.text = "We've sent a password reset link to\nyour email address. Please check your\ninbox and follow the instructions."
+        successSubtitle.text = "Your password has been successfully updated.\nYou can now sign in with your new credentials."
         successSubtitle.font = .systemFont(ofSize: 15, weight: .regular)
         successSubtitle.textColor = .secondaryLabel
         successSubtitle.textAlignment = .center
@@ -232,9 +246,9 @@ class ForgotPasswordViewController: UIViewController, UITextFieldDelegate {
         ])
     }
 
-    // MARK: - Input Stack Helper (matches SignInViewController style)
+    // MARK: - Input Stack Helper
 
-    private func createInputStack(label: String, field: UITextField, placeholder: String, underline: UIView, iconView: UIImageView, iconName: String) -> UIStackView {
+    private func createInputStack(label: String, field: UITextField, placeholder: String, underline: UIView, iconView: UIImageView, iconName: String, isSecure: Bool) -> UIStackView {
 
         let labelView = UILabel()
         labelView.text = label
@@ -254,7 +268,7 @@ class ForgotPasswordViewController: UIViewController, UITextFieldDelegate {
         field.textColor = .label
         field.borderStyle = .none
         field.autocapitalizationType = .none
-        field.keyboardType = .emailAddress
+        field.isSecureTextEntry = isSecure
         field.returnKeyType = .done
         field.delegate = self
 
@@ -285,42 +299,46 @@ class ForgotPasswordViewController: UIViewController, UITextFieldDelegate {
 
     // MARK: - Actions
 
-    @objc private func resetButtonTapped() {
-        let email = (emailField.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+    @objc private func updateButtonTapped() {
+        let password = passwordField.text ?? ""
+        let confirm = confirmField.text ?? ""
 
-        if email.isEmpty {
-            showAlert(title: "Error", message: "Please enter your email address.")
+        if password.isEmpty || confirm.isEmpty {
+            showAlert(title: "Error", message: "Please fill in all fields.")
             return
         }
 
-        if !email.contains("@") || !email.contains(".") {
-            showAlert(title: "Error", message: "Please enter a valid email address.")
+        if password.count < 6 {
+            showAlert(title: "Error", message: "Password must be at least 6 characters.")
             return
         }
-        
-        self.resetButton.isEnabled = false
-        self.resetButton.setTitle("Sending...", for: .normal)
-        self.resetButton.alpha = 0.7
+
+        if password != confirm {
+            showAlert(title: "Error", message: "Passwords do not match.")
+            return
+        }
+
+        // Show loading state
+        updateButton.isEnabled = false
+        updateButton.setTitle("Updating...", for: .normal)
+        updateButton.alpha = 0.7
 
         Task {
             do {
-                try await UserDataModel.shared.sendPasswordResetOTPAsync(email: email)
+                try await UserDataModel.shared.updateUserPasswordAsync(newPassword: password)
                 
                 await MainActor.run {
-                    self.resetButton.isEnabled = true
-                    self.resetButton.setTitle("Send OTP", for: .normal)
-                    self.resetButton.alpha = 1.0
-                    
-                    // Navigate to OTPVerificationViewController
-                    let verificationVC = OTPVerificationViewController(email: email)
-                    self.navigationController?.pushViewController(verificationVC, animated: true)
+                    self.updateButton.isEnabled = true
+                    self.updateButton.setTitle("Update Password", for: .normal)
+                    self.updateButton.alpha = 1.0
+                    self.showSuccessState()
                 }
             } catch {
                 await MainActor.run {
-                    self.resetButton.isEnabled = true
-                    self.resetButton.setTitle("Send OTP", for: .normal)
-                    self.resetButton.alpha = 1.0
-                    self.showAlert(title: "Request Failed", message: error.localizedDescription)
+                    self.updateButton.isEnabled = true
+                    self.updateButton.setTitle("Update Password", for: .normal)
+                    self.updateButton.alpha = 1.0
+                    self.showAlert(title: "Update Failed", message: error.localizedDescription)
                 }
             }
         }
@@ -334,58 +352,75 @@ class ForgotPasswordViewController: UIViewController, UITextFieldDelegate {
     }
 
     @objc private func backToSignIn() {
-        navigationController?.popViewController(animated: true)
+        // Find SignInViewController in the stack to pop to
+        if let viewControllers = navigationController?.viewControllers {
+            for vc in viewControllers {
+                if String(describing: type(of: vc)) == "SignInViewController" {
+                    // Sign out quietly so user has to log in with new credentials.
+                    // This is safe because verifyOTP starts an active Auth session behind the scenes, so
+                    // logging out ensures the normal Login flow is utilized.
+                    Task {
+                        try? await SupabaseService.shared.signOut()
+                    }
+                    navigationController?.popToViewController(vc, animated: true)
+                    return
+                }
+            }
+        }
+        navigationController?.popToRootViewController(animated: true)
     }
 
     // MARK: - Animations
 
-    @objc private func animateButtonPress() {
+    @objc private func animateButtonPress(_ sender: UIButton) {
         UIView.animate(withDuration: 0.1) {
-            self.resetButton.transform = CGAffineTransform(scaleX: 0.97, y: 0.97)
+            sender.transform = CGAffineTransform(scaleX: 0.97, y: 0.97)
         }
     }
 
-    @objc private func animateButtonRelease() {
+    @objc private func animateButtonRelease(_ sender: UIButton) {
         UIView.animate(withDuration: 0.1) {
-            self.resetButton.transform = .identity
+            sender.transform = .identity
         }
     }
 
     // MARK: - UITextFieldDelegate
 
     func textFieldDidBeginEditing(_ textField: UITextField) {
-        let shadowAnim = CABasicAnimation(keyPath: "shadowOpacity")
-        shadowAnim.fromValue = 0.04
-        shadowAnim.toValue = 0.08
-        shadowAnim.duration = 0.2
-        inputsContainer.layer.add(shadowAnim, forKey: "shadowOpacity")
-        inputsContainer.layer.shadowOpacity = 0.08
-
         UIView.animate(withDuration: 0.25) {
-            self.emailUnderline.backgroundColor = .systemBlue
-            self.emailUnderline.transform = CGAffineTransform(scaleX: 1.0, y: 2.0)
-            self.emailIcon.tintColor = .systemBlue
+            if textField == self.passwordField {
+                self.passwordUnderline.backgroundColor = .systemBlue
+                self.passwordUnderline.transform = CGAffineTransform(scaleX: 1.0, y: 2.0)
+                self.passwordIcon.tintColor = .systemBlue
+            } else if textField == self.confirmField {
+                self.confirmUnderline.backgroundColor = .systemBlue
+                self.confirmUnderline.transform = CGAffineTransform(scaleX: 1.0, y: 2.0)
+                self.confirmIcon.tintColor = .systemBlue
+            }
         }
     }
 
     func textFieldDidEndEditing(_ textField: UITextField) {
-        let shadowAnim = CABasicAnimation(keyPath: "shadowOpacity")
-        shadowAnim.fromValue = 0.08
-        shadowAnim.toValue = 0.04
-        shadowAnim.duration = 0.2
-        inputsContainer.layer.add(shadowAnim, forKey: "shadowOpacity")
-        inputsContainer.layer.shadowOpacity = 0.04
-
         UIView.animate(withDuration: 0.25) {
-            self.emailUnderline.backgroundColor = .systemGray5
-            self.emailUnderline.transform = .identity
-            self.emailIcon.tintColor = .systemGray3
+            if textField == self.passwordField {
+                self.passwordUnderline.backgroundColor = .systemGray5
+                self.passwordUnderline.transform = .identity
+                self.passwordIcon.tintColor = .systemGray3
+            } else if textField == self.confirmField {
+                self.confirmUnderline.backgroundColor = .systemGray5
+                self.confirmUnderline.transform = .identity
+                self.confirmIcon.tintColor = .systemGray3
+            }
         }
     }
 
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        textField.resignFirstResponder()
-        resetButtonTapped()
+        if textField == passwordField {
+            confirmField.becomeFirstResponder()
+        } else {
+            textField.resignFirstResponder()
+            updateButtonTapped()
+        }
         return true
     }
 

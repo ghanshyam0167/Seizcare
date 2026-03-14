@@ -247,29 +247,27 @@ class SignUpTableViewController: UITableViewController {
            sender.isEnabled = false
            sender.setTitle("Creating account…", for: .normal)
 
-           Task {
-               do {
-                   // 1. Create Supabase Auth user, insert profile row,
-                   //    set currentUser + UserDefaults — all in one awaited call.
-                   try await UserDataModel.shared.signUpUserAsync(user: newUser)
+            Task {
+                do {
+                    // 1. Create Supabase Auth user (or resend OTP if already created but unverified)
+                    let isResend = try await UserDataModel.shared.initiateSignUpAsync(user: newUser)
 
-                   // 2. Verify session is ready before navigating.
-                   guard UserDataModel.shared.getCurrentUser() != nil else {
-                       throw SupabaseServiceError.authFailed("Session not established after sign-up.")
-                   }
-
-                   // 3. Navigate on the main thread.
-                   await MainActor.run {
-                       self.performSegue(withIdentifier: "goToSignupSuccess", sender: self)
-                   }
-               } catch {
-                   await MainActor.run {
-                       sender.isEnabled = true
-                       sender.setTitle("Create Account", for: .normal)
-                       self.showAlert("Sign up failed: \(error.localizedDescription)")
-                   }
-               }
-           }
+                    // 2. Navigate on the main thread to the verification screen
+                    await MainActor.run {
+                        sender.isEnabled = true
+                        sender.setTitle("Create Account", for: .normal)
+                        
+                        let verifyVC = EmailVerificationViewController(pendingUser: newUser, isResend: isResend)
+                        self.navigationController?.pushViewController(verifyVC, animated: true)
+                    }
+                } catch {
+                    await MainActor.run {
+                        sender.isEnabled = true
+                        sender.setTitle("Create Account", for: .normal)
+                        self.showAlert("Sign up failed: \(error.localizedDescription)")
+                    }
+                }
+            }
        }
     // MARK: - Validate Password
     
