@@ -54,8 +54,10 @@
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES">
-      <BuildableProductRunnable
-         runnableDebuggingMode = "0">
+      <RemoteRunnable
+         runnableDebuggingMode = "2"
+         BundleIdentifier = "com.apple.Carousel"
+         RemotePath = "/SeizcareWatch">
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "C9A432132F6169D000BC09A9"
@@ -63,7 +65,7 @@
             BlueprintName = "SeizcareWatch Watch App"
             ReferencedContainer = "container:Seizcare.xcodeproj">
          </BuildableReference>
-      </BuildableProductRunnable>
+      </RemoteRunnable>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
@@ -71,8 +73,10 @@
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
       debugDocumentVersioning = "YES">
-      <BuildableProductRunnable
-         runnableDebuggingMode = "0">
+      <RemoteRunnable
+         runnableDebuggingMode = "2"
+         BundleIdentifier = "com.apple.Carousel"
+         RemotePath = "/SeizcareWatch">
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "C9A432132F6169D000BC09A9"
@@ -80,7 +84,7 @@
             BlueprintName = "SeizcareWatch Watch App"
             ReferencedContainer = "container:Seizcare.xcodeproj">
          </BuildableReference>
-      </BuildableProductRunnable>
+      </RemoteRunnable>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">

@@ -253,6 +253,12 @@ class ProfileTableViewController: UITableViewController {
         card.bottomAnchor.constraint(equalTo: previousRowBottom).isActive = true
     }
 
+    @IBAction func connectWatchTapped(_ sender: UITapGestureRecognizer) {
+        let watchVC = WatchConnectionViewController()
+        navigationController?.pushViewController(watchVC, animated: true)
+    }
+
+    func updateUI(){
     // MARK: - Single Settings Row
 
     private func buildSettingsRow(icon: String, title: String, tag: Int, segueID: String, parent: UIView) -> UIView {

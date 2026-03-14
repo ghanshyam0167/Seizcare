@@ -43,23 +43,44 @@ struct HomeView: View {
                 
                 // 2. Live Heart Rate
                 VStack(spacing: 4) {
-                    HStack(spacing: 4) {
+                    HStack(spacing: 6) {
                         Image(systemName: "heart.fill")
                             .foregroundColor(.red)
                             .font(.footnote)
+                            .symbolEffect(.bounce, options: .repeating, value: healthKitManager.healthData.heartRate)
+                        
                         Text("Heart Rate")
-                            .font(.footnote)
-                            .foregroundColor(.gray)
+                            .font(.footnote.weight(.medium))
+                            .foregroundColor(.secondary)
+                        
+                        if healthKitManager.healthData.heartRate != nil {
+                            Circle()
+                                .fill(Color.red)
+                                .frame(width: 6, height: 6)
+                                .opacity(0.8)
+                        }
                     }
                     
                     if let hr = healthKitManager.healthData.heartRate {
-                        Text("\(Int(hr)) BPM")
-                            .font(.system(size: 30, weight: .bold, design: .rounded))
-                            .foregroundColor(heartRateColor(hr))
+                        VStack(spacing: -2) {
+                            Text("\(Int(hr))")
+                                .font(.system(size: 44, weight: .bold, design: .rounded))
+                                .foregroundColor(heartRateColor(hr))
+                            
+                            Text("BPM")
+                                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                                .foregroundColor(.secondary)
+                        }
                     } else {
-                        Text("-- BPM")
-                            .font(.system(size: 30, weight: .bold, design: .rounded))
-                            .foregroundColor(.gray)
+                        VStack(spacing: -2) {
+                            Text("--")
+                                .font(.system(size: 44, weight: .bold, design: .rounded))
+                                .foregroundColor(.gray)
+                            
+                            Text("BPM")
+                                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                                .foregroundColor(.secondary)
+                        }
                     }
                 }
                 .padding(.top, 4)
@@ -130,9 +151,32 @@ struct HomeView: View {
                         }
                     }
                 }
-                .padding()
-                .background(Color.gray.opacity(0.15))
                 .cornerRadius(12)
+                .padding(.horizontal)
+                
+                // 5. Manual Controls (For Testing)
+                VStack(spacing: 8) {
+                    Text("Test Controls")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(.blue)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    Button(action: {
+                        if healthKitManager.workoutSessionActive {
+                            healthKitManager.stopWorkout()
+                        } else {
+                            healthKitManager.startWorkout()
+                        }
+                    }) {
+                        HStack {
+                            Image(systemName: healthKitManager.workoutSessionActive ? "stop.circle.fill" : "play.circle.fill")
+                            Text(healthKitManager.workoutSessionActive ? "Stop Stream" : "Start Stream")
+                        }
+                        .font(.footnote.bold())
+                        .frame(maxWidth: .infinity)
+                    }
+                    .tint(healthKitManager.workoutSessionActive ? .red : .blue)
+                }
                 .padding(.horizontal)
             }
             .padding(.vertical)

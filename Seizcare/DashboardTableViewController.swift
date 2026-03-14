@@ -7,6 +7,7 @@
 
 import UIKit
 import SwiftUI
+import Combine
 
 enum TrendDirection {
     case increased
@@ -136,11 +137,73 @@ class DashboardTableViewController: UITableViewController {
         currentCardView2?.applyMetricCard(tint: .systemTeal)    // Avg Duration
         currentCardView3?.applyMetricCard(tint: .systemPurple)  // Most Common Time
         
+        setupHealthDataObserver()
         setupRecordsSection()
         setupPeriodMenu()
         setupPeriodButton()
         
         setupFloatingButton()
+    }
+    
+    private func setupHealthDataObserver() {
+        // NotificationCenter observer for real-time updates from Watch
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleSleepDataNotification(_:)),
+            name: .didReceiveSleepData,
+            object: nil
+        )
+        
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleSleepAverageNotification(_:)),
+            name: .didReceiveSleepAverage,
+            object: nil
+        )
+        
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleSyncNotification(_:)),
+            name: .didSyncSleepData,
+            object: nil
+        )
+    }
+    
+    @objc private func handleSyncNotification(_ notification: Notification) {
+        DispatchQueue.main.async {
+            print("📺 [Dashboard-UIKit] Sync Notification received. Refreshing Sleep vs Seizure graph.")
+            self.updateSleepVsSeizureGraph()
+        }
+    }
+    
+    @objc private func handleSleepAverageNotification(_ notification: Notification) {
+        guard let userInfo = notification.userInfo,
+              let average = userInfo["average"] as? Double else { return }
+        
+        DispatchQueue.main.async {
+            print("📺 [Dashboard-UIKit] Average Notification received. Updating UILabel to: \(String(format: "%.1f", average)) hrs avg")
+            
+            if average > 0 {
+                self.sleepDurationLabel.text = "\(String(format: "%.1f", average)) hrs avg"
+                self.sleepDurationStatusLabel.text = "↑ Monthly Average"
+                self.sleepDurationStatusLabel.textColor = .systemIndigo
+            }
+        }
+    }
+    
+    @objc private func handleSleepDataNotification(_ notification: Notification) {
+        guard let userInfo = notification.userInfo,
+              let hours = userInfo["sleepHours"] as? Double else { return }
+        
+        DispatchQueue.main.async {
+            print("📺 [Dashboard-UIKit] Real-time Notification received. (Stalling UI update to prioritize average)")
+            // We still update the manager, but let the fetchMonthlySleepAverage() drive the main label
+            HealthDataManager.shared.updateSleepData(hours: hours)
+            
+            // Optionally, we could show a temporary "Last Night: 10.1" but user wants average
+            // Refresh average whenever new data arrives
+            SleepManager.shared.fetchMonthlySleepAverage()
+        }
     }
     
     
@@ -227,25 +290,17 @@ class DashboardTableViewController: UITableViewController {
             // Print values in the console for testing
             if let hr = healthData.heartRate {
                 print("Heart Rate: \(Int(hr)) bpm")
-            } else {
-                print("Heart Rate: Not available")
             }
             
             if let spo2 = healthData.oxygenSaturation {
                 print("SpO2: \(Int(spo2)) %")
-            } else {
-                print("SpO2: Not available")
             }
             
             if let sleep = healthData.sleepHours {
-                print("Sleep Duration: \(String(format: "%.1f", sleep)) hours")
-            } else {
-                print("Sleep Duration: Not available")
+                print("Sleep Duration (Last Night): \(String(format: "%.1f", sleep)) hours")
+                // Trigger monthly average calculation
+                SleepManager.shared.fetchMonthlySleepAverage()
             }
-            
-            // In a real scenario, we might assign this to a property or trigger UI updates:
-            // self.currentHealthData = healthData
-            // self.updateHealthUI()
         }
     }
     
@@ -302,14 +357,22 @@ class DashboardTableViewController: UITableViewController {
         let hasRealRecords = !SeizureRecordDataModel.shared.getRecordsForCurrentUser().isEmpty
 
         // Sleep Quality
-        sleepDurationLabel.text = "\(current.avgSleepHours.formatted(1)) hrs"
-        if hasRealRecords {
-            let sleepTrend = trend(current: current.avgSleepHours, previous: previous.avgSleepHours)
-            sleepDurationStatusLabel.text      = "\(sleepTrend.icon) vs last month"
-            sleepDurationStatusLabel.textColor = sleepTrend.color
+        // Always prefer the monthly average from SleepManager if available
+        let avg = SleepManager.shared.monthlyAverageSleep
+        if avg > 0 {
+            sleepDurationLabel.text = "\(String(format: "%.1f", avg)) hrs avg"
+            sleepDurationStatusLabel.text = "↑ Monthly Average"
+            sleepDurationStatusLabel.textColor = .systemIndigo
         } else {
-            sleepDurationStatusLabel.text      = "Based on initial setup"
-            sleepDurationStatusLabel.textColor = .secondaryLabel
+            sleepDurationLabel.text = "\(current.avgSleepHours.formatted(1)) hrs"
+            if hasRealRecords {
+                let sleepTrend = trend(current: current.avgSleepHours, previous: previous.avgSleepHours)
+                sleepDurationStatusLabel.text      = "\(sleepTrend.icon) vs last month"
+                sleepDurationStatusLabel.textColor = sleepTrend.color
+            } else {
+                sleepDurationStatusLabel.text      = "Based on initial setup"
+                sleepDurationStatusLabel.textColor = .secondaryLabel
+            }
         }
 
         //Avg Seizures
