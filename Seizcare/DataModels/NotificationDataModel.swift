@@ -52,12 +52,18 @@ class NotificationDataModel {
 
     /// Fetches notifications for the current user from Supabase and updates the cache.
     func refreshNotifications() async {
-        guard let userId = UserDataModel.shared.getCurrentUser()?.id else { return }
+        print("🔍 [NotificationDataModel] refreshNotifications() called")
+        guard let userId = UserDataModel.shared.getCurrentUser()?.id else {
+            print("⚠️ [NotificationDataModel] refresh failed: No current user ID")
+            return
+        }
+        print("👤 [NotificationDataModel] Fetching for user: \(userId)")
         do {
             let dtos = try await SupabaseService.shared.fetchNotifications(userId: userId)
+            print("✅ [NotificationDataModel] Supabase returned \(dtos.count) notifications")
             cachedNotifications = dtos.map { $0.toDomain() }
         } catch {
-            print("⚠️ [NotificationDataModel] refreshNotifications failed:", error.localizedDescription)
+            print("❌ [NotificationDataModel] refreshNotifications failed:", error.localizedDescription)
         }
     }
     
@@ -93,10 +99,12 @@ class NotificationDataModel {
         cachedNotifications.append(newNotification)
 
         Task {
+            print("📤 [NotificationDataModel] Inserting new notification to Supabase: \(newNotification.title)")
             do {
                 try await SupabaseService.shared.insertNotification(NotificationDTO(from: newNotification))
+                print("✅ [NotificationDataModel] Remote insert successful")
             } catch {
-                print("⚠️ [NotificationDataModel] insertNotification failed:", error.localizedDescription)
+                print("❌ [NotificationDataModel] insertNotification failed:", error.localizedDescription)
             }
         }
     }
