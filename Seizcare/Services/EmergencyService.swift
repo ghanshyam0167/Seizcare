@@ -113,6 +113,15 @@ class EmergencyService {
             let body = data.flatMap { String(data: $0, encoding: .utf8) } ?? "(empty)"
             if statusCode == 200 || statusCode == 201 {
                 print("✅ [EmergencyService] SUCCESS (\(statusCode)): \(body)")
+                
+                // --- Add Notification to History ---
+                DispatchQueue.main.async {
+                    NotificationDataModel.shared.addNotification(
+                        title: "Emergency Alert Sent",
+                        iconName: "exclamationmark.triangle.fill",
+                        description: "An emergency alert was sent to your contacts with your current location."
+                    )
+                }
             } else {
                 print("⚠️ [EmergencyService] Response (\(statusCode)): \(body)")
             }

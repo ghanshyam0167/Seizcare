@@ -291,14 +291,46 @@ final class SupabaseService {
     // MARK: - Notifications Table
 
     func fetchNotifications(userId: UUID) async throws -> [NotificationDTO] {
-        let rows: [NotificationDTO] = try await client
+        let response = try await client
             .from("notifications")
             .select()
-            .eq("user_id", value: userId.uuidString)
+            .eq("user_id", value: userId.uuidString.lowercased())
             .order("date_time", ascending: false)
             .execute()
-            .value
-        return rows
+        
+        let decoder = JSONDecoder()
+        // Supabase returns timestamps like "2026-03-14T10:49:25.224" (no timezone, variable fractional digits)
+        decoder.dateDecodingStrategy = .custom { decoder in
+            let container = try decoder.singleValueContainer()
+            let dateStr = try container.decode(String.self)
+            
+            // Try formats in order of specificity
+            let formats = [
+                "yyyy-MM-dd'T'HH:mm:ss.SSSSSS",   // 6 fractional digits (microseconds)
+                "yyyy-MM-dd'T'HH:mm:ss.SSS",        // 3 fractional digits (milliseconds)
+                "yyyy-MM-dd'T'HH:mm:ss",            // no fractional digits
+                "yyyy-MM-dd'T'HH:mm:ssZ",           // with timezone
+                "yyyy-MM-dd'T'HH:mm:ss.SSSZ"        // ms + timezone
+            ]
+            let fmt = DateFormatter()
+            fmt.locale = Locale(identifier: "en_US_POSIX")
+            for format in formats {
+                fmt.dateFormat = format
+                if let date = fmt.date(from: dateStr) {
+                    return date
+                }
+            }
+            throw DecodingError.dataCorruptedError(in: container, debugDescription: "Cannot parse date: \(dateStr)")
+        }
+        
+        do {
+            let rows = try decoder.decode([NotificationDTO].self, from: response.data)
+            print("✅ [SupabaseService] Decoded \(rows.count) notifications successfully")
+            return rows
+        } catch {
+            print("❌ [SupabaseService] Decoding failed: \(error)")
+            throw error
+        }
     }
 
     func insertNotification(_ dto: NotificationDTO) async throws {
