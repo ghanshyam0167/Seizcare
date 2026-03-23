@@ -4,7 +4,7 @@ import WatchKit
 
 struct HomeView: View {
     @StateObject private var healthKitManager = HealthKitManager.shared
-    @State private var selectedSensitivity = "Medium"
+    @StateObject private var settingsManager = SettingsManager.shared
     @State private var showingCountdown = false
     
     let sensitivities = ["Low", "Medium", "High"]
@@ -95,21 +95,21 @@ struct HomeView: View {
                     HStack(spacing: 2) {
                         ForEach(sensitivities, id: \.self) { level in
                             Button(action: {
-                                selectedSensitivity = level
+                                settingsManager.sensitivity = level
                                 WatchConnectivityManager.shared.sendSensitivity(level)
                             }) {
                                 Text(level)
-                                    .font(.system(size: 13, weight: selectedSensitivity == level ? .semibold : .regular))
+                                    .font(.system(size: 13, weight: settingsManager.sensitivity == level ? .semibold : .regular))
                                     .frame(maxWidth: .infinity, minHeight: 32)
-                                    .background(selectedSensitivity == level ? Color.green.opacity(0.3) : Color.gray.opacity(0.15))
-                                    .foregroundColor(selectedSensitivity == level ? .green : .white)
+                                    .background(settingsManager.sensitivity == level ? Color.green.opacity(0.3) : Color.gray.opacity(0.15))
+                                    .foregroundColor(settingsManager.sensitivity == level ? .green : .white)
                             }
                             .buttonStyle(.plain)
                             .cornerRadius(8)
                         }
                     }
                     
-                    Text(sensitivityDescription(for: selectedSensitivity))
+                    Text(sensitivityDescription(for: settingsManager.sensitivity))
                         .font(.footnote)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)

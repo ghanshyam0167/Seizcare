@@ -60,7 +60,8 @@ class ProfileTableViewController: UITableViewController {
 
     private let prefsRows: [SettingsRow] = [
         SettingsRow(icon: "globe", title: "Language", segueID: "goToLanguage"),
-        SettingsRow(icon: "applewatch", title: "Connect your watch", segueID: "goToWatchConnection")
+        SettingsRow(icon: "applewatch", title: "Connect your watch", segueID: "goToWatchConnection"),
+        SettingsRow(icon: "ladybug.fill", title: "Test Sync (Debug)", segueID: "testSync")
     ]
 
     // MARK: - Lifecycle
@@ -81,6 +82,10 @@ class ProfileTableViewController: UITableViewController {
         tableView.allowsSelection = false
         applyDefaultTableBackground()
 
+        // Initialize managers early so WCSession can activate in the background
+        _ = SettingsManager.shared
+        _ = WatchConnectivityManager.shared
+        
         buildUI()
         updateUI()
     }
@@ -387,6 +392,21 @@ class ProfileTableViewController: UITableViewController {
 
     @objc private func settingsRowTapped(_ gesture: UITapGestureRecognizer) {
         guard let segueID = gesture.view?.accessibilityIdentifier, !segueID.isEmpty else { return }
+        
+        if segueID == "testSync" {
+            let options = ["Low", "Medium", "High"]
+            let current = SettingsManager.shared.sensitivity
+            let otherOptions = options.filter { $0 != current }
+            let random = otherOptions.randomElement()!
+            
+            print("🐞 [DEBUG] Simulating user changing sensitivity to: \(random)")
+            SettingsManager.shared.sensitivity = random
+            
+            let alert = UIAlertController(title: "Debug Sync Sent", message: "Sent sensitivity: \(random). Check watch app.", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            present(alert, animated: true)
+            return
+        }
         
         if segueID == "goToWatchConnection" {
             let watchVC = WatchConnectionViewController()
