@@ -178,7 +178,47 @@ final class SupabaseService {
             .execute()
     }
 
-    // MARK: - User Sensitivity Table
+    // MARK: - Avatar Storage
+
+    /// Uploads JPEG data to the `avatars` bucket and returns the public URL.
+    /// Upserts so repeated calls simply replace the previous photo.
+    /// A `?v=<timestamp>` is appended to bust the Supabase CDN cache on every upload
+    /// so re-uploads of the same user always serve fresh content.
+    func uploadAvatar(userId: UUID, imageData: Data) async throws -> String {
+        let path = "\(userId.uuidString.lowercased()).jpg"
+        
+        try await client.storage
+            .from("avatars")
+            .upload(
+                path,
+                data: imageData,
+                options: FileOptions(contentType: "image/jpeg", upsert: true)
+            )
+        
+        let publicURL = try client.storage
+            .from("avatars")
+            .getPublicURL(path: path)
+        
+        // Append version timestamp — forces CDN cache-miss so second/third uploads are seen immediately.
+        // This URL with the version is saved to the DB so every load fetches the post-upload image.
+        let versionedURL = publicURL.absoluteString + "?v=\(Int(Date().timeIntervalSince1970))"
+        print("✅ [SupabaseService] Avatar uploaded — \(versionedURL)")
+        return versionedURL
+    }
+
+    /// Patches only the `avatar_url` column for the given user row.
+    func updateUserAvatar(userId: UUID, url: String) async throws {
+        struct AvatarPatch: Encodable {
+            let avatar_url: String
+        }
+        try await client
+            .from("users")
+            .update(AvatarPatch(avatar_url: url))
+            .eq("id", value: userId.uuidString.lowercased())
+            .execute()
+    }
+
+
 
     func fetchSensitivity(userId: UUID) async throws -> SensitivityDTO? {
         let rows: [SensitivityDTO] = try await client
@@ -453,6 +493,7 @@ struct UserDTO: Codable {
     let weight: Double?
     let bloodGroup: String?
     let createdAt: String?       // Extra column returned by Supabase — absorb so decode never fails
+    let avatarUrl: String?       // Supabase Storage public URL for profile photo
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -465,6 +506,7 @@ struct UserDTO: Codable {
         case weight
         case bloodGroup     = "blood_group"
         case createdAt      = "created_at"
+        case avatarUrl      = "avatar_url"
     }
 
     // Convert domain model → DTO (for INSERT / UPDATE — always has full data)
@@ -479,6 +521,7 @@ struct UserDTO: Codable {
         self.weight        = user.weight
         self.bloodGroup    = user.bloodGroup
         self.createdAt     = nil
+        self.avatarUrl     = user.avatarUrl
     }
 
     // Convert DTO → domain model — parse the "yyyy-MM-dd" date string manually
@@ -494,7 +537,8 @@ struct UserDTO: Codable {
             password:      "",
             height:        height,
             weight:        weight,
-            bloodGroup:    bloodGroup
+            bloodGroup:    bloodGroup,
+            avatarUrl:     avatarUrl
         )
     }
 

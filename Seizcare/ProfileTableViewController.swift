@@ -70,23 +70,38 @@ class ProfileTableViewController: UITableViewController {
         navigationItem.title = "Settings"
         navigationController?.applyWhiteNavBar()
 
-        // Hide ALL storyboard subviews — we take full programmatic control
         tableView.subviews.forEach { subview in
             if subview !== tableView.backgroundView {
                 subview.isHidden = true
             }
         }
-        // Use a plain scroll view approach on top of the table
         tableView.separatorStyle = .none
         tableView.allowsSelection = false
         applyDefaultTableBackground()
 
-        // Initialize managers early so WCSession can activate in the background
         _ = SettingsManager.shared
         _ = WatchConnectivityManager.shared
         
         buildUI()
         updateUI()
+
+        // Reload avatar whenever it changes from any screen
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(avatarDidChange),
+            name: UserDataModel.avatarDidChangeNotification,
+            object: nil
+        )
+    }
+
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+
+    @objc private func avatarDidChange() {
+        let avatarUrl = UserDataModel.shared.getCurrentUser()?.avatarUrl
+        UIImageView.bustCache(for: avatarUrl ?? "")
+        avatarView.load(urlString: avatarUrl)
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -96,6 +111,10 @@ class ProfileTableViewController: UITableViewController {
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
+        // avatarView is 60×60 — apply circle here (after layout) so it's always circular
+        // even on first render before the remote image finishes loading.
+        avatarView.layer.cornerRadius = 30
+        avatarView.clipsToBounds = true
         // Update scroll content size
         let bottomPadding: CGFloat = 40
         let contentHeight = logoutButton.frame.maxY + bottomPadding
@@ -372,11 +391,8 @@ class ProfileTableViewController: UITableViewController {
         nameLabel.text = user.fullName
         emailLabel.text = user.email
 
-        // Load saved profile photo
-        if let savedPhoto = ProfilePhotoManager.shared.load() {
-            avatarView.image = savedPhoto
-            avatarView.contentMode = .scaleAspectFill
-        }
+        // Load avatar from Supabase (or fallback placeholder)
+        avatarView.load(urlString: user.avatarUrl)
 
         // Also update storyboard outlets (kept for compatibility)
         userNameLabel?.text = user.fullName

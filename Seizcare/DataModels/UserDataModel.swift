@@ -29,6 +29,9 @@ struct User: Identifiable, Codable, Equatable {
     var weight: Double?
     var bloodGroup: String?
 
+    // Profile photo (Supabase Storage public URL)
+    var avatarUrl: String?
+
     init(
         id: UUID = UUID(),
         fullName: String,
@@ -39,7 +42,8 @@ struct User: Identifiable, Codable, Equatable {
         password: String,
         height: Double? = nil,
         weight: Double? = nil,
-        bloodGroup: String? = nil
+        bloodGroup: String? = nil,
+        avatarUrl: String? = nil
     ) {
         self.id            = id
         self.fullName      = fullName
@@ -51,6 +55,7 @@ struct User: Identifiable, Codable, Equatable {
         self.height        = height
         self.weight        = weight
         self.bloodGroup    = bloodGroup
+        self.avatarUrl     = avatarUrl
     }
 
     static func == (lhs: User, rhs: User) -> Bool {
@@ -120,7 +125,33 @@ class UserDataModel {
     func getAllUsers() -> [User] {
         return currentUser.map { [$0] } ?? []
     }
-    
+
+    // MARK: - Avatar
+
+    /// Notification broadcast after the avatar URL is updated.
+    /// All screens observing this will reload the avatar image automatically.
+    static let avatarDidChangeNotification = Notification.Name("UserAvatarDidChange")
+
+    /// Updates the in-memory avatar URL, persists to Supabase, then broadcasts a notification.
+    func updateAvatarURL(_ url: String) {
+        currentUser?.avatarUrl = url.isEmpty ? nil : url
+        // Broadcast immediately so UI updates without waiting for the network call
+        NotificationCenter.default.post(name: UserDataModel.avatarDidChangeNotification, object: nil)
+        guard let userId = currentUser?.id else { return }
+        Task {
+            do {
+                if url.isEmpty {
+                    try await SupabaseService.shared.updateUserAvatar(userId: userId, url: "")
+                } else {
+                    try await SupabaseService.shared.updateUserAvatar(userId: userId, url: url)
+                }
+                print("✅ [UserDataModel] avatar_url saved for user \(userId)")
+            } catch {
+                print("⚠️ [UserDataModel] updateAvatarURL failed: \(error.localizedDescription)")
+            }
+        }
+    }
+
 }
 
 //  - Authentication Extension
