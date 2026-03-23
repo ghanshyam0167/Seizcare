@@ -116,11 +116,7 @@ class EmergencyService {
                 
                 // --- Add Notification to History ---
                 DispatchQueue.main.async {
-                    NotificationDataModel.shared.addNotification(
-                        title: "Emergency Alert Sent",
-                        iconName: "exclamationmark.triangle.fill",
-                        description: "An emergency alert was sent to your contacts with your current location."
-                    )
+                    NotificationDataModel.shared.addNotification(type: .emergencyAlert)
                 }
             } else {
                 print("⚠️ [EmergencyService] Response (\(statusCode)): \(body)")

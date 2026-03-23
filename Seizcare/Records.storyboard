@@ -20,17 +20,17 @@
                             <tableViewSection id="HeC-bD-fLY">
                                 <cells>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="none" indentationWidth="10" id="YVB-a2-Db8">
-                                        <rect key="frame" x="0.0" y="18" width="393" height="195"/>
+                                        <rect key="frame" x="0.0" y="18" width="393" height="193.33332824707031"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="YVB-a2-Db8" id="qmv-Rw-Vxy">
-                                            <rect key="frame" x="0.0" y="0.0" width="393" height="195"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="393" height="193.33332824707031"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="fnr-dh-Sa5">
-                                                    <rect key="frame" x="12" y="8" width="369" height="179"/>
+                                                    <rect key="frame" x="12" y="8" width="369" height="177.33333333333334"/>
                                                     <subviews>
                                                         <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="20" translatesAutoresizingMaskIntoConstraints="NO" id="ykE-aD-H0i">
-                                                            <rect key="frame" x="12" y="16" width="345" height="147"/>
+                                                            <rect key="frame" x="12" y="16" width="345" height="145.33333333333334"/>
                                                             <subviews>
                                                                 <stackView opaque="NO" contentMode="scaleToFill" spacingType="standard" translatesAutoresizingMaskIntoConstraints="NO" id="huR-B1-vAl">
                                                                     <rect key="frame" x="0.0" y="0.0" width="345" height="22"/>
@@ -72,23 +72,23 @@
                                                                     </subviews>
                                                                 </stackView>
                                                                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ASx-Ox-Ex5">
-                                                                    <rect key="frame" x="0.0" y="104.66666666666666" width="345" height="0.3333333333333286"/>
+                                                                    <rect key="frame" x="0.0" y="104.66666666666666" width="345" height="0.6666666666666714"/>
                                                                     <color key="backgroundColor" systemColor="systemGrayColor"/>
                                                                     <constraints>
                                                                         <constraint firstAttribute="height" constant="0.5" id="83b-Fh-ocs"/>
                                                                     </constraints>
                                                                 </view>
                                                                 <stackView opaque="NO" contentMode="scaleToFill" spacingType="standard" translatesAutoresizingMaskIntoConstraints="NO" id="lfu-os-QfG">
-                                                                    <rect key="frame" x="0.0" y="125" width="345" height="22"/>
+                                                                    <rect key="frame" x="0.0" y="125.33333333333334" width="345" height="20"/>
                                                                     <subviews>
                                                                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Duration" textAlignment="natural" lineBreakMode="wordWrap" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="v3A-2u-KUA">
-                                                                            <rect key="frame" x="0.0" y="0.0" width="70.333333333333329" height="22"/>
+                                                                            <rect key="frame" x="0.0" y="0.0" width="70.333333333333329" height="20"/>
                                                                             <fontDescription key="fontDescription" type="boldSystem" pointSize="17"/>
                                                                             <nil key="textColor"/>
                                                                             <nil key="highlightedColor"/>
                                                                         </label>
                                                                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="248" verticalHuggingPriority="251" text="0 min 0 sec" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Qq6-Mx-IZ6">
-                                                                            <rect key="frame" x="78.333333333333343" y="0.0" width="266.66666666666663" height="22"/>
+                                                                            <rect key="frame" x="78.333333333333343" y="0.0" width="266.66666666666663" height="20"/>
                                                                             <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                                             <nil key="textColor"/>
                                                                             <nil key="highlightedColor"/>
@@ -96,6 +96,10 @@
                                                                     </subviews>
                                                                 </stackView>
                                                             </subviews>
+                                                            <constraints>
+                                                                <constraint firstItem="c29-Aw-oP1" firstAttribute="top" secondItem="ykE-aD-H0i" secondAttribute="top" constant="42" id="ahD-m0-Tke"/>
+                                                                <constraint firstAttribute="bottom" secondItem="yP1-dx-Bte" secondAttribute="bottom" constant="60.666666666666671" id="jbj-xk-Gwd"/>
+                                                            </constraints>
                                                         </stackView>
                                                     </subviews>
                                                     <color key="backgroundColor" systemColor="systemBackgroundColor"/>
@@ -120,7 +124,7 @@
                             <tableViewSection headerTitle="TIME OF DAY" id="T0D-Se-ctN">
                                 <cells>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="none" indentationWidth="10" rowHeight="54" id="T0D-Ce-ll1">
-                                        <rect key="frame" x="0.0" y="269" width="393" height="54"/>
+                                        <rect key="frame" x="0.0" y="267.33332824707031" width="393" height="54"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="T0D-Ce-ll1" id="T0D-Co-nt1">
                                             <rect key="frame" x="0.0" y="0.0" width="393" height="54"/>
@@ -149,7 +153,7 @@
                             <tableViewSection headerTitle="SEVERITY" id="VqB-4N-JmS">
                                 <cells>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="none" indentationWidth="10" rowHeight="54" id="fo3-nk-SQr">
-                                        <rect key="frame" x="0.0" y="269" width="393" height="54"/>
+                                        <rect key="frame" x="0.0" y="377.33332824707031" width="393" height="54"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="fo3-nk-SQr" id="3qO-VD-gM9">
                                             <rect key="frame" x="0.0" y="0.0" width="393" height="54"/>
@@ -174,10 +178,10 @@
                                     </tableViewCell>
                                 </cells>
                             </tableViewSection>
-                            <tableViewSection headerTitle="SYMPTOMPS" id="cqO-GB-JOc">
+                            <tableViewSection headerTitle="TRIGGERS" id="cqO-GB-JOc">
                                 <cells>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="none" indentationWidth="10" id="4zw-C6-6Iw">
-                                        <rect key="frame" x="0.0" y="379" width="393" height="244"/>
+                                        <rect key="frame" x="0.0" y="487.33332824707031" width="393" height="244"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="4zw-C6-6Iw" id="LZs-aX-skW">
                                             <rect key="frame" x="0.0" y="0.0" width="393" height="244"/>
@@ -379,7 +383,7 @@
                             <tableViewSection headerTitle="NOTES" id="b2n-Cl-RKG">
                                 <cells>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="none" indentationWidth="10" id="gYi-na-7aR">
-                                        <rect key="frame" x="0.0" y="679" width="393" height="148"/>
+                                        <rect key="frame" x="0.0" y="787.33332824707031" width="393" height="148"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="gYi-na-7aR" id="ylf-2D-6IH">
                                             <rect key="frame" x="0.0" y="0.0" width="393" height="148"/>
@@ -436,29 +440,17 @@
                         </barButtonItem>
                     </navigationItem>
                     <connections>
-                        <outlet property="anxietySymptomButton" destination="QLz-FD-4xq" id="46F-L4-avH"/>
-                        <outlet property="bodyacheSymptomButton" destination="oBO-9T-Cye" id="xJ4-ic-7BK"/>
-                        <outlet property="confusedSymptomButton" destination="4aU-Nk-Y1V" id="nBQ-9b-CUI"/>
                         <outlet property="dateTextField" destination="l1N-H1-AJ1" id="h9a-C8-e8n"/>
-                        <outlet property="dejavuSymptomButton" destination="ptL-c4-xNq" id="Z1u-TS-ihZ"/>
-                        <outlet property="dizzinesSymptomButton" destination="aWq-mI-TnN" id="z1R-gT-Quc"/>
                         <outlet property="durationLabel" destination="Qq6-Mx-IZ6" id="ow1-B3-CPX"/>
-                        <outlet property="headacheSymptomButton" destination="5Gt-A4-Xkg" id="bIB-iZ-76O"/>
-                        <outlet property="memoryLossSymptomButton" destination="xfg-oJ-HNP" id="xaL-Sl-pzS"/>
-                        <outlet property="nauseaSymptomButton" destination="iB8-ZN-48Z" id="jTi-MZ-VWw"/>
                         <outlet property="notesCardView" destination="nJx-Ly-cNA" id="AzJ-m7-qDk"/>
                         <outlet property="notesTextView" destination="IEd-52-J64" id="4qk-9l-x33"/>
                         <outlet property="saveButton" destination="Dmz-Nf-wiH" id="uAr-23-zNW"/>
                         <outlet property="seizureLevelSegment" destination="euo-xu-UN6" id="6q3-rw-fUO"/>
                         <outlet property="severitySegment" destination="euo-xu-UN6" id="cEr-uP-dX1"/>
-                        <outlet property="smellSymptomButton" destination="1tB-zn-R4Y" id="aBM-R2-xJl"/>
                         <outlet property="symptompsCardView" destination="yHg-dc-OVP" id="rkJ-3B-aw2"/>
-                        <outlet property="tiredSymptomButton" destination="9EO-9h-Tmq" id="kP2-u3-e81"/>
+                        <outlet property="timeOfDaySegment" destination="T0D-Seg-Ctl" id="T0D-Ou-tlt"/>
                         <outlet property="titleTextField" destination="2jn-72-0AK" id="mco-Fv-AES"/>
                         <outlet property="topInputsCardView" destination="fnr-dh-Sa5" id="Vft-dS-yEB"/>
-                        <outlet property="visualChangeSymptomButton" destination="zWH-2S-Wql" id="9V2-E1-fsr"/>
-                        <outlet property="weaknessSymptomButton" destination="mPj-Xg-sIx" id="Eq4-xZ-bsk"/>
-                        <outlet property="timeOfDaySegment" destination="T0D-Seg-Ctl" id="T0D-Ou-tlt"/>
                     </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="S93-4k-EN9" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
@@ -923,19 +915,19 @@
             <color white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>
         <systemColor name="linkColor">
-            <color red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="0.0" green="0.47843137254901963" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
         <systemColor name="systemBackgroundColor">
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>
         <systemColor name="systemGray6Color">
-            <color red="0.94901960780000005" green="0.94901960780000005" blue="0.96862745100000003" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="0.94901960784313721" green="0.94901960784313721" blue="0.96862745098039216" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
         <systemColor name="systemGrayColor">
-            <color red="0.5568627451" green="0.5568627451" blue="0.57647058819999997" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="0.55686274509803924" green="0.55686274509803924" blue="0.57647058823529407" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
         <systemColor name="systemRedColor">
-            <color red="1" green="0.23137254900000001" blue="0.18823529410000001" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="1" green="0.2196078431372549" blue="0.23529411764705882" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
     </resources>
 </document>

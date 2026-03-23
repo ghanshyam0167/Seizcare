@@ -349,9 +349,10 @@ class DetailRecordsTableViewController: UITableViewController {
             durationTitleLabel.text = "Seizure Level"
             durationValueLabel.text = record.type?.rawValue.capitalized ?? "Not available"
 
-            spo2TitleLabel.text = "Symptoms"
-            if let symptoms = record.symptoms, !symptoms.isEmpty {
-                spo2ValueLabel.text = symptoms.joined(separator: ", ")
+            spo2TitleLabel.text = "Triggers"
+            if let triggers = record.triggers, !triggers.isEmpty {
+                let names = triggers.map { $0.displayName }
+                spo2ValueLabel.text = names.joined(separator: ", ")
             } else {
                 spo2ValueLabel.text = "None"
             }
