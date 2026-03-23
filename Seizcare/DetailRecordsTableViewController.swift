@@ -41,7 +41,6 @@ class DetailRecordsTableViewController: UITableViewController {
 
 
 
-    private var spo2ChartHost: UIHostingController<SpO2TimelineChart>?
     private var hrChartHost: UIHostingController<HeartRateTimelineChart>?
 
         override func viewDidLoad() {
@@ -54,7 +53,7 @@ class DetailRecordsTableViewController: UITableViewController {
             applyDefaultTableBackground()
             navigationController?.applyWhiteNavBar()
             
-            [topCardView, bottomCardView, mainDetailsCardView, spo2ChartContainerView, heartRateTimelineContainerView].forEach { view in
+            [topCardView, bottomCardView, mainDetailsCardView, heartRateTimelineContainerView].forEach { view in
                 view?.applyDashboardCard()
                 }
             descriptionTextView.delegate = self
@@ -150,13 +149,13 @@ class DetailRecordsTableViewController: UITableViewController {
 
         if record.entryType == .automatic {
             configureAutomatic(record)
-            setupSpO2Chart(for: record)
             setupHeartRateChart(for: record)
         } else {
             configureManual(record)
-            hideSpO2Chart()
             hideHeartRateChart()
         }
+        // SpO2 chart section is permanently hidden
+        spo2ChartContainerView.isHidden = true
 
         tableView.reloadData()
     }
@@ -267,51 +266,7 @@ class DetailRecordsTableViewController: UITableViewController {
     }
 
 
-    // MARK: - SpO2 Chart Integration
-    private func setupSpO2Chart(for record: SeizureRecord) {
 
-        // Generate record-specific SpO2 timeline
-        let timeline =
-            SeizureRecordDataModel.shared.getSpO2Timeline(for: record)
-
-        guard !timeline.isEmpty else {
-            hideSpO2Chart()
-            return
-        }
-
-        let chartView = SpO2TimelineChart(
-            data: timeline,
-            seizureTime: record.dateTime,
-            seizureDuration: record.duration ?? 60
-        )
-
-        let host = UIHostingController(rootView: chartView)
-        host.view.translatesAutoresizingMaskIntoConstraints = false
-        host.view.backgroundColor = UIColor.clear
-
-        // Clean previous chart if exists
-        spo2ChartHost?.view.removeFromSuperview()
-        spo2ChartHost?.removeFromParent()
-
-        spo2ChartHost = host
-        addChild(host)
-        spo2ChartContainerView.addSubview(host.view)
-
-        NSLayoutConstraint.activate([
-            host.view.topAnchor.constraint(equalTo: spo2ChartContainerView.topAnchor),
-            host.view.leadingAnchor.constraint(equalTo: spo2ChartContainerView.leadingAnchor),
-            host.view.trailingAnchor.constraint(equalTo: spo2ChartContainerView.trailingAnchor),
-            host.view.bottomAnchor.constraint(equalTo: spo2ChartContainerView.bottomAnchor)
-        ])
-
-        host.didMove(toParent: self)
-
-        spo2ChartContainerView.isHidden = false
-        
-    }
-    private func hideSpO2Chart() {
-        spo2ChartContainerView.isHidden = true
-    }
 
 
 
@@ -349,9 +304,10 @@ class DetailRecordsTableViewController: UITableViewController {
             durationTitleLabel.text = "Seizure Level"
             durationValueLabel.text = record.type?.rawValue.capitalized ?? "Not available"
 
-            spo2TitleLabel.text = "Symptoms"
-            if let symptoms = record.symptoms, !symptoms.isEmpty {
-                spo2ValueLabel.text = symptoms.joined(separator: ", ")
+            spo2TitleLabel.text = "Triggers"
+            if let triggers = record.triggers, !triggers.isEmpty {
+                let names = triggers.map { $0.displayName }
+                spo2ValueLabel.text = names.joined(separator: ", ")
             } else {
                 spo2ValueLabel.text = "None"
             }

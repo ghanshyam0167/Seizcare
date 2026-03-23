@@ -44,6 +44,43 @@ final class SupabaseService {
     func signOut() async throws {
         try await client.auth.signOut()
     }
+    
+    /// Completely deletes the user's account by calling the Supabase Edge Function
+    func deleteAccount() async throws {
+
+        // ✅ Get session correctly
+        let session = try await client.auth.session
+        
+        let accessToken = session.accessToken
+
+        guard let url = URL(string: "https://rewuxzcdgivbwmakwjtc.supabase.co/functions/v1/delete-user") else {
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+
+        // 🔥 ONLY THIS HEADER IS NEEDED
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw URLError(.badServerResponse)
+        }
+
+        print("Status:", httpResponse.statusCode)
+
+        if !(200...299).contains(httpResponse.statusCode) {
+            let errorMsg = String(data: data, encoding: .utf8) ?? "Server Error"
+            print("❌ delete-user raw response:", errorMsg)
+            throw SupabaseServiceError.authFailed("Failed to delete account (HTTP \(httpResponse.statusCode)): \(errorMsg)")
+        }
+
+        print("✅ Account deleted successfully.")
+    }
 
     // MARK: - Password Reset (OTP)
 
@@ -343,14 +380,39 @@ final class SupabaseService {
     // MARK: - Sleep Data Table
 
     func fetchSleepEntries(userId: UUID) async throws -> [SleepEntryDTO] {
-        let rows: [SleepEntryDTO] = try await client
+        let response = try await client
             .from("sleep_data")
             .select()
-            .eq("user_id", value: userId.uuidString)
+            .eq("user_id", value: userId.uuidString.lowercased())
             .order("date", ascending: false)
             .execute()
-            .value
-        return rows
+            
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .custom { decoder in
+            let container = try decoder.singleValueContainer()
+            let dateStr = try container.decode(String.self)
+            
+            let fmt = DateFormatter()
+            fmt.locale = Locale(identifier: "en_US_POSIX")
+            fmt.timeZone = TimeZone(secondsFromGMT: 0)
+            
+            let formats = [
+                "yyyy-MM-dd",
+                "yyyy-MM-dd'T'HH:mm:ss.SSSSSS",
+                "yyyy-MM-dd'T'HH:mm:ss.SSS",
+                "yyyy-MM-dd'T'HH:mm:ss",
+                "yyyy-MM-dd'T'HH:mm:ssZ"
+            ]
+            for format in formats {
+                fmt.dateFormat = format
+                if let date = fmt.date(from: dateStr) {
+                    return date
+                }
+            }
+            throw DecodingError.dataCorruptedError(in: container, debugDescription: "Cannot parse date: \(dateStr)")
+        }
+        
+        return try decoder.decode([SleepEntryDTO].self, from: response.data)
     }
 
     func insertSleepEntry(_ dto: SleepEntryDTO) async throws {
