@@ -84,17 +84,27 @@ class NotificationDataModel {
     }
 
     /// Adds a new notification for the currently logged-in user.
-    func addNotification(title: String, iconName: String, description: String? = nil) {
+    ///
+    /// All display data (title, icon, description) is derived automatically
+    /// from the `NotificationType` enum — no raw strings required at the call site.
+    ///
+    /// Usage:
+    /// ```swift
+    /// NotificationDataModel.shared.addNotification(type: .emergencyAlert)
+    /// NotificationDataModel.shared.addNotification(type: .seizureDetected(seizureType: "mild"))
+    /// NotificationDataModel.shared.addNotification(type: .abnormalHeartRate(bpm: 140))
+    /// ```
+    func addNotification(type: NotificationType) {
         guard let currentUser = UserDataModel.shared.getCurrentUser() else {
             print("Cannot add notification — no user logged in.")
             return
         }
         let newNotification = AppNotification(
             userId: currentUser.id,
-            title: title,
-            iconName: iconName,
+            title: type.title,
+            iconName: type.iconName,
             dateTime: Date(),
-            description: description
+            description: type.description
         )
         cachedNotifications.append(newNotification)
 

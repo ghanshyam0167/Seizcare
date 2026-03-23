@@ -46,11 +46,7 @@ class AlertHistoryTableViewController: UITableViewController {
         
         if allNotifications.isEmpty {
             print("🧪 [AlertHistoryVC] No notifications found, seeding a test one...")
-            NotificationDataModel.shared.addNotification(
-                title: "Test Notification",
-                iconName: "bell.fill",
-                description: "This is a test notification to verify that the history screen works. If you see this, the issue is likely with fetching from the server."
-            )
+            NotificationDataModel.shared.addNotification(type: .testNotification)
         }
         
         refreshAndReload()

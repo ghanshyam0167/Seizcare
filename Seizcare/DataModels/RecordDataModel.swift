@@ -227,11 +227,7 @@ final class SeizureRecordDataModel {
         persistRecord(record)
         
         // --- Add Notification ---
-        NotificationDataModel.shared.addNotification(
-            title: "Seizure Detected",
-            iconName: "bolt.fill",
-            description: "A \(type.rawValue) seizure was automatically detected and recorded."
-        )
+        NotificationDataModel.shared.addNotification(type: .seizureDetected(seizureType: type.rawValue))
     }
 
     func addManualRecord(_ record: SeizureRecord) {
@@ -239,11 +235,7 @@ final class SeizureRecordDataModel {
         persistRecord(record)
         
         // --- Add Notification ---
-        NotificationDataModel.shared.addNotification(
-            title: "Seizure Recorded",
-            iconName: "pencil.and.outline",
-            description: "You manually added a seizure record."
-        )
+        NotificationDataModel.shared.addNotification(type: .seizureRecorded)
     }
 
 
