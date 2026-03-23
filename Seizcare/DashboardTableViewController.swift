@@ -553,7 +553,8 @@ class DashboardTableViewController: UITableViewController {
         //  Setup Graph Structure (Persistent Header + Content)
         let contentContainer = setupGraphStructure(
             in: sleepVsSeizureChart,
-            title: "Sleep vs Seizures"
+            title: "Sleep vs Seizures",
+            subtitle: "Last 30 Days"
         )
 
         // emptyStateView
