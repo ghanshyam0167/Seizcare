@@ -269,20 +269,31 @@ final class DashboardDataModel {
         let sleepEntries = sleepModel.getDailySleepData()
         let records = recordModel.getRecordsForCurrentUser()
 
-        return sleepEntries.compactMap { entry in
-            let count = records.filter {
-                Calendar.current.isDate($0.dateTime, inSameDayAs: entry.date)
-            }.count
-
-            // Only return point if at least one seizure occurred on that day
-            guard count > 0 else { return nil }
-
-            return SleepSeizurePoint(
-                date: entry.date,
-                sleepHours: entry.hours,
-                seizureCount: count
-            )
+        let cal = Calendar.current
+        var sleepDict: [Date: Double] = [:]
+        for entry in sleepEntries {
+            let start = cal.startOfDay(for: entry.date)
+            sleepDict[start, default: 0] += entry.hours
         }
+
+        var seizureDict: [Date: Int] = [:]
+        for record in records {
+            let start = cal.startOfDay(for: record.dateTime)
+            seizureDict[start, default: 0] += 1
+        }
+
+        let today = cal.startOfDay(for: Date())
+        var points: [SleepSeizurePoint] = []
+        for i in (0..<30).reversed() { // Last 30 days
+            guard let date = cal.date(byAdding: .day, value: -i, to: today) else { continue }
+            points.append(SleepSeizurePoint(
+                date: date,
+                sleepHours: sleepDict[date] ?? 0.0,
+                seizureCount: seizureDict[date] ?? 0
+            ))
+        }
+
+        return points
     }
 
         //  TRIGGER CORRELATION

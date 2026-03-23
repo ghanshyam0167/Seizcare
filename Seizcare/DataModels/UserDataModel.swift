@@ -298,6 +298,21 @@ extension UserDataModel {
         completion(true)
     }
     
+    // MARK: - Account Deletion
+    
+    /// Completely deletes the user's account backend data, wipes the local active session, and signs out.
+    func deleteAccountAsync() async throws {
+        // 1. Invoke Edge Function to physically delete all data
+        try await SupabaseService.shared.deleteAccount()
+        
+        // 2. Wipe Local State
+        currentUser = nil
+        UserDefaults.standard.removeObject(forKey: currentUserKey)
+        
+        // 3. Clear Supabase Auth local session
+        try? await SupabaseService.shared.signOut()
+    }
+    
     // MARK: - Password Reset (OTP)
     
     /// Requests an OTP code to be sent to the user's email.

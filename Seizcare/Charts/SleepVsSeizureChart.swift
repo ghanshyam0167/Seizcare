@@ -86,7 +86,7 @@ struct SleepVsSeizureChart: View {
                     }
 
                     // ---- Sleep Line ----
-                    ForEach(data) { point in
+                    ForEach(data.filter { $0.seizureCount > 0 }) { point in
                         LineMark(
                             x: .value("Date", point.date),
                             y: .value("Sleep", point.sleepHours)
@@ -171,9 +171,11 @@ struct SleepVsSeizureChart: View {
                 .frame(width: 60)
 
             // 😴 Sleep
-            Text("\(point.sleepHours, specifier: "%.1f") hrs")
-                .font(.caption)
-                .foregroundColor(.blue)
+            if point.seizureCount > 0 {
+                Text("\(point.sleepHours, specifier: "%.1f") hrs")
+                    .font(.caption)
+                    .foregroundColor(.blue)
+            }
 
             // 🚨 Seizures
             Text("\(point.seizureCount) seizures")
