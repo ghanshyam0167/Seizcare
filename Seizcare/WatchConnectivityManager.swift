@@ -61,6 +61,32 @@ extension Notification.Name {
     static let watchSessionActivated = Notification.Name("WatchSessionActivated")
 }
 
+// MARK: - Settings Manager
+
+class SettingsManager: ObservableObject {
+    static let shared = SettingsManager()
+
+    @Published var sensitivity: String {
+        didSet {
+            UserDefaults.standard.set(sensitivity, forKey: "sensitivity")
+            WatchConnectivityManager.shared.sendApplicationContext(sensitivity: sensitivity)
+        }
+    }
+
+    private init() {
+        self.sensitivity = UserDefaults.standard.string(forKey: "sensitivity") ?? "Medium"
+    }
+    
+    func updateSensitivity(fromWatch newValue: String) {
+        let validValues = ["Low", "Medium", "High", "low", "medium", "high"]
+        guard validValues.contains(newValue.lowercased()) else { return }
+        
+        DispatchQueue.main.async {
+            self.sensitivity = newValue.capitalized
+        }
+    }
+}
+
 // MARK: - Manager
 
 class WatchConnectivityManager: NSObject, WCSessionDelegate, ObservableObject {
@@ -108,6 +134,54 @@ class WatchConnectivityManager: NSObject, WCSessionDelegate, ObservableObject {
             UIApplication.shared.open(url, options: [:], completionHandler: nil)
         }
     }
+    
+    /// Sends the current sensitivity setting to the Apple Watch via Application Context
+    func sendApplicationContext(sensitivity: String) {
+        guard WCSession.isSupported() else {
+            print("⚠️ [WCM-iPhone] Cannot send context: WCSession not supported")
+            return
+        }
+        let session = WCSession.default
+        
+        guard session.activationState == .activated else {
+            print("⚠️ [WCM-iPhone] Cannot send context: WCSession activationState is \(session.activationState.rawValue)")
+            return
+        }
+        
+        guard session.isWatchAppInstalled else {
+            print("⚠️ [WCM-iPhone] Cannot send context: Watch app is not installed")
+            return
+        }
+        
+        
+        let context = ["sensitivity": sensitivity]
+        do {
+            try session.updateApplicationContext(context)
+            print("📱 [WCM-iPhone] Sent application context successfully: \(context)")
+            printDebugStatus()
+        } catch {
+            print("❌ [WCM-iPhone] Failed to update application context: \(error.localizedDescription)")
+            printDebugStatus()
+        }
+    }
+    
+    /// Prints a comprehensive console debug block for WCSession status
+    func printDebugStatus() {
+        print("================================")
+        print("📱 [iPhone Debug] WCSession Status:")
+        print("- Supported: \(WCSession.isSupported())")
+        if WCSession.isSupported() {
+            let session = WCSession.default
+            print("- Activation State: \(session.activationState.rawValue)")
+            print("- Paired: \(session.isPaired)")
+            print("- Watch App Installed: \(session.isWatchAppInstalled)")
+            print("- Reachable (Foreground): \(session.isReachable)")
+            print("- Current Sent Context: \(session.applicationContext)")
+            print("- Current Received Context: \(session.receivedApplicationContext)")
+        }
+        print("- Current SettingsManager Sensitivity: \(SettingsManager.shared.sensitivity)")
+        print("================================")
+    }
 
     // MARK: - WCSessionDelegate
     // nonisolated is required because the project uses SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor.
@@ -148,6 +222,15 @@ class WatchConnectivityManager: NSObject, WCSessionDelegate, ObservableObject {
     nonisolated func session(_ session: WCSession, didReceiveUserInfo userInfo: [String: Any]) {
         print("📦 [WCM-iPhone] Received transferUserInfo from Watch: \(userInfo)")
         handleIncomingPayload(userInfo)
+    }
+
+    /// Handles received application context (two-way sync from watch)
+    nonisolated func session(_ session: WCSession, didReceiveApplicationContext applicationContext: [String : Any]) {
+        print("🔄 [WCM-iPhone] Received application context from Watch: \(applicationContext)")
+        handleIncomingPayload(applicationContext)
+        DispatchQueue.main.async {
+            WatchConnectivityManager.shared.printDebugStatus()
+        }
     }
 
     // MARK: - Private
@@ -197,6 +280,7 @@ class WatchConnectivityManager: NSObject, WCSessionDelegate, ObservableObject {
         
         if let sensitivity = payload["sensitivity"] as? String {
             print("📊 [WCM-iPhone] Sensitivity from Watch: \(sensitivity)")
+            SettingsManager.shared.updateSensitivity(fromWatch: sensitivity)
         } else if payload["emergencyAlert"] == nil && payload["heartRate"] == nil && !foundHealthData {
             print("ℹ️ [WCM-iPhone] Unhandled payload: \(payload)")
         }

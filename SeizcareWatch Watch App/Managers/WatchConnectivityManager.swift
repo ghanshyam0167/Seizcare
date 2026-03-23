@@ -1,5 +1,33 @@
 import Foundation
+import Combine
 import WatchConnectivity
+import os
+
+// MARK: - Settings Manager
+
+class SettingsManager: ObservableObject {
+    static let shared = SettingsManager()
+
+    @Published var sensitivity: String {
+        didSet {
+            UserDefaults.standard.set(sensitivity, forKey: "sensitivity")
+            WatchConnectivityManager.shared.sendApplicationContext(sensitivity: sensitivity)
+        }
+    }
+
+    private init() {
+        self.sensitivity = UserDefaults.standard.string(forKey: "sensitivity") ?? "Medium"
+    }
+    
+    func updateSensitivity(fromiPhone newValue: String) {
+        let validValues = ["Low", "Medium", "High", "low", "medium", "high"]
+        guard validValues.contains(newValue.lowercased()) else { return }
+        
+        DispatchQueue.main.async {
+            self.sensitivity = newValue.capitalized
+        }
+    }
+}
 
 class WatchConnectivityManager: NSObject, WCSessionDelegate {
     
@@ -43,6 +71,18 @@ class WatchConnectivityManager: NSObject, WCSessionDelegate {
         }
     }
     
+    /// Handles received application context (from iPhone)
+    nonisolated func session(_ session: WCSession, didReceiveApplicationContext applicationContext: [String : Any]) {
+        print("🔄 [WCM-Watch] Received application context from iPhone: \(applicationContext)")
+        if let sensitivity = applicationContext["sensitivity"] as? String {
+            print("📊 [WCM-Watch] Received sensitivity update: \(sensitivity)")
+            SettingsManager.shared.updateSensitivity(fromiPhone: sensitivity)
+        }
+        DispatchQueue.main.async {
+            WatchConnectivityManager.shared.printDebugStatus()
+        }
+    }
+    
     // MARK: - Public API
     
     func sendEmergencyAlert() {
@@ -63,6 +103,38 @@ class WatchConnectivityManager: NSObject, WCSessionDelegate {
     
     func sendSensitivity(_ level: String) {
         sendMessage(["sensitivity": level.lowercased()])
+        // Also update application context for persistence
+        sendApplicationContext(sensitivity: level)
+    }
+    
+    /// Sends the current sensitivity setting to the iPhone via Application Context
+    func sendApplicationContext(sensitivity: String) {
+        let context = ["sensitivity": sensitivity]
+        do {
+            try WCSession.default.updateApplicationContext(context)
+            print("⌚️ [WCM-Watch] Sent application context successfully: \(context)")
+            printDebugStatus()
+        } catch {
+            print("❌ [WCM-Watch] Failed to update application context: \(error.localizedDescription)")
+            printDebugStatus()
+        }
+    }
+    
+    /// Prints a comprehensive console debug block for WCSession status
+    func printDebugStatus() {
+        print("================================")
+        print("⌚️ [Watch Debug] WCSession Status:")
+        print("- Supported: \(WCSession.isSupported())")
+        if WCSession.isSupported() {
+            let session = WCSession.default
+            print("- Activation State: \(session.activationState.rawValue)")
+            print("- Companion App Installed: \(session.isCompanionAppInstalled)")
+            print("- Reachable (Foreground): \(session.isReachable)")
+            print("- Current Sent Context: \(session.applicationContext)")
+            print("- Current Received Context: \(session.receivedApplicationContext)")
+        }
+        print("- Current SettingsManager Sensitivity: \(SettingsManager.shared.sensitivity)")
+        print("================================")
     }
     
     func sendHealthData(heartRate: Double?, spo2: Double?, sleepHours: Double?) {

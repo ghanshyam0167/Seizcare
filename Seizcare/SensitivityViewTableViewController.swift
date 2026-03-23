@@ -1,4 +1,5 @@
 import UIKit
+import Combine
 
 class SensitivityViewTableViewController: UIViewController {
 
@@ -12,6 +13,7 @@ class SensitivityViewTableViewController: UIViewController {
     ]
 
     private var selectedIndex = 1 // Default = Medium
+    private var cancellables = Set<AnyCancellable>()
 
     // MARK: - Views
     private let cardView: UIView = {
@@ -56,6 +58,21 @@ class SensitivityViewTableViewController: UIViewController {
 
         loadSavedPreference()
         setupViews()
+        
+        // Listen to Watch connectivity changes to sensitivity while this screen is open
+        SettingsManager.shared.$sensitivity
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] newSensitivity in
+                guard let self = self else { return }
+                guard let newIndex = self.sensitivities.firstIndex(of: newSensitivity) else { return }
+                if newIndex != self.selectedIndex {
+                    let prev = self.selectedIndex
+                    self.selectedIndex = newIndex
+                    self.rowControls[prev].setChecked(false, animated: true)
+                    self.rowControls[self.selectedIndex].setChecked(true, animated: true)
+                }
+            }
+            .store(in: &cancellables)
     }
 
     // MARK: - Setup
@@ -118,6 +135,10 @@ class SensitivityViewTableViewController: UIViewController {
 
         // Persist
         let selectedSensitivityString = sensitivities[selectedIndex].lowercased()
+        
+        // Tell WatchConnectivity / SettingsManager
+        SettingsManager.shared.sensitivity = sensitivities[selectedIndex]
+        
         if let newLevel = SensitivityLevel(rawValue: selectedSensitivityString) {
             if UserDataModel.shared.getCurrentUser() == nil {
                 // Not signed in yet — save to temporary onboarding preferences
