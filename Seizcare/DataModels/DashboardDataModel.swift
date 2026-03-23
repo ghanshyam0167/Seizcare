@@ -12,6 +12,21 @@ enum DashboardPeriod {
     case monthly
 }
 
+// Trigger Period (for Trigger Frequency analytics)
+enum TriggerPeriod {
+    case last7Days
+    case last30Days
+    case allTime
+
+    var displayName: String {
+        switch self {
+        case .last7Days:  return "Last 7 Days"
+        case .last30Days: return "Last 30 Days"
+        case .allTime:    return "All Time"
+        }
+    }
+}
+
 
 
 //  Dashboard Models
@@ -286,23 +301,56 @@ final class DashboardDataModel {
     }
 
         //  TRIGGER CORRELATION
-   
-    func getTriggerCorrelation() -> [TriggerCorrelation] {
 
+    /// Returns trigger frequency as [triggerRawValue: count] across the given records.
+    /// Each trigger is counted at most once per record (deduplication applied).
+    /// Records with no triggers are counted as "Unknown".
+    func computeTriggerFrequency(records: [SeizureRecord]) -> [String: Int] {
+        var frequency: [String: Int] = [:]
+        for record in records {
+            // Deduplicate within the same record using a Set
+            let triggers: Set<String>
+            if let t = record.triggers, !t.isEmpty {
+                triggers = Set(t.map { $0.rawValue })
+            } else {
+                triggers = [SeizureTrigger.unknown.rawValue]
+            }
+            for trigger in triggers {
+                frequency[trigger, default: 0] += 1
+            }
+        }
+        return frequency
+    }
+
+    /// Returns trigger frequency sorted descending for the specified period.
+    func getTriggerFrequency(period: TriggerPeriod) -> [String: Int] {
         let records = recordModel.getRecordsForCurrentUser()
-        let total = max(records.count, 1)
+        let filtered: [SeizureRecord]
+        switch period {
+        case .last7Days:
+            let cutoff = Calendar.current.date(byAdding: .day, value: -7, to: Date())!
+            filtered = records.filter { $0.dateTime >= cutoff }
+        case .last30Days:
+            let cutoff = Calendar.current.date(byAdding: .day, value: -30, to: Date())!
+            filtered = records.filter { $0.dateTime >= cutoff }
+        case .allTime:
+            filtered = records
+        }
+        return computeTriggerFrequency(records: filtered)
+    }
 
-        let triggers = records
-            .compactMap { $0.triggers }
-            .flatMap { $0 }
+    func getTriggerCorrelation() -> [TriggerCorrelation] {
+        let records = recordModel.getRecordsForCurrentUser()
+        guard !records.isEmpty else { return [] }
+        let total = records.count
 
-        let counts = Dictionary(grouping: triggers, by: { $0 })
-            .mapValues { $0.count }
+        let frequency = computeTriggerFrequency(records: records)
 
-        return counts.map {
-            TriggerCorrelation(
-                trigger: $0.key,
-                percent: Double($0.value) / Double(total) * 100
+        return frequency.compactMap { (key, count) -> TriggerCorrelation? in
+            guard let trigger = SeizureTrigger(rawValue: key) else { return nil }
+            return TriggerCorrelation(
+                trigger: trigger,
+                percent: Double(count) / Double(total) * 100
             )
         }
         .sorted { $0.percent > $1.percent }
