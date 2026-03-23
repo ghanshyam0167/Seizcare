@@ -1024,6 +1024,14 @@ override func viewWillDisappear(_ animated: Bool) {
         stylePreviewCard(previewCard1)
         previewCard0.isHidden = true
         previewCard1.isHidden = true
+        
+        let tap0 = UITapGestureRecognizer(target: self, action: #selector(cardTapped(_:)))
+        previewCard0.addGestureRecognizer(tap0)
+        previewCard0.isUserInteractionEnabled = true
+        
+        let tap1 = UITapGestureRecognizer(target: self, action: #selector(cardTapped(_:)))
+        previewCard1.addGestureRecognizer(tap1)
+        previewCard1.isUserInteractionEnabled = true
 
         let cardsStack = UIStackView(arrangedSubviews: [previewCard0, previewCard1])
         cardsStack.axis = .vertical
@@ -1230,6 +1238,43 @@ override func viewWillDisappear(_ animated: Bool) {
 
     @objc private func viewAllRecordsTapped() {
         performSegue(withIdentifier: "showRecords", sender: nil)
+    }
+    
+    @objc private func cardTapped(_ sender: UITapGestureRecognizer) {
+        guard let view = sender.view else { return }
+        
+        let recent = SeizureRecordDataModel.shared.getLatestTwoRecordsForCurrentUser()
+        var selectedRecord: SeizureRecord?
+        
+        if view == previewCard0, recent.count > 0 {
+            selectedRecord = recent[0]
+        } else if view == previewCard1, recent.count > 1 {
+            selectedRecord = recent[1]
+        }
+        
+        guard let record = selectedRecord else { return }
+        
+        // 1. Highlight animation effect
+        UIView.animate(withDuration: 0.1, animations: {
+            view.alpha = 0.5
+        }) { _ in
+            UIView.animate(withDuration: 0.1) {
+                view.alpha = 1.0
+            }
+        }
+        
+        // 2. Instantiate and push Detail View
+        let storyboard = UIStoryboard(name: "Records", bundle: nil)
+        if let detailVC = storyboard.instantiateViewController(withIdentifier: "DetailRecordsTableViewController") as? DetailRecordsTableViewController {
+            detailVC.record = record
+            
+            detailVC.onDismiss = { [weak self] in
+                // Refresh the dashboard entirely upon pop/dismiss
+                self?.refreshDashboardData()
+            }
+            
+            navigationController?.pushViewController(detailVC, animated: true)
+        }
     }
 
     // MARK: - Floating Action Button
