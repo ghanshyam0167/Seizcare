@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		05983B6E2F71CB0A00D14BE0 /* SeizureModel.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 05983B6D2F71CB0A00D14BE0 /* SeizureModel.mlmodel */; };
 		C9A4321E2F6169D100BC09A9 /* SeizcareWatch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = C9A432142F6169D000BC09A9 /* SeizcareWatch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		D81DEE432F616E8D00C736E5 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = D81DEE422F616E8D00C736E5 /* Supabase */; };
 /* End PBXBuildFile section */
@@ -36,6 +37,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		05983B6D2F71CB0A00D14BE0 /* SeizureModel.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; path = SeizureModel.mlmodel; sourceTree = "<group>"; };
 		3F9A8C232ECD7CB500DF37E6 /* Seizcare.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Seizcare.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C9A432142F6169D000BC09A9 /* SeizcareWatch Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "SeizcareWatch Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -88,9 +90,9 @@
 		3F9A8C1A2ECD7CB500DF37E6 = {
 			isa = PBXGroup;
 			children = (
+				05983B6D2F71CB0A00D14BE0 /* SeizureModel.mlmodel */,
 				3F9A8C252ECD7CB500DF37E6 /* Seizcare */,
 				C9A432152F6169D000BC09A9 /* SeizcareWatch Watch App */,
-				D81DEE412F616E8D00C736E5 /* Frameworks */,
 				3F9A8C242ECD7CB500DF37E6 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -102,13 +104,6 @@
 				C9A432142F6169D000BC09A9 /* SeizcareWatch Watch App.app */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		D81DEE412F616E8D00C736E5 /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -225,6 +220,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				05983B6E2F71CB0A00D14BE0 /* SeizureModel.mlmodel in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
