@@ -129,14 +129,16 @@ self.showAlert(message: message)
               let curveValue = info[UIResponder.keyboardAnimationCurveUserInfoKey] as? UInt else { return }
 
         let kbHeight = kbFrame.height
-        let bottomInset = kbHeight - view.safeAreaInsets.bottom
-        let insets = UIEdgeInsets(top: 0, left: 0, bottom: bottomInset + 20, right: 0)
-
+        let bottomInset = kbHeight - view.safeAreaInsets.bottom + 16
+        let insets = UIEdgeInsets(top: 0, left: 0, bottom: bottomInset, right: 0)
         let options = UIView.AnimationOptions(rawValue: curveValue << 16)
 
-        // Scroll so the sign-in button is visible above the keyboard
-        let buttonFrame = self.signInButton.convert(self.signInButton.bounds, to: self.scrollView)
-        let targetRect = buttonFrame.insetBy(dx: 0, dy: -30)
+        // Target rect: form card top → sign-in button bottom (with padding)
+        let formTop    = inputsContainer.convert(inputsContainer.bounds, to: scrollView).minY - 16
+        let buttonBottom = signInButton.convert(signInButton.bounds, to: scrollView).maxY + 16
+        let targetRect = CGRect(x: 0, y: formTop,
+                                width: scrollView.bounds.width,
+                                height: buttonBottom - formTop)
 
         UIView.animate(withDuration: duration, delay: 0, options: options) {
             self.scrollView.contentInset = insets
@@ -194,10 +196,8 @@ self.showAlert(message: message)
         iconView = UIImageView(image: UIImage(named: "Image"))
         iconView.contentMode = .scaleAspectFit
         iconView.translatesAutoresizingMaskIntoConstraints = false
-        iconView.layer.shadowColor = UIColor.black.cgColor
-        iconView.layer.shadowOpacity = 0.08
-        iconView.layer.shadowRadius = 12
-        iconView.layer.shadowOffset = CGSize(width: 0, height: 6)
+        iconView.layer.cornerRadius = 22
+        iconView.clipsToBounds = true
 
         // 2. Input Container
         inputsContainer.backgroundColor = .white
@@ -210,8 +210,8 @@ self.showAlert(message: message)
 
         // 3. Email Field Row
         let emailStack = createInputStack(
-            label: "Email or Phone", field: emailField,
-            placeholder: "Enter email or phone",
+            label: "Email", field: emailField,
+            placeholder: "Enter email",
             underline: emailUnderline, iconView: emailIcon, iconName: "envelope"
         )
 
@@ -270,20 +270,36 @@ self.showAlert(message: message)
         bottomStack.alignment = .center
         bottomStack.translatesAutoresizingMaskIntoConstraints = false
 
-        // Add subviews to contentView
+        // ── Spacers — equal height to centre the form block between logo and screen bottom ──
+        let topSpacer = UIView()
+        topSpacer.translatesAutoresizingMaskIntoConstraints = false
+        let bottomSpacer = UIView()
+        bottomSpacer.translatesAutoresizingMaskIntoConstraints = false
+
         contentView.addSubview(iconView)
+        contentView.addSubview(topSpacer)
         contentView.addSubview(inputsContainer)
         contentView.addSubview(signInButton)
         contentView.addSubview(bottomStack)
+        contentView.addSubview(bottomSpacer)
 
-        // Constraints
         NSLayoutConstraint.activate([
-            iconView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 20),
-            iconView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-            iconView.widthAnchor.constraint(equalToConstant: 240),
-            iconView.heightAnchor.constraint(equalToConstant: 240),
+            // contentView must be at least as tall as the visible frame so the spacers have room
+            contentView.heightAnchor.constraint(greaterThanOrEqualTo: scrollView.frameLayoutGuide.heightAnchor),
 
-            inputsContainer.topAnchor.constraint(equalTo: iconView.bottomAnchor, constant: 20),
+            // Logo — pinned to the top
+            iconView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 50),
+            iconView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            iconView.widthAnchor.constraint(equalToConstant: 120),
+            iconView.heightAnchor.constraint(equalToConstant: 120),
+
+            // Top spacer fills between logo bottom and form top
+            topSpacer.topAnchor.constraint(equalTo: iconView.bottomAnchor),
+            topSpacer.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            topSpacer.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+
+            // Form card
+            inputsContainer.topAnchor.constraint(equalTo: topSpacer.bottomAnchor),
             inputsContainer.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 24),
             inputsContainer.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -24),
 
@@ -292,14 +308,22 @@ self.showAlert(message: message)
             inputsStack.trailingAnchor.constraint(equalTo: inputsContainer.trailingAnchor, constant: -20),
             inputsStack.bottomAnchor.constraint(equalTo: inputsContainer.bottomAnchor, constant: -20),
 
-            signInButton.topAnchor.constraint(equalTo: inputsContainer.bottomAnchor, constant: 30),
+            signInButton.topAnchor.constraint(equalTo: inputsContainer.bottomAnchor, constant: 28),
             signInButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 24),
             signInButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -24),
             signInButton.heightAnchor.constraint(equalToConstant: 54),
 
             bottomStack.topAnchor.constraint(equalTo: signInButton.bottomAnchor, constant: 20),
             bottomStack.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-            bottomStack.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -30),
+
+            // Bottom spacer fills from bottomStack to contentView bottom
+            bottomSpacer.topAnchor.constraint(equalTo: bottomStack.bottomAnchor),
+            bottomSpacer.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            bottomSpacer.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            bottomSpacer.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+
+            // Equal spacers — this centres the form block vertically
+            topSpacer.heightAnchor.constraint(equalTo: bottomSpacer.heightAnchor),
         ])
     }
 
