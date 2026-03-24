@@ -244,8 +244,8 @@ class EmailVerificationViewController: UIViewController, UITextFieldDelegate {
                     self.verifyButton.isEnabled = true
                     self.verifyButton.setTitle("Complete Sign Up", for: .normal)
                     self.verifyButton.alpha = 1.0
-                    print("[EmailVerifyVC] finalizeSignUp succeeded. Transitioning to dashboard.")
-                    self.transitionToDashboard()
+                    print("[EmailVerifyVC] finalizeSignUp succeeded. Transitioning to onboarding.")
+                    self.transitionToOnboarding()
                 }
             } catch {
                 print("[EmailVerifyVC] finalizeSignUp threw error: \(error)")
@@ -259,30 +259,14 @@ class EmailVerificationViewController: UIViewController, UITextFieldDelegate {
         }
     }
 
-    private func transitionToDashboard() {
-        print("[EmailVerifyVC] transitionToDashboard called")
-        let dashboardStoryboard = UIStoryboard(name: "Dashboard", bundle: nil)
-        if let dashboardVC = dashboardStoryboard.instantiateInitialViewController() {
-            let navController = UINavigationController(rootViewController: dashboardVC)
-            if let scene = view.window?.windowScene,
-               let sceneDelegate = scene.delegate as? UIWindowSceneDelegate,
-               let window = sceneDelegate.window ?? view.window {
-                let transition = CATransition()
-                transition.duration = 0.3
-                transition.type = .push
-                transition.subtype = .fromRight
-                transition.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-                window.layer.add(transition, forKey: kCATransition)
-                window.rootViewController = navController
-                print("[EmailVerifyVC] Navigation to dashboard complete.")
-            } else {
-                print("[EmailVerifyVC] ERROR: Could not find window scene.")
-                navController.modalPresentationStyle = .fullScreen
-                present(navController, animated: true, completion: nil)
-            }
-        } else {
-            print("[EmailVerifyVC] ERROR: Could not instantiate Dashboard initial view controller.")
-        }
+    /// Navigates the newly verified user through the Disclaimer → NewUserOnboarding flow.
+    /// This is the correct post-signup path for brand-new users.
+    private func transitionToOnboarding() {
+        let disclaimerVC = DisclaimerViewController()
+        disclaimerVC.currentUser = UserDataModel.shared.getCurrentUser()
+        // Replace the nav stack so the user can't go back to verification
+        navigationController?.setViewControllers([disclaimerVC], animated: true)
+        print("[EmailVerifyVC] Navigation to DisclaimerVC complete.")
     }
     
     @objc private func cancelSignup() {
