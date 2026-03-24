@@ -31,7 +31,7 @@ extension UINavigationController {
 extension UIView {
 
     func applyDashboardCard() {
-        layer.cornerRadius = 16
+        layer.cornerRadius = 12
         layer.masksToBounds = false
 
         layer.borderColor = UIColor(white: 0.92, alpha: 1).cgColor
@@ -48,7 +48,7 @@ extension UIView {
 
     func applyRecordCard() {
         backgroundColor = .white
-        layer.cornerRadius = 14
+        layer.cornerRadius = 12
         layer.masksToBounds = false
 
         layer.borderWidth = 1
@@ -81,13 +81,13 @@ extension UIView {
 extension UITableViewController {
 
     func applyDefaultTableBackground() {
-        tableView.backgroundColor = .systemGray6
+        tableView.backgroundColor = .systemGroupedBackground
     }
 
     func applySectionSpacing() {
         // This DOES NOT override methods — it sets defaults
-        tableView.sectionHeaderHeight = 6
-        tableView.sectionFooterHeight = 2
+        tableView.sectionHeaderHeight = 24
+        tableView.sectionFooterHeight = 8
     }
 }
 

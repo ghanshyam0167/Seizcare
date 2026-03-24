@@ -19,6 +19,11 @@ class EmergencyContactsTableViewController: UITableViewController, CNContactPick
         super.viewDidLoad()
         applyDefaultTableBackground()
         navigationController?.applyWhiteNavBar()
+        
+        if #available(iOS 15.0, *) {
+            tableView.sectionHeaderTopPadding = 0
+            tableView.sectionFooterHeight = 0
+        }
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -110,8 +115,17 @@ class EmergencyContactsTableViewController: UITableViewController, CNContactPick
 
 
     override func numberOfSections(in tableView: UITableView) -> Int {
-        // #warning Incomplete implementation, return the number of sections
         return 1
+    }
+
+    override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        return 12
+    }
+
+    override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        let view = UIView()
+        view.backgroundColor = .clear
+        return view
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -134,7 +148,7 @@ class EmergencyContactsTableViewController: UITableViewController, CNContactPick
     }
 
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 80   
+        return 64
     }
 
     override func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {

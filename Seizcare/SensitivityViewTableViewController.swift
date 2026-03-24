@@ -36,6 +36,8 @@ class SensitivityViewTableViewController: UIViewController {
         sv.alignment = .fill
         sv.distribution = .fill
         sv.spacing = 0
+        sv.isLayoutMarginsRelativeArrangement = true
+        sv.layoutMargins = UIEdgeInsets(top: 12, left: 0, bottom: 12, right: 0)
         return sv
     }()
 
@@ -85,7 +87,7 @@ class SensitivityViewTableViewController: UIViewController {
         NSLayoutConstraint.activate([
             cardView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
             cardView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
-            cardView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 28)
+            cardView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 24)
         ])
 
         // Build stack
@@ -103,18 +105,29 @@ class SensitivityViewTableViewController: UIViewController {
             let row = SensitivityRowView(title: sensitivities[i], subtitle: descriptions[i])
             row.tag = i
             row.translatesAutoresizingMaskIntoConstraints = false
-            row.heightAnchor.constraint(greaterThanOrEqualToConstant: 64).isActive = true
+            row.heightAnchor.constraint(greaterThanOrEqualToConstant: 68).isActive = true
             row.addTarget(self, action: #selector(rowTapped(_:)), for: .touchUpInside)
             rowControls.append(row)
 
             stackView.addArrangedSubview(row)
 
             if i < sensitivities.count - 1 {
+                let divWrap = UIView()
+                divWrap.translatesAutoresizingMaskIntoConstraints = false
+                
                 let divider = UIView()
-                divider.backgroundColor = UIColor.separator.withAlphaComponent(0.3)
+                divider.backgroundColor = UIColor.separator.withAlphaComponent(0.4)
                 divider.translatesAutoresizingMaskIntoConstraints = false
-                divider.heightAnchor.constraint(equalToConstant: 0.5).isActive = true
-                stackView.addArrangedSubview(divider)
+                divWrap.addSubview(divider)
+                
+                NSLayoutConstraint.activate([
+                    divider.leadingAnchor.constraint(equalTo: divWrap.leadingAnchor, constant: 16),
+                    divider.trailingAnchor.constraint(equalTo: divWrap.trailingAnchor),
+                    divider.topAnchor.constraint(equalTo: divWrap.topAnchor),
+                    divider.bottomAnchor.constraint(equalTo: divWrap.bottomAnchor),
+                    divider.heightAnchor.constraint(equalToConstant: 0.5)
+                ])
+                stackView.addArrangedSubview(divWrap)
             }
         }
 
@@ -238,8 +251,8 @@ private class SensitivityRowView: UIControl {
         NSLayoutConstraint.activate([
             hStack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
             hStack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
-            hStack.topAnchor.constraint(equalTo: topAnchor, constant: 12),
-            hStack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -12),
+            hStack.topAnchor.constraint(equalTo: topAnchor, constant: 14),
+            hStack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -14),
 
             checkImageView.widthAnchor.constraint(equalToConstant: 24),
             checkImageView.heightAnchor.constraint(equalToConstant: 24)

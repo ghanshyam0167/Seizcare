@@ -25,11 +25,13 @@ class MonthlyRecordsCell: UITableViewCell {
         backgroundColor = .clear
         contentView.backgroundColor = .clear
         stackView.axis = .vertical
-        stackView.spacing = 16
+        stackView.spacing = 0
         stackView.alignment = .fill
+        stackView.isLayoutMarginsRelativeArrangement = true
+        stackView.layoutMargins = UIEdgeInsets(top: 8, left: 0, bottom: 8, right: 0)
 
         cardView.backgroundColor = .white
-        cardView.layer.cornerRadius = 20
+        cardView.layer.cornerRadius = 12
         cardView.layer.masksToBounds = false
 
         cardView.applyDashboardCard()
@@ -55,6 +57,26 @@ class MonthlyRecordsCell: UITableViewCell {
                 row.addGestureRecognizer(tap)
 
                 stackView.addArrangedSubview(row)
+                
+                // Add separator if NOT the last record
+                if index < records.count - 1 {
+                    let sepContainer = UIView()
+                    let separator = UIView()
+                    separator.backgroundColor = UIColor.separator.withAlphaComponent(0.3)
+                    separator.translatesAutoresizingMaskIntoConstraints = false
+                    separator.heightAnchor.constraint(equalToConstant: 0.5).isActive = true
+                    
+                    sepContainer.addSubview(separator)
+                    sepContainer.translatesAutoresizingMaskIntoConstraints = false
+                    
+                    NSLayoutConstraint.activate([
+                        separator.trailingAnchor.constraint(equalTo: sepContainer.trailingAnchor),
+                        separator.leadingAnchor.constraint(equalTo: sepContainer.leadingAnchor, constant: 16),
+                        separator.topAnchor.constraint(equalTo: sepContainer.topAnchor),
+                        separator.bottomAnchor.constraint(equalTo: sepContainer.bottomAnchor)
+                    ])
+                    stackView.addArrangedSubview(sepContainer)
+                }
             }
     }
     func recordTapped(at index: Int) {

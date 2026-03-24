@@ -44,6 +44,7 @@ struct TimePatternChart: View {
                 }
             }
             .frame(height: 220)
+            .frame(maxWidth: .infinity)
             .chartLegend(.hidden)
             .chartOverlay { proxy in
                 GeometryReader { geo in

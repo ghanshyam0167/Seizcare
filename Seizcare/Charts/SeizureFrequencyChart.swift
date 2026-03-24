@@ -17,9 +17,6 @@ struct SeizureFrequencyChart: View {
             headerView
             frequencyChart
         }
-        
-        .padding(20)
-
     }
 
     // MARK: - Subviews
