@@ -126,7 +126,11 @@ class AlertHistoryTableViewController: UITableViewController {
     }
 
     override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        return 20
+        return UITableView.automaticDimension
+    }
+    
+    override func tableView(_ tableView: UITableView, estimatedHeightForHeaderInSection section: Int) -> CGFloat {
+        return 52
     }
 
     override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
@@ -142,8 +146,9 @@ class AlertHistoryTableViewController: UITableViewController {
         header.addSubview(label)
 
         NSLayoutConstraint.activate([
+            label.topAnchor.constraint(equalTo: header.topAnchor, constant: 24),
             label.leadingAnchor.constraint(equalTo: header.leadingAnchor, constant: 20),
-            label.bottomAnchor.constraint(equalTo: header.bottomAnchor, constant: -6)
+            label.bottomAnchor.constraint(equalTo: header.bottomAnchor, constant: -8)
         ])
 
         return header

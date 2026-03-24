@@ -387,8 +387,8 @@
                                             </subviews>
                                             <constraints>
                                                 <constraint firstAttribute="bottom" secondItem="7Vl-89-ymj" secondAttribute="bottom" constant="8" id="Dca-Lk-Lip"/>
-                                                <constraint firstItem="7Vl-89-ymj" firstAttribute="leading" secondItem="N8s-Pw-hQW" secondAttribute="leading" constant="12" id="NCF-qa-uee"/>
-                                                <constraint firstAttribute="trailing" secondItem="7Vl-89-ymj" secondAttribute="trailing" constant="12" id="jf8-Rv-heH"/>
+                                                <constraint firstItem="7Vl-89-ymj" firstAttribute="leading" secondItem="N8s-Pw-hQW" secondAttribute="leading" constant="16" id="NCF-qa-uee"/>
+                                                <constraint firstAttribute="trailing" secondItem="7Vl-89-ymj" secondAttribute="trailing" constant="16" id="jf8-Rv-heH"/>
                                                 <constraint firstItem="7Vl-89-ymj" firstAttribute="top" secondItem="N8s-Pw-hQW" secondAttribute="top" constant="8" id="rBA-vJ-Jtq"/>
                                             </constraints>
                                         </tableViewCellContentView>
@@ -463,16 +463,16 @@
                                                     <constraints>
                                                         <constraint firstAttribute="bottom" secondItem="GI5-QN-6i7" secondAttribute="bottom" constant="16" id="HUI-hm-L0D"/>
                                                         <constraint firstItem="GI5-QN-6i7" firstAttribute="top" secondItem="lwk-9T-ghe" secondAttribute="top" constant="16" id="gY4-pS-R7x"/>
-                                                        <constraint firstAttribute="trailing" secondItem="GI5-QN-6i7" secondAttribute="trailing" constant="8" id="mMt-BG-GRn"/>
-                                                        <constraint firstItem="GI5-QN-6i7" firstAttribute="leading" secondItem="lwk-9T-ghe" secondAttribute="leading" constant="8" id="vcO-yf-IcV"/>
+                                                        <constraint firstAttribute="trailing" secondItem="GI5-QN-6i7" secondAttribute="trailing" constant="20" id="mMt-BG-GRn"/>
+                                                        <constraint firstItem="GI5-QN-6i7" firstAttribute="leading" secondItem="lwk-9T-ghe" secondAttribute="leading" constant="20" id="vcO-yf-IcV"/>
                                                     </constraints>
                                                 </view>
                                             </subviews>
                                             <constraints>
                                                 <constraint firstItem="lwk-9T-ghe" firstAttribute="top" secondItem="WRB-a1-koq" secondAttribute="top" id="4sZ-3W-u6K"/>
-                                                <constraint firstItem="lwk-9T-ghe" firstAttribute="leading" secondItem="WRB-a1-koq" secondAttribute="leading" constant="12" id="XcP-6a-RkD"/>
+                                                <constraint firstItem="lwk-9T-ghe" firstAttribute="leading" secondItem="WRB-a1-koq" secondAttribute="leading" constant="16" id="XcP-6a-RkD"/>
                                                 <constraint firstAttribute="bottom" secondItem="lwk-9T-ghe" secondAttribute="bottom" id="e4q-mD-i91"/>
-                                                <constraint firstAttribute="trailing" secondItem="lwk-9T-ghe" secondAttribute="trailing" constant="12" id="rJc-dp-JH9"/>
+                                                <constraint firstAttribute="trailing" secondItem="lwk-9T-ghe" secondAttribute="trailing" constant="16" id="rJc-dp-JH9"/>
                                             </constraints>
                                         </tableViewCellContentView>
                                     </tableViewCell>
@@ -505,10 +505,10 @@
                                                 </view>
                                             </subviews>
                                             <constraints>
-                                                <constraint firstAttribute="trailing" secondItem="Ord-Ca-JyT" secondAttribute="trailing" constant="8" id="PKn-Vf-HuB"/>
+                                                <constraint firstAttribute="trailing" secondItem="Ord-Ca-JyT" secondAttribute="trailing" constant="16" id="PKn-Vf-HuB"/>
                                                 <constraint firstAttribute="bottom" secondItem="Ord-Ca-JyT" secondAttribute="bottom" id="XLv-tF-uG5"/>
-                                                <constraint firstItem="Ord-Ca-JyT" firstAttribute="leading" secondItem="O27-26-UIJ" secondAttribute="leading" constant="8" id="Yec-yK-Fg9"/>
-                                                <constraint firstItem="Ord-Ca-JyT" firstAttribute="top" secondItem="O27-26-UIJ" secondAttribute="top" id="YgY-WT-khC"/>
+                                                <constraint firstItem="Ord-Ca-JyT" firstAttribute="leading" secondItem="O27-26-UIJ" secondAttribute="leading" constant="16" id="Yec-yK-Fg9"/>
+                                                <constraint firstItem="Ord-Ca-JyT" firstAttribute="top" secondItem="O27-26-UIJ" secondAttribute="top" constant="16" id="YgY-WT-khC"/>
                                             </constraints>
                                         </tableViewCellContentView>
                                     </tableViewCell>
@@ -540,8 +540,8 @@
                                                 </view>
                                             </subviews>
                                             <constraints>
-                                                <constraint firstItem="WZO-JT-crq" firstAttribute="leading" secondItem="O4R-3J-yll" secondAttribute="leading" constant="8" id="8kK-O4-xf7"/>
-                                                <constraint firstAttribute="trailing" secondItem="WZO-JT-crq" secondAttribute="trailing" constant="8" id="FrK-ju-Ln6"/>
+                                                <constraint firstItem="WZO-JT-crq" firstAttribute="leading" secondItem="O4R-3J-yll" secondAttribute="leading" constant="16" id="8kK-O4-xf7"/>
+                                                <constraint firstAttribute="trailing" secondItem="WZO-JT-crq" secondAttribute="trailing" constant="16" id="FrK-ju-Ln6"/>
                                                 <constraint firstAttribute="bottom" secondItem="WZO-JT-crq" secondAttribute="bottom" id="PQB-j9-0xO"/>
                                                 <constraint firstItem="WZO-JT-crq" firstAttribute="top" secondItem="O4R-3J-yll" secondAttribute="top" id="nB1-t8-QTk"/>
                                             </constraints>
@@ -577,8 +577,8 @@
                                             <constraints>
                                                 <constraint firstAttribute="bottom" secondItem="kRK-CE-Zkb" secondAttribute="bottom" id="3nx-hb-z91"/>
                                                 <constraint firstItem="kRK-CE-Zkb" firstAttribute="top" secondItem="hSY-Rh-zY1" secondAttribute="top" id="KvC-j5-wax"/>
-                                                <constraint firstAttribute="trailing" secondItem="kRK-CE-Zkb" secondAttribute="trailing" constant="12" id="jR9-8j-HLM"/>
-                                                <constraint firstItem="kRK-CE-Zkb" firstAttribute="leading" secondItem="hSY-Rh-zY1" secondAttribute="leading" constant="12" id="qwp-4P-1gk"/>
+                                                <constraint firstAttribute="trailing" secondItem="kRK-CE-Zkb" secondAttribute="trailing" constant="16" id="jR9-8j-HLM"/>
+                                                <constraint firstItem="kRK-CE-Zkb" firstAttribute="leading" secondItem="hSY-Rh-zY1" secondAttribute="leading" constant="16" id="qwp-4P-1gk"/>
                                             </constraints>
                                         </tableViewCellContentView>
                                     </tableViewCell>

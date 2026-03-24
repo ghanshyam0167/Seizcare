@@ -97,7 +97,7 @@ final class AlertRowView: UIView {
 
         let textStack = UIStackView(arrangedSubviews: [title, subtitle])
         textStack.axis = .vertical
-        textStack.spacing = 2
+        textStack.spacing = 4
 
         // Time label
         let time = UILabel()
@@ -116,12 +116,12 @@ final class AlertRowView: UIView {
         NSLayoutConstraint.activate([
             rowStack.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 16),
             rowStack.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -16),
-            rowStack.topAnchor.constraint(equalTo: container.topAnchor, constant: 12),
-            rowStack.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -12)
+            rowStack.topAnchor.constraint(equalTo: container.topAnchor, constant: 16),
+            rowStack.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -16)
         ])
 
         container.heightAnchor
-            .constraint(greaterThanOrEqualToConstant: 56)
+            .constraint(greaterThanOrEqualToConstant: 68)
             .isActive = true
 
         // Save refs

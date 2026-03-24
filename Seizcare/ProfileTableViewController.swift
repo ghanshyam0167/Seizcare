@@ -18,7 +18,7 @@ class ProfileTableViewController: UITableViewController {
 
     // MARK: - Design Tokens
     private let accentBlue = UIColor(red: 59/255, green: 130/255, blue: 246/255, alpha: 1)
-    private let cardCornerRadius: CGFloat = 16
+    private let cardCornerRadius: CGFloat = 12
     private let cardShadowOpacity: Float = 0.08
     private let cardShadowRadius: CGFloat = 8
     private let cardShadowOffset = CGSize(width: 0, height: 4)
@@ -77,6 +77,7 @@ class ProfileTableViewController: UITableViewController {
         }
         tableView.separatorStyle = .none
         tableView.allowsSelection = false
+        tableView.isScrollEnabled = false
         applyDefaultTableBackground()
 
         _ = SettingsManager.shared
@@ -135,8 +136,8 @@ class ProfileTableViewController: UITableViewController {
         ])
 
         buildProfileCard()
-        buildSection(titleLabel: safetyTitleLabel, title: "SAFETY", card: safetyCard, rows: safetyRows, topAnchor: profileCard.bottomAnchor, topConstant: 28)
-        buildSection(titleLabel: prefsTitleLabel, title: "PREFERENCES", card: prefsCard, rows: prefsRows, topAnchor: safetyCard.bottomAnchor, topConstant: 28)
+        buildSection(titleLabel: safetyTitleLabel, title: "SAFETY", card: safetyCard, rows: safetyRows, topAnchor: profileCard.bottomAnchor, topConstant: 24)
+        buildSection(titleLabel: prefsTitleLabel, title: "PREFERENCES", card: prefsCard, rows: prefsRows, topAnchor: safetyCard.bottomAnchor, topConstant: 24)
         buildLogoutButton()
 
         // Bottom anchor for scroll content
@@ -235,35 +236,38 @@ class ProfileTableViewController: UITableViewController {
             titleLabel.topAnchor.constraint(equalTo: topAnchor, constant: topConstant),
             titleLabel.leadingAnchor.constraint(equalTo: scrollContent.leadingAnchor, constant: 28),
 
-            card.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 10),
+            card.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8),
             card.leadingAnchor.constraint(equalTo: scrollContent.leadingAnchor, constant: 16),
             card.trailingAnchor.constraint(equalTo: scrollContent.trailingAnchor, constant: -16)
         ])
 
         // Build rows inside card
         var previousRowBottom: NSLayoutYAxisAnchor = card.topAnchor
+        var isFirstRow = true
+
         for (index, row) in rows.enumerated() {
             let rowView = buildSettingsRow(icon: row.icon, title: row.title, tag: index, segueID: row.segueID, parent: card)
             rowView.translatesAutoresizingMaskIntoConstraints = false
             card.addSubview(rowView)
 
             NSLayoutConstraint.activate([
-                rowView.topAnchor.constraint(equalTo: previousRowBottom),
+                rowView.topAnchor.constraint(equalTo: previousRowBottom, constant: isFirstRow ? 10 : 0),
                 rowView.leadingAnchor.constraint(equalTo: card.leadingAnchor),
                 rowView.trailingAnchor.constraint(equalTo: card.trailingAnchor),
                 rowView.heightAnchor.constraint(equalToConstant: rowHeight)
             ])
+            isFirstRow = false
 
             // Divider (not after last row)
             if index < rows.count - 1 {
                 let divider = UIView()
                 divider.translatesAutoresizingMaskIntoConstraints = false
-                divider.backgroundColor = UIColor.separator.withAlphaComponent(0.3)
+                divider.backgroundColor = UIColor.separator.withAlphaComponent(0.4)
                 card.addSubview(divider)
                 NSLayoutConstraint.activate([
                     divider.topAnchor.constraint(equalTo: rowView.bottomAnchor),
                     divider.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 64),
-                    divider.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -16),
+                    divider.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: 0),
                     divider.heightAnchor.constraint(equalToConstant: 0.5)
                 ])
                 previousRowBottom = divider.bottomAnchor
@@ -272,8 +276,8 @@ class ProfileTableViewController: UITableViewController {
             }
         }
 
-        // Card bottom constraint
-        card.bottomAnchor.constraint(equalTo: previousRowBottom).isActive = true
+        // Card bottom constraint (internal padding)
+        card.bottomAnchor.constraint(equalTo: previousRowBottom, constant: 10).isActive = true
     }
 
     @IBAction func connectWatchTapped(_ sender: UITapGestureRecognizer) {
@@ -352,22 +356,19 @@ class ProfileTableViewController: UITableViewController {
     private func buildLogoutButton() {
         logoutButton.translatesAutoresizingMaskIntoConstraints = false
         logoutButton.setTitle("Log Out", for: .normal)
-        logoutButton.titleLabel?.font = .systemFont(ofSize: 17, weight: .semibold)
+        logoutButton.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
         logoutButton.setTitleColor(.systemRed, for: .normal)
-        logoutButton.backgroundColor = .white
-        logoutButton.layer.cornerRadius = 25
-        logoutButton.layer.shadowColor = UIColor.black.cgColor
-        logoutButton.layer.shadowOpacity = 0.06
-        logoutButton.layer.shadowRadius = 8
-        logoutButton.layer.shadowOffset = CGSize(width: 0, height: 3)
+        
+        applyCardStyle(to: logoutButton)
+        
         logoutButton.addTarget(self, action: #selector(logoutTapped), for: .touchUpInside)
         scrollContent.addSubview(logoutButton)
 
         NSLayoutConstraint.activate([
-            logoutButton.topAnchor.constraint(equalTo: prefsCard.bottomAnchor, constant: 36),
+            logoutButton.topAnchor.constraint(equalTo: prefsCard.bottomAnchor, constant: 24),
             logoutButton.centerXAnchor.constraint(equalTo: scrollContent.centerXAnchor),
-            logoutButton.widthAnchor.constraint(equalTo: scrollContent.widthAnchor, constant: -64),
-            logoutButton.heightAnchor.constraint(equalToConstant: 50)
+            logoutButton.widthAnchor.constraint(equalTo: scrollContent.widthAnchor, constant: -32),
+            logoutButton.heightAnchor.constraint(equalToConstant: rowHeight)
         ])
     }
 
