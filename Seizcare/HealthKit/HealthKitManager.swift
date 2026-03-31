@@ -65,6 +65,33 @@ class HealthKitManager {
         healthStore.execute(query)
     }
     
+    func fetchHeartRateData(from startDate: Date, to endDate: Date, completion: @escaping ([HKQuantitySample]) -> Void) {
+        guard let heartRateType = HKQuantityType.quantityType(forIdentifier: .heartRate) else {
+            DispatchQueue.main.async { completion([]) }
+            return
+        }
+        
+        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: .strictStartDate)
+        let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)
+        
+        let query = HKSampleQuery(sampleType: heartRateType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: [sortDescriptor]) { _, samples, error in
+            if let error = error {
+                print("Error fetching temporal heart rate data: \(error.localizedDescription)")
+                DispatchQueue.main.async { completion([]) }
+                return
+            }
+            
+            guard let hkSamples = samples as? [HKQuantitySample] else {
+                DispatchQueue.main.async { completion([]) }
+                return
+            }
+            
+            DispatchQueue.main.async { completion(hkSamples) }
+        }
+        
+        healthStore.execute(query)
+    }
+    
     func fetchLatestSpO2(completion: @escaping (Double?) -> Void) {
         guard let spo2Type = HKQuantityType.quantityType(forIdentifier: .oxygenSaturation) else {
             DispatchQueue.main.async { completion(nil) }

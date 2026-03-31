@@ -274,7 +274,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.chitkarauniversity.seizcaree;
+				PRODUCT_BUNDLE_IDENTIFIER = com.chitkarauniversity.seizcareee;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -315,7 +315,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.chitkarauniversity.seizcaree;
+				PRODUCT_BUNDLE_IDENTIFIER = com.chitkarauniversity.seizcareee;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -455,20 +455,20 @@
 				CODE_SIGN_ENTITLEMENTS = "SeizcareWatch Watch App/SeizcareWatch Watch App.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = WQ98R62YF4;
+				DEVELOPMENT_TEAM = HTW9G6WB72;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = SeizcareWatch;
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "SeizcareWatch needs access to your heart rate to monitor seizure risk.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "SeizcareWatch may write health data related to seizure monitoring.";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.chitkarauniversity.seizcaree;
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.chitkarauniversity.seizcareee;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.chitkarauniversity.seizcaree.watchkitapp;
+				PRODUCT_BUNDLE_IDENTIFIER = com.chitkarauniversity.seizcareee.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
@@ -492,20 +492,20 @@
 				CODE_SIGN_ENTITLEMENTS = "SeizcareWatch Watch App/SeizcareWatch Watch App.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = WQ98R62YF4;
+				DEVELOPMENT_TEAM = HTW9G6WB72;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = SeizcareWatch;
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "SeizcareWatch needs access to your heart rate to monitor seizure risk.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "SeizcareWatch may write health data related to seizure monitoring.";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.chitkarauniversity.seizcaree;
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.chitkarauniversity.seizcareee;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.chitkarauniversity.seizcaree.watchkitapp;
+				PRODUCT_BUNDLE_IDENTIFIER = com.chitkarauniversity.seizcareee.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;

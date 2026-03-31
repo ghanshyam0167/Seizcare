@@ -26,6 +26,14 @@ struct SpO2TimelineChart: View {
         CGFloat(data.map { $0.spo2 }.max() ?? 100)
     }
     
+    private var domainStart: Date {
+        seizureTime.addingTimeInterval(-2 * 3600)
+    }
+
+    private var domainEnd: Date {
+        seizureTime.addingTimeInterval(2 * 3600)
+    }
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             
@@ -99,21 +107,39 @@ struct SpO2TimelineChart: View {
                     }
                 }
                 .chartYAxis {
-                    AxisMarks(position: .leading)
-                }
-                .chartXAxis {
-                    AxisMarks(values: .automatic(desiredCount: 5)) { value in
-                        if let date = value.as(Date.self) {
-                            AxisGridLine()
-                            AxisTick()
-                            AxisValueLabel {
-                                Text(timeLabel(for: date))
-                                    .font(.caption2)
-                                    .foregroundColor(.gray)
+                    AxisMarks(values: [80, 90, 100]) { value in
+                        AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
+                            .foregroundStyle(Color.gray.opacity(0.15))
+                        if let intVal = value.as(Int.self) {
+                            AxisValueLabel(anchor: .leading) {
+                                Text("\(intVal)")
+                                    .font(.system(size: 10))
+                                    .foregroundColor(.secondary.opacity(0.7))
                             }
                         }
                     }
                 }
+                .chartXAxis {
+                    AxisMarks(values: .stride(by: .hour, count: 1)) { value in
+                        AxisGridLine().foregroundStyle(Color.gray.opacity(0.1))
+                        AxisTick()
+                        if let date = value.as(Date.self) {
+                            // Unified 55-minute collision check
+                            if abs(date.timeIntervalSince(seizureTime)) > 3300 {
+                                // Smart-anchor edge labels inward to prevent truncation on exact chart boundaries
+                                let forceRightEdge = domainEnd.timeIntervalSince(date) < 3600
+                                let forceLeftEdge = date.timeIntervalSince(domainStart) < 3600
+                                
+                                AxisValueLabel(anchor: forceLeftEdge ? .topLeading : (forceRightEdge ? .topTrailing : .top)) {
+                                    Text(timeLabel(for: date))
+                                        .font(.system(size: 10, weight: .regular))
+                                        .foregroundColor(.secondary.opacity(0.8))
+                                }
+                            }
+                        }
+                    }
+                }
+                .chartXScale(domain: domainStart...domainEnd)
             }
             .frame(height: 220)
             .chartOverlay { proxy in
