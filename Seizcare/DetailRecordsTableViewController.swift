@@ -8,6 +8,7 @@
 import UIKit
 import Charts
 import SwiftUI
+import HealthKit
 
 class DetailRecordsTableViewController: UITableViewController {
 
@@ -149,11 +150,10 @@ class DetailRecordsTableViewController: UITableViewController {
 
         if record.entryType == .automatic {
             configureAutomatic(record)
-            setupHeartRateChart(for: record)
         } else {
             configureManual(record)
-            hideHeartRateChart()
         }
+        setupHeartRateChart(for: record)
         // SpO2 chart section is permanently hidden
         spo2ChartContainerView.isHidden = true
 
@@ -220,46 +220,79 @@ class DetailRecordsTableViewController: UITableViewController {
     }
 
     private func setupHeartRateChart(for record: SeizureRecord) {
-
-        guard record.entryType == .automatic else {
-            hideHeartRateChart()
-            return
-        }
-
-        let hrData = HeartRateTimelineBuilder.generateTimeline(for: record)
-
-        guard !hrData.isEmpty else {
-            hideHeartRateChart()
-            return
-        }
-
-        let chartView = HeartRateTimelineChart(
-            data: hrData,
-            seizureTime: record.dateTime,
-            seizureDuration: record.duration ?? 60
-        )
-
-        let host = UIHostingController(rootView: chartView)
-        host.view.translatesAutoresizingMaskIntoConstraints = false
-        host.view.backgroundColor = UIColor.clear
-
-        // Clean previous chart
-        hrChartHost?.view.removeFromSuperview()
-        hrChartHost?.removeFromParent()
-
-        hrChartHost = host
-        addChild(host)
-        heartRateTimelineContainerView.addSubview(host.view)
-
-        NSLayoutConstraint.activate([
-            host.view.topAnchor.constraint(equalTo: heartRateTimelineContainerView.topAnchor),
-            host.view.leadingAnchor.constraint(equalTo: heartRateTimelineContainerView.leadingAnchor),
-            host.view.trailingAnchor.constraint(equalTo: heartRateTimelineContainerView.trailingAnchor),
-            host.view.bottomAnchor.constraint(equalTo: heartRateTimelineContainerView.bottomAnchor)
-        ])
-
-        host.didMove(toParent: self)
+        let seizureTime = record.dateTime
+        let startDate = seizureTime.addingTimeInterval(-2 * 3600) // 2 hours before
+        let endDate = seizureTime.addingTimeInterval(2 * 3600) // 2 hours after
+        let duration = record.duration ?? 60.0
+        
+        // Temporarily prepare the container while data arrives
         heartRateTimelineContainerView.isHidden = false
+        
+        HealthKitManager.shared.fetchHeartRateData(from: startDate, to: endDate) { [weak self] samples in
+            guard let self = self else { return }
+            
+            var hrData: [HeartRateTimelinePoint] = []
+            let hrUnit = HKUnit.count().unitDivided(by: HKUnit.minute())
+            
+            for sample in samples {
+                let bpm = Int(sample.quantity.doubleValue(for: hrUnit))
+                let timestamp = sample.startDate
+                
+                let phase: HeartRatePhase
+                if timestamp < seizureTime {
+                    phase = .before
+                } else if timestamp > seizureTime.addingTimeInterval(duration) {
+                    phase = .after
+                } else {
+                    phase = .during
+                }
+                
+                hrData.append(HeartRateTimelinePoint(timestamp: timestamp, bpm: bpm, phase: phase))
+            }
+            
+            // Fallback for simulators or profiles without permissions/data
+            if hrData.isEmpty {
+                hrData = HeartRateTimelineBuilder.generateTimeline(for: record)
+            }
+            
+            guard !hrData.isEmpty else {
+                self.hideHeartRateChart()
+                return
+            }
+            
+            let chartView = HeartRateTimelineChart(
+                data: hrData,
+                seizureTime: seizureTime,
+                seizureDuration: duration,
+                recordedPeak: record.heartRate
+            )
+            
+            let host = UIHostingController(rootView: chartView)
+            host.view.translatesAutoresizingMaskIntoConstraints = false
+            host.view.backgroundColor = UIColor.clear
+            
+            // Clean previous chart
+            self.hrChartHost?.view.removeFromSuperview()
+            self.hrChartHost?.removeFromParent()
+            
+            self.hrChartHost = host
+            self.addChild(host)
+            self.heartRateTimelineContainerView.addSubview(host.view)
+            
+            NSLayoutConstraint.activate([
+                host.view.topAnchor.constraint(equalTo: self.heartRateTimelineContainerView.topAnchor),
+                host.view.leadingAnchor.constraint(equalTo: self.heartRateTimelineContainerView.leadingAnchor),
+                host.view.trailingAnchor.constraint(equalTo: self.heartRateTimelineContainerView.trailingAnchor),
+                host.view.bottomAnchor.constraint(equalTo: self.heartRateTimelineContainerView.bottomAnchor),
+                host.view.heightAnchor.constraint(greaterThanOrEqualToConstant: 320)
+            ])
+            
+            host.didMove(toParent: self)
+            
+            // Force the UITableView to recalculate its AutoLayout dimensions asynchronously
+            self.tableView.beginUpdates()
+            self.tableView.endUpdates()
+        }
     }
     private func hideHeartRateChart() {
         heartRateTimelineContainerView.isHidden = true
