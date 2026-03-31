@@ -32,19 +32,55 @@ class ProfileViewTableViewController: UITableViewController {
         [section1CardContainer, section0CardContainer].forEach {
             $0?.applyDashboardCard()
         }
+        profileImageView?.contentMode = .scaleAspectFill
+        profileImageView?.clipsToBounds = true
+        updateUI()
+
+        // Listen for avatar changes from any screen (handles async upload timing)
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(avatarDidChange),
+            name: UserDataModel.avatarDidChangeNotification,
+            object: nil
+        )
+    }
+
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+
+    @objc private func avatarDidChange() {
+        let avatarUrl = UserDataModel.shared.getCurrentUser()?.avatarUrl
+        UIImageView.bustCache(for: avatarUrl ?? "")
+        profileImageView?.load(urlString: avatarUrl)
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
         updateUI()
     }
-    
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        profileImageView?.applyCircle()
+        if tableView.tableFooterView == nil {
+            setupDeleteAccountButton()
+        }
+    }
+
+    // MARK: - Update UI
+
     @IBSegueAction func goToEditScreen(_ coder: NSCoder) -> EditProfileTableViewController? {
         let controller = EditProfileTableViewController(coder: coder, user: user)
-
-          controller?.onDismiss = { [weak self] in
-              self?.user = UserDataModel.shared.getCurrentUser()
-              self?.updateUI()
-          }
-
-          return controller
+        controller?.onDismiss = { [weak self] in
+            guard let self = self else { return }
+            // Refresh local reference from shared model
+            self.user = UserDataModel.shared.getCurrentUser()
+            self.updateUI()
+        }
+        return controller
     }
+
     func updateUI() {
         user = UserDataModel.shared.getCurrentUser()
         guard let user = user else { return }
@@ -52,30 +88,20 @@ class ProfileViewTableViewController: UITableViewController {
         nameRightLabel.text = user.fullName
         emailRightLabel.text = user.email
         phoneRightLabel.text = user.contactNumber
-        
+
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
         dobRightLabel.text = formatter.string(from: user.dateOfBirth)
-        
+
         genderRightLabel.text = user.gender.rawValue.capitalized
-        
-        if let h = user.height {
-            heightRightLabel.text = "\(h) cm"
-        }
-        if let w = user.weight {
-            weightRightLabel.text = "\(w) kg"
-        }
+
+        if let h = user.height { heightRightLabel.text = "\(h) cm" }
+        if let w = user.weight { weightRightLabel.text = "\(w) kg" }
         bloodGroupRightLabel.text = user.bloodGroup ?? "-"
 
-        // Load saved profile photo
-        if let savedPhoto = ProfilePhotoManager.shared.load() {
-            profileImageView.image = savedPhoto
-            profileImageView.contentMode = .scaleAspectFill
-            profileImageView.layer.cornerRadius = profileImageView.frame.height / 2
-            profileImageView.clipsToBounds = true
-        }
+        // Always load avatar from Supabase URL (no local storage)
+        profileImageView?.load(urlString: user.avatarUrl)
     }
-    
     @IBAction func unwindToProfile(_ segue: UIStoryboardSegue) {
         updateUI()    
     }
@@ -88,13 +114,6 @@ class ProfileViewTableViewController: UITableViewController {
     }
     
     // MARK: - Account Deletion (App Store Compliance)
-    
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        if tableView.tableFooterView == nil {
-            setupDeleteAccountButton()
-        }
-    }
     
     private func setupDeleteAccountButton() {
         // Create a footer view slightly taller to provide margin
@@ -166,6 +185,7 @@ class ProfileViewTableViewController: UITableViewController {
     
     private func executeAccountDeletion() {
         // Show loading indicator
+    
         let loadingAlert = UIAlertController(title: "Deleting Account...", message: "\n\nPlease wait.", preferredStyle: .alert)
         let spinner = UIActivityIndicatorView(style: .large)
         spinner.center = CGPoint(x: 135.0, y: 75.0) // Arbitrary center based on standard alert sizes
@@ -216,3 +236,4 @@ class ProfileViewTableViewController: UITableViewController {
         }
     }
 }
+

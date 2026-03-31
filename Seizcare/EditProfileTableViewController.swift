@@ -11,6 +11,9 @@ import PhotosUI
 class EditProfileTableViewController: UITableViewController {
     var user: User
     
+    /// Holds the image the user just picked so it survives until the upload finishes.
+    private var selectedProfileImage: UIImage?
+    
     required init?(coder: NSCoder, user : User?) {
         guard let user = user else { return nil }
         self.user = user
@@ -58,22 +61,56 @@ class EditProfileTableViewController: UITableViewController {
     // MARK: - Profile Image
 
     private func setupProfileImage() {
-        profileImageView.layer.cornerRadius = profileImageView.frame.height / 2
-        profileImageView.clipsToBounds = true
         profileImageView.contentMode = .scaleAspectFill
-        // Load saved photo
-        if let saved = ProfilePhotoManager.shared.load() {
-            profileImageView.image = saved
-        }
+        profileImageView.clipsToBounds = true
+        // Load from Supabase URL — falls back to placeholder automatically
+        profileImageView.load(urlString: user.avatarUrl)
     }
 
     @IBAction func changePhotoTapped(_ sender: Any) {
+        let alert = UIAlertController(title: "Change Profile Photo", message: nil, preferredStyle: .actionSheet)
+        
+        if UIImagePickerController.isSourceTypeAvailable(.camera) {
+            alert.addAction(UIAlertAction(title: "Camera", style: .default) { _ in
+                self.presentImagePicker(sourceType: .camera)
+            })
+        }
+        
+        alert.addAction(UIAlertAction(title: "Photo Library", style: .default) { _ in
+            self.presentPHPicker()
+        })
+        
+        if user.avatarUrl != nil {
+            alert.addAction(UIAlertAction(title: "Remove Photo", style: .destructive) { _ in
+                self.removePhoto()
+            })
+        }
+        
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        present(alert, animated: true)
+    }
+
+    private func presentPHPicker() {
         var config = PHPickerConfiguration()
         config.selectionLimit = 1
         config.filter = .images
         let picker = PHPickerViewController(configuration: config)
         picker.delegate = self
         present(picker, animated: true)
+    }
+
+    private func presentImagePicker(sourceType: UIImagePickerController.SourceType) {
+        let picker = UIImagePickerController()
+        picker.sourceType = sourceType
+        picker.delegate = self
+        picker.allowsEditing = true
+        present(picker, animated: true)
+    }
+
+    private func removePhoto() {
+        self.user.avatarUrl = nil
+        self.profileImageView.load(urlString: nil)
+        UserDataModel.shared.updateAvatarURL("") // Pass empty string to clear in DB
     }
 
     // MARK: - Field Pickers
@@ -202,7 +239,8 @@ class EditProfileTableViewController: UITableViewController {
                    password: user.password,
                    height: Double(heightTextField.text ?? ""),
                    weight: Double(weightTextField.text ?? ""),
-                   bloodGroup: bloodGroupTextField.text
+                   bloodGroup: bloodGroupTextField.text,
+                   avatarUrl: user.avatarUrl   // preserve avatar URL through edit
                )
 
               UserDataModel.shared.updateCurrentUser(updatedUser)
@@ -219,21 +257,78 @@ class EditProfileTableViewController: UITableViewController {
     }
 }
 
-// MARK: - PHPickerViewControllerDelegate
+// MARK: - Photo Picker Delegates
 
-extension EditProfileTableViewController: PHPickerViewControllerDelegate {
+extension EditProfileTableViewController: PHPickerViewControllerDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+
+    // PHPicker (Library)
     func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
         dismiss(animated: true)
-
         guard let provider = results.first?.itemProvider,
               provider.canLoadObject(ofClass: UIImage.self) else { return }
 
         provider.loadObject(ofClass: UIImage.self) { [weak self] image, _ in
-            guard let self, let photo = image as? UIImage else { return }
-            DispatchQueue.main.async {
-                self.profileImageView.image = photo
-                ProfilePhotoManager.shared.save(photo)
+            guard let self, let raw = image as? UIImage else { return }
+            self.processAndUpload(raw)
+        }
+    }
+
+    // ImagePicker (Camera)
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+        dismiss(animated: true)
+        guard let raw = (info[.editedImage] ?? info[.originalImage]) as? UIImage else { return }
+        processAndUpload(raw)
+    }
+
+    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+        dismiss(animated: true)
+    }
+
+    private func processAndUpload(_ raw: UIImage) {
+        // 1. Resize + compress
+        let resized = raw.resized(toMaxDimension: 512)
+        guard let jpeg = resized.jpegData(compressionQuality: 0.7) else { return }
+
+        // 2. Store temp reference so the image survives navigation/layout events
+        selectedProfileImage = resized
+
+        // 3. Show immediately — cancels any in-flight remote load (cross-dissolve fade)
+        DispatchQueue.main.async {
+            self.profileImageView.setImmediately(resized)
+        }
+
+        guard let userId = self.user.id as UUID? else { return }
+
+        Task { @MainActor in
+            do {
+                // 4. Upload in background after UI is already updated
+                let url = try await SupabaseService.shared.uploadAvatar(userId: userId, imageData: jpeg)
+                UIImageView.bustCache(for: url)
+                
+                // 5. Save URL on the model
+                self.user.avatarUrl = url
+                self.selectedProfileImage = nil  // upload confirmed — no need for temp
+                UserDataModel.shared.updateAvatarURL(url)
+                print("✅ [EditProfile] Avatar uploaded: \(url)")
+            } catch {
+                let alert = UIAlertController(title: "Upload Failed", message: error.localizedDescription, preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: "OK", style: .default))
+                self.present(alert, animated: true)
+                // Revert to the last known good Supabase photo on error
+                self.selectedProfileImage = nil
+                self.profileImageView.load(urlString: self.user.avatarUrl)
             }
         }
+    }
+}
+
+// MARK: - UIImage resize helper
+
+private extension UIImage {
+    func resized(toMaxDimension maxDimension: CGFloat) -> UIImage {
+        let scale = min(maxDimension / size.width, maxDimension / size.height, 1)
+        let newSize = CGSize(width: size.width * scale, height: size.height * scale)
+        let renderer = UIGraphicsImageRenderer(size: newSize)
+        return renderer.image { _ in self.draw(in: CGRect(origin: .zero, size: newSize)) }
     }
 }

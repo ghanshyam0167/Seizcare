@@ -56,14 +56,12 @@ class IntroViewController: UIViewController {
         let logo = UIImageView(image: UIImage(named: "Image"))
         logo.contentMode = .scaleAspectFit
         logo.translatesAutoresizingMaskIntoConstraints = false
-        logo.layer.shadowColor = UIColor.black.cgColor
-        logo.layer.shadowOpacity = 0.08
-        logo.layer.shadowRadius = 12
-        logo.layer.shadowOffset = CGSize(width: 0, height: 6)
+        logo.layer.cornerRadius = 22
+        logo.clipsToBounds = true
         stack.addArrangedSubview(logo)
         NSLayoutConstraint.activate([
-            logo.widthAnchor.constraint(equalToConstant: 250),
-            logo.heightAnchor.constraint(equalToConstant: 250)
+            logo.widthAnchor.constraint(equalToConstant: 120),
+            logo.heightAnchor.constraint(equalToConstant: 120)
         ])
         stack.setCustomSpacing(28, after: logo)
 
