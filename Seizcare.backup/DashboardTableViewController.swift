@@ -298,11 +298,9 @@ class DashboardTableViewController: UITableViewController {
             
             if let sleep = healthData.sleepHours {
                 print("Sleep Duration (Last Night): \(String(format: "%.1f", sleep)) hours")
+                // Trigger monthly average calculation
+                SleepManager.shared.fetchMonthlySleepAverage()
             }
-            
-            // Trigger monthly average calculation and Supabase synchronization map
-            // regardless of whether last night's isolated pull returned a value.
-            SleepManager.shared.fetchMonthlySleepAverage()
         }
     }
     

@@ -1,0 +1,244 @@
+//
+//  LanguageTableViewController.swift
+//  Seizcare
+//
+//  Created by Student on 21/11/25.
+//
+
+import UIKit
+
+class LanguageTableViewController: UIViewController {
+
+    //  Data
+    private let languages = ["English", "Hindi", "Marathi", "Telugu", "Bengali", "Tamil"]
+    private var selectedIndex = 2 // Default = English (index 0), but keeping 2 as initial
+
+    // Views
+    private let cardView: UIView = {
+        let v = UIView()
+        v.backgroundColor = .white
+        v.layer.cornerRadius = 20
+        v.layer.masksToBounds = false
+        v.layer.shadowColor = UIColor.black.cgColor
+        v.layer.shadowOpacity = 0.06
+        v.layer.shadowOffset = CGSize(width: 0, height: 2)
+        v.layer.shadowRadius = 8
+        return v
+    }()
+
+    private let stackView: UIStackView = {
+        let sv = UIStackView()
+        sv.axis = .vertical
+        sv.alignment = .fill
+        sv.distribution = .fill
+        sv.spacing = 0
+        sv.isLayoutMarginsRelativeArrangement = true
+        sv.layoutMargins = UIEdgeInsets(top: 12, left: 0, bottom: 12, right: 0)
+        return sv
+    }()
+
+    private var rowControls: [LanguageRowView] = []
+
+    //  Lifecycle
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        let titleLabel = UILabel()
+        titleLabel.text = "Language"
+        titleLabel.font = .systemFont(ofSize: 17, weight: .semibold)
+        titleLabel.textColor = .label
+        titleLabel.textAlignment = .center
+        navigationItem.titleView = titleLabel
+
+        view.backgroundColor = .systemGroupedBackground
+
+        loadSavedPreference()
+        setupViews()
+    }
+
+    //  Setup
+
+    private func setupViews() {
+        view.addSubview(cardView)
+        cardView.translatesAutoresizingMaskIntoConstraints = false
+
+        NSLayoutConstraint.activate([
+            cardView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            cardView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
+            cardView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 24),
+            cardView.bottomAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -24)
+        ])
+
+        cardView.addSubview(stackView)
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            stackView.leadingAnchor.constraint(equalTo: cardView.leadingAnchor),
+            stackView.trailingAnchor.constraint(equalTo: cardView.trailingAnchor),
+            stackView.topAnchor.constraint(equalTo: cardView.topAnchor),
+            stackView.bottomAnchor.constraint(equalTo: cardView.bottomAnchor)
+        ])
+
+        // Create language rows
+        for i in 0..<languages.count {
+            let row = LanguageRowView(title: languages[i])
+            row.tag = i
+            row.translatesAutoresizingMaskIntoConstraints = false
+            row.heightAnchor.constraint(greaterThanOrEqualToConstant: 56).isActive = true
+            row.addTarget(self, action: #selector(rowTapped(_:)), for: .touchUpInside)
+            rowControls.append(row)
+
+            stackView.addArrangedSubview(row)
+
+            // Add divider between rows (but not after last row)
+            if i < languages.count - 1 {
+                let divider = createDivider()
+                stackView.addArrangedSubview(divider)
+            }
+        }
+
+        // Set initial checkmark state
+        for (i, r) in rowControls.enumerated() {
+            r.setChecked(i == selectedIndex, animated: false)
+        }
+    }
+
+    // MARK: - Helpers
+
+    private func createDivider() -> UIView {
+        let divWrap = UIView()
+        divWrap.translatesAutoresizingMaskIntoConstraints = false
+        
+        let divider = UIView()
+        divider.backgroundColor = UIColor.separator.withAlphaComponent(0.4)
+        divider.translatesAutoresizingMaskIntoConstraints = false
+        divWrap.addSubview(divider)
+        
+        NSLayoutConstraint.activate([
+            divider.leadingAnchor.constraint(equalTo: divWrap.leadingAnchor, constant: 16),
+            divider.trailingAnchor.constraint(equalTo: divWrap.trailingAnchor),
+            divider.topAnchor.constraint(equalTo: divWrap.topAnchor),
+            divider.bottomAnchor.constraint(equalTo: divWrap.bottomAnchor),
+            divider.heightAnchor.constraint(equalToConstant: 0.5)
+        ])
+        
+        return divWrap
+    }
+
+    // MARK: - Actions
+
+    @objc private func rowTapped(_ sender: LanguageRowView) {
+        let index = sender.tag
+        guard index != selectedIndex else { return }
+
+        let previous = selectedIndex
+        selectedIndex = index
+
+        // Persist language selection
+        if let newLanguage = AppLanguage(rawValue: languages[selectedIndex]) {
+            if UserDataModel.shared.getCurrentUser() == nil {
+                // Not signed in yet — save to temporary onboarding preferences
+                OnboardingPreferences.shared.language = newLanguage
+            } else {
+                // Signed in — save to database
+                LanguageDataModel.shared.setLanguage(language: newLanguage)
+            }
+        }
+
+        // Animate change
+        rowControls[previous].setChecked(false, animated: true)
+        rowControls[selectedIndex].setChecked(true, animated: true)
+    }
+
+    //  Persistence
+
+    private func loadSavedPreference() {
+        let savedLanguage: String
+        if UserDataModel.shared.getCurrentUser() == nil {
+            // Not signed in yet — load from temporary onboarding preferences
+            savedLanguage = OnboardingPreferences.shared.language.rawValue
+        } else {
+            // Signed in — load from cache
+            savedLanguage = LanguageDataModel.shared.getCurrentLanguage().rawValue
+        }
+
+        if let index = languages.firstIndex(of: savedLanguage) {
+            selectedIndex = index
+        }
+    }
+}
+
+//  LanguageRowView
+
+private class LanguageRowView: UIControl {
+    private let titleLabel = UILabel()
+    private let checkImageView = UIImageView()
+
+    init(title: String) {
+        super.init(frame: .zero)
+        setup(title: title)
+    }
+
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        setup(title: "")
+    }
+
+    private func setup(title: String) {
+        // UIControl configuration
+        self.isUserInteractionEnabled = true
+        self.isExclusiveTouch = true
+        self.backgroundColor = .clear
+
+        // Accessibility
+        isAccessibilityElement = true
+        accessibilityTraits = .button
+
+        // Title Label
+        titleLabel.text = title
+        titleLabel.font = .systemFont(ofSize: 17, weight: .regular)
+        titleLabel.textColor = .label
+        titleLabel.isUserInteractionEnabled = false
+
+        // Checkmark ImageView
+        checkImageView.image = UIImage(systemName: "checkmark")
+        checkImageView.tintColor = .systemBlue
+        checkImageView.contentMode = .scaleAspectFit
+        checkImageView.alpha = 0
+        checkImageView.isUserInteractionEnabled = false
+
+        // Main horizontal stack
+        let hStack = UIStackView(arrangedSubviews: [titleLabel, checkImageView])
+        hStack.axis = .horizontal
+        hStack.alignment = .center
+        hStack.distribution = .fill
+        hStack.spacing = 12
+        hStack.isUserInteractionEnabled = false
+
+        addSubview(hStack)
+        hStack.translatesAutoresizingMaskIntoConstraints = false
+        checkImageView.translatesAutoresizingMaskIntoConstraints = false
+
+        NSLayoutConstraint.activate([
+            hStack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+            hStack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+            hStack.centerYAnchor.constraint(equalTo: centerYAnchor),
+
+            checkImageView.widthAnchor.constraint(equalToConstant: 24),
+            checkImageView.heightAnchor.constraint(equalToConstant: 24)
+        ])
+    }
+
+    func setChecked(_ checked: Bool, animated: Bool) {
+        let animations = {
+            self.checkImageView.alpha = checked ? 1.0 : 0.0
+        }
+
+        if animated {
+            UIView.transition(with: checkImageView, duration: 0.22, options: [.transitionCrossDissolve], animations: animations, completion: nil)
+        } else {
+            animations()
+        }
+        accessibilityValue = checked ? "Selected" : "Not selected"
+    }
+}

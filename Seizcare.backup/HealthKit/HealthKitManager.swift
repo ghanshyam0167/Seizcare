@@ -128,40 +128,25 @@ class HealthKitManager {
             return
         }
         
-        let now = Date()
-        let calendar = Calendar.current
-        
-        guard let yesterday = calendar.date(byAdding: .day, value: -1, to: now),
-              let startDate = calendar.date(bySettingHour: 18, minute: 0, second: 0, of: yesterday) else {
-            DispatchQueue.main.async { completion(nil) }
-            return
-        }
-        
-        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: now, options: [])
         let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
-        
-        let query = HKSampleQuery(sampleType: sleepType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: [sortDescriptor]) { _, samples, error in
+        // Retrieve the most recent session
+        let query = HKSampleQuery(sampleType: sleepType, predicate: nil, limit: 1, sortDescriptors: [sortDescriptor]) { _, samples, error in
             if let error = error {
                 print("Error fetching sleep analysis: \(error.localizedDescription)")
                 DispatchQueue.main.async { completion(nil) }
                 return
             }
             
-            guard let categorySamples = samples as? [HKCategorySample], !categorySamples.isEmpty else {
+            guard let sample = samples?.first as? HKCategorySample else {
                 DispatchQueue.main.async { completion(nil) }
                 return
             }
             
-            let asleepSamples = categorySamples.filter { sample in
-                return sample.value != HKCategoryValueSleepAnalysis.inBed.rawValue &&
-                       sample.value != HKCategoryValueSleepAnalysis.awake.rawValue
-            }
-            
-            let totalDuration = asleepSamples.reduce(0.0) { $0 + $1.endDate.timeIntervalSince($1.startDate) }
-            let hours = totalDuration / 3600.0
+            let duration = sample.endDate.timeIntervalSince(sample.startDate)
+            let hours = duration / 3600.0
             
             DispatchQueue.main.async {
-                completion(hours > 0 ? hours : nil)
+                completion(hours)
             }
         }
         

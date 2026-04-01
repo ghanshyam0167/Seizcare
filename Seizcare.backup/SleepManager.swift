@@ -35,9 +35,9 @@ class SleepManager: ObservableObject {
         
         let calendar = Calendar.current
         let now = Date()
-        // Use a rolling 30 days rather than strictly resetting on the 1st of the calendar month
-        let startOfRollingMonth = calendar.date(byAdding: .day, value: -30, to: now)!
-        let predicate = HKQuery.predicateForSamples(withStart: startOfRollingMonth, end: now, options: [])
+        let startOfMonth = calendar.date(from: calendar.dateComponents([.year, .month], from: now))!
+        
+        let predicate = HKQuery.predicateForSamples(withStart: startOfMonth, end: now, options: .strictStartDate)
         let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
         
         let query = HKSampleQuery(sampleType: sleepType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: [sortDescriptor]) { _, samples, error in
@@ -66,14 +66,11 @@ class SleepManager: ObservableObject {
             print("📊 Monthly Sleep Data Analysis:")
             for sample in asleepSamples {
                 let durationHours = sample.endDate.timeIntervalSince(sample.startDate) / 3600.0
-                
-                // Shift time forward by 12 hours so sleep spanning midnight groups into the day you wake up (Apple Health standard)
-                let logicalNightDate = calendar.date(byAdding: .hour, value: 12, to: sample.startDate)!
-                let day = calendar.startOfDay(for: logicalNightDate)
+                let day = calendar.startOfDay(for: sample.startDate)
                 
                 // Debug log each sleep sample
                 let stageName = self.sleepStageName(for: sample.value)
-                print("   - Sample: \(stageName), Duration: \(String(format: "%.2f", durationHours)) hrs, Date: \(sample.startDate) -> Grouped to: \(day)")
+                print("   - Sample: \(stageName), Duration: \(String(format: "%.2f", durationHours)) hrs, Date: \(sample.startDate)")
                 
                 sleepPerDay[day, default: 0.0] += durationHours
             }
