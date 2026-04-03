@@ -333,24 +333,56 @@ class DashboardTableViewController: UITableViewController {
     
     func calculateInsights() {
 
-        //Typography helpers
-        let titleFont    = UIFont.systemFont(ofSize: 15, weight: .bold)
-        let valueFont    = UIFont.systemFont(ofSize: 21, weight: .regular)
+        // Typography helpers
+        let titleFont    = UIFont.systemFont(ofSize: 15, weight: .medium)
+        let valueFont    = UIFont.systemFont(ofSize: 22, weight: .medium)
         let subtitleFont = UIFont.systemFont(ofSize: 13, weight: .regular)
 
-        // Apply consistent typography to all title/value/subtitle labels
-        for label in [sleepDurationLabel, avgMonthlySeizuresLabel,
-                      avgDurationLabel, mostCommonTimeLabel] {
-            label?.font = valueFont
-            label?.textColor = .label
+        // 1. Title Labels: Darker Gray (not pure black)
+        for label in [pipeLabel0, pipeLabel1, pipeLabel2, pipeLabel3] {
+            label?.font = titleFont
+            label?.textColor = UIColor(white: 0.35, alpha: 1.0)
+            label?.textAlignment = .left
         }
+
+        // 2. Value Labels: Muted, card-tinted colors (~85% opacity), Medium weight
+        let sleepValColor    = UIColor(red: 92/255.0,  green: 64/255.0,  blue: 122/255.0, alpha: 0.85) // Deep muted purple
+        let seizureValColor  = UIColor(red: 110/255.0, green: 90/255.0,  blue: 80/255.0,  alpha: 0.85) // Warm dark gray / soft brown
+        let durationValColor = UIColor(red: 50/255.0,  green: 95/255.0,  blue: 135/255.0, alpha: 0.85) // Deep desaturated blue
+        let timeValColor     = UIColor(red: 125/255.0, green: 70/255.0,  blue: 105/255.0, alpha: 0.85) // Muted plum / soft violet
+
+        sleepDurationLabel?.font = valueFont
+        sleepDurationLabel?.textColor = sleepValColor
+        sleepDurationLabel?.textAlignment = .left
+
+        avgMonthlySeizuresLabel?.font = valueFont
+        avgMonthlySeizuresLabel?.textColor = seizureValColor
+        avgMonthlySeizuresLabel?.textAlignment = .left
+
+        avgDurationLabel?.font = valueFont
+        avgDurationLabel?.textColor = durationValColor
+        avgDurationLabel?.textAlignment = .left
+
+        mostCommonTimeLabel?.font = valueFont
+        mostCommonTimeLabel?.textColor = timeValColor
+        mostCommonTimeLabel?.textAlignment = .left
+
+        // 3. Subtitle Labels
         for label in [sleepDurationStatusLabel, avgSeizureStatusLabel,
                       avgDurationStatusLabel, mostCommonTimeStatusLabel] {
             label?.font = subtitleFont
+            label?.textAlignment = .left
         }
-        for label in [pipeLabel0, pipeLabel1, pipeLabel2, pipeLabel3] {
-            label?.font = titleFont
-            label?.textColor = .secondaryLabel
+        
+        // Ensure consistent spacing and alignment across all 4 cards by formatting their internal stack views
+        for cardView in [currentCardView0, currentCardView1, currentCardView2, currentCardView3] {
+            guard let cardView = cardView else { continue }
+            for subview in cardView.subviews {
+                if let stackView = subview as? UIStackView {
+                    stackView.spacing = 8
+                    stackView.alignment = .leading
+                }
+            }
         }
 
         // Fetch Data (includes onboarding fallback)
