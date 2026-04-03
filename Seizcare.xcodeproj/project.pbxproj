@@ -265,7 +265,7 @@
 				CODE_SIGN_ENTITLEMENTS = Seizcare/Seizcare.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = WQ98R62YF4;
+				DEVELOPMENT_TEAM = HTW9G6WB72;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Seizcare/Info.plist;
 				INFOPLIST_KEY_NSContactsUsageDescription = "Seizcare needs access to your contacts so you can add emergency contacts who will be notified during a seizure event.";
@@ -306,7 +306,7 @@
 				CODE_SIGN_ENTITLEMENTS = Seizcare/Seizcare.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = WQ98R62YF4;
+				DEVELOPMENT_TEAM = HTW9G6WB72;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Seizcare/Info.plist;
 				INFOPLIST_KEY_NSContactsUsageDescription = "Seizcare needs access to your contacts so you can add emergency contacts who will be notified during a seizure event.";
@@ -465,7 +465,7 @@
 				CODE_SIGN_ENTITLEMENTS = "SeizcareWatch Watch App/SeizcareWatch Watch App.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = WQ98R62YF4;
+				DEVELOPMENT_TEAM = HTW9G6WB72;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = SeizcareWatch;
@@ -502,7 +502,7 @@
 				CODE_SIGN_ENTITLEMENTS = "SeizcareWatch Watch App/SeizcareWatch Watch App.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = WQ98R62YF4;
+				DEVELOPMENT_TEAM = HTW9G6WB72;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = SeizcareWatch;

@@ -82,7 +82,91 @@ class AddRecordTableViewController: UITableViewController {
         } else {
             configureForAdd()
         }
+        
+        refineFormTypographyAndStyles()
     }
+
+    private func refineFormTypographyAndStyles() {
+        // Values Typography
+        let valueFont = UIFont.systemFont(ofSize: 16, weight: .regular)
+        let valueColor = UIColor(red: 44/255.0, green: 44/255.0, blue: 46/255.0, alpha: 1.0) // #2C2C2E
+        
+        [titleTextField, dateTextField].forEach { textField in
+            textField?.font = valueFont
+            textField?.textColor = valueColor
+            textField?.textAlignment = .right
+        }
+
+        titleTextField?.placeholder = "Briefly describe what happened"
+
+        durationLabel?.font = valueFont
+        durationLabel?.textColor = valueColor
+        durationLabel?.textAlignment = .right
+        
+        notesTextView?.font = valueFont
+
+        // Hide the "What happened" (Title) field and its divider completely
+        if let titleRow = titleTextField?.superview {
+            titleRow.isHidden = true
+            if let stack = titleRow.superview as? UIStackView,
+               let index = stack.arrangedSubviews.firstIndex(of: titleRow),
+               index + 1 < stack.arrangedSubviews.count {
+                stack.arrangedSubviews[index + 1].isHidden = true
+            }
+        }
+
+        // Left Hand Labels & StackSpacing 
+        [topInputsCardView, notesCardView, symptompsCardView].forEach { card in
+            guard let card = card else { return }
+            adjustFormLabelsAndSpacing(in: card)
+        }
+    }
+
+    private func adjustFormLabelsAndSpacing(in view: UIView) {
+        let labelFont = UIFont.systemFont(ofSize: 16, weight: .medium)
+        let labelColor = UIColor(red: 44/255.0, green: 44/255.0, blue: 46/255.0, alpha: 1.0) // #2C2C2E
+
+        for subview in view.subviews {
+            if let stack = subview as? UIStackView {
+                if stack.axis == .vertical && stack.spacing < 14 {
+                    stack.spacing = 16
+                }
+            }
+
+            if let lbl = subview as? UILabel, lbl != durationLabel {
+                lbl.font = labelFont
+                lbl.textColor = labelColor
+                lbl.textAlignment = .left
+                
+                // Replace "Title" label logically
+                if lbl.text == "Title" || lbl.text == "Title:" {
+                    lbl.text = "What happened?"
+                }
+            }
+            adjustFormLabelsAndSpacing(in: subview)
+        }
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        [topInputsCardView, notesCardView, symptompsCardView].forEach { card in
+            guard let card = card else { return }
+            adjustFormDividers(in: card)
+        }
+    }
+
+    private func adjustFormDividers(in view: UIView) {
+        for subview in view.subviews {
+            if subview.frame.height > 0 && subview.frame.height <= 2.0 && subview.backgroundColor != .clear && !(subview is UILabel) && !(subview is UITextField) && !(subview is UITextView) && !(subview is UISegmentedControl) && !(subview is UIButton) {
+                subview.backgroundColor = UIColor(white: 0.65, alpha: 0.25)
+                for constraint in subview.constraints where constraint.firstAttribute == .height {
+                    constraint.constant = 0.5
+                }
+            }
+            adjustFormDividers(in: subview)
+        }
+    }
+
 
     // MARK: - Trigger Chip Setup
 
@@ -94,7 +178,7 @@ class AddRecordTableViewController: UITableViewController {
 
         // Wrapping chip layout using nested UIStackViews (rows of 3)
         let triggers = SeizureTrigger.allCases
-        let columns = 3
+        let columns = 2
         var rows: [[SeizureTrigger]] = []
         var currentRow: [SeizureTrigger] = []
         for trigger in triggers {
@@ -108,7 +192,7 @@ class AddRecordTableViewController: UITableViewController {
 
         let outerStack = UIStackView()
         outerStack.axis = .vertical
-        outerStack.spacing = 10
+        outerStack.spacing = 12
         outerStack.alignment = .fill
         outerStack.distribution = .equalSpacing
         outerStack.translatesAutoresizingMaskIntoConstraints = false
@@ -116,7 +200,7 @@ class AddRecordTableViewController: UITableViewController {
         for row in rows {
             let rowStack = UIStackView()
             rowStack.axis = .horizontal
-            rowStack.spacing = 8
+            rowStack.spacing = 12
             rowStack.alignment = .fill
             rowStack.distribution = .fillEqually
 
@@ -151,18 +235,20 @@ class AddRecordTableViewController: UITableViewController {
     private func makeChipButton(for trigger: SeizureTrigger) -> UIButton {
         let btn = UIButton(type: .system)
         btn.setTitle(trigger.displayName, for: .normal)
-        btn.titleLabel?.font = .systemFont(ofSize: 12, weight: .medium)
         btn.titleLabel?.numberOfLines = 2
         btn.titleLabel?.textAlignment = .center
         btn.titleLabel?.lineBreakMode = .byWordWrapping
+        if #available(iOS 14.0, *) {
+            btn.titleLabel?.lineBreakStrategy = [] // Prevents awkward hyphenations like "Dehydra-tion"
+        }
 
         var config = UIButton.Configuration.plain()
         config.titleAlignment = .center
-        config.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 6, bottom: 8, trailing: 6)
+        config.contentInsets = NSDirectionalEdgeInsets(top: 13, leading: 17, bottom: 13, trailing: 17)
         btn.configuration = config
 
-        btn.layer.cornerRadius = 10
-        btn.clipsToBounds = false
+        btn.layer.cornerRadius = 18
+        btn.clipsToBounds = true
         applyUnselectedChipStyle(btn)
 
         btn.addTarget(self, action: #selector(triggerChipTapped(_:)), for: .touchUpInside)
@@ -176,12 +262,25 @@ class AddRecordTableViewController: UITableViewController {
 
     @objc private func triggerChipTapped(_ sender: UIButton) {
         guard let trigger = SeizureTrigger.allCases[safe: sender.tag] else { return }
-        if selectedTriggers.contains(trigger) {
-            selectedTriggers.remove(trigger)
-            UIView.animate(withDuration: 0.2) { self.applyUnselectedChipStyle(sender) }
-        } else {
+        
+        let isSelecting = !selectedTriggers.contains(trigger)
+        if isSelecting {
             selectedTriggers.insert(trigger)
-            UIView.animate(withDuration: 0.2) { self.applySelectedChipStyle(sender) }
+        } else {
+            selectedTriggers.remove(trigger)
+        }
+        
+        UIView.animate(withDuration: 0.12, delay: 0, options: [.curveEaseIn], animations: {
+            sender.transform = CGAffineTransform(scaleX: 0.95, y: 0.95)
+            if isSelecting {
+                self.applySelectedChipStyle(sender)
+            } else {
+                self.applyUnselectedChipStyle(sender)
+            }
+        }) { _ in
+            UIView.animate(withDuration: 0.12, delay: 0, options: [.curveEaseOut], animations: {
+                sender.transform = .identity
+            })
         }
         validateForm()
     }
@@ -189,20 +288,37 @@ class AddRecordTableViewController: UITableViewController {
     // MARK: - Chip Styling
 
     private func applySelectedChipStyle(_ btn: UIButton) {
-        btn.backgroundColor = .systemBlue
-        btn.setTitleColor(.white, for: .normal)
+        // Deep soft blue background with System Blue text, Medium weight
+        btn.backgroundColor = UIColor.systemBlue.withAlphaComponent(0.12)
+        btn.tintColor = .systemBlue
+        btn.titleLabel?.font = UIFont.systemFont(ofSize: 13, weight: .medium)
         btn.layer.borderWidth = 0
-        btn.layer.shadowOpacity = 0.2
-        btn.layer.shadowRadius = 4
-        btn.layer.shadowOffset = CGSize(width: 0, height: 2)
+        btn.layer.shadowOpacity = 0
+        
+        // Push color via configuration if needed (iOS 15+)
+        if var config = btn.configuration {
+            config.baseForegroundColor = .systemBlue
+            btn.configuration = config
+        } else {
+            btn.setTitleColor(.systemBlue, for: .normal)
+        }
     }
 
     private func applyUnselectedChipStyle(_ btn: UIButton) {
-        btn.backgroundColor = .systemGray6
-        btn.setTitleColor(.systemBlue, for: .normal)
-        btn.layer.borderWidth = 1
-        btn.layer.borderColor = UIColor.systemBlue.cgColor
+        // Light gray background matching Segmented Controls, with Dark gray text, Regular weight
+        btn.backgroundColor = UIColor(red: 237/255.0, green: 237/255.0, blue: 242/255.0, alpha: 1.0)
+        let textColor = UIColor(red: 58/255.0, green: 58/255.0, blue: 60/255.0, alpha: 1.0)
+        btn.tintColor = textColor
+        btn.titleLabel?.font = UIFont.systemFont(ofSize: 13, weight: .regular)
+        btn.layer.borderWidth = 0
         btn.layer.shadowOpacity = 0
+        
+        if var config = btn.configuration {
+            config.baseForegroundColor = textColor
+            btn.configuration = config
+        } else {
+            btn.setTitleColor(textColor, for: .normal)
+        }
     }
 
     // MARK: - Form Configuration
@@ -281,8 +397,7 @@ class AddRecordTableViewController: UITableViewController {
     // MARK: - Save
 
     @IBAction func saveRecord(_ sender: UIBarButtonItem) {
-        guard let title = titleTextField.text, !title.isEmpty,
-              let dateString = dateTextField.text, !dateString.isEmpty,
+        guard let dateString = dateTextField.text, !dateString.isEmpty,
               duration > 0 else { return }
 
         let formatter = DateFormatter()
@@ -333,7 +448,7 @@ class AddRecordTableViewController: UITableViewController {
                 description: notes,
                 type:        severity,
                 duration:    duration,
-                title:       title,
+                title:       (oldRecord.title?.isEmpty ?? true) ? "Seizure Log" : oldRecord.title,
                 triggers:    triggers,
                 timeBucket:  timeBucket
             )
@@ -348,7 +463,7 @@ class AddRecordTableViewController: UITableViewController {
                 description: notes,
                 type:        severity,
                 duration:    duration,
-                title:       title,
+                title:       "Seizure Log",
                 triggers:    triggers,
                 timeBucket:  timeBucket
             )
@@ -366,11 +481,10 @@ class AddRecordTableViewController: UITableViewController {
     // MARK: - Validation
 
     func validateForm() {
-        let isTitleValid    = !(titleTextField.text?.isEmpty ?? true)
         let isDateValid     = !(dateTextField.text?.isEmpty ?? true)
         let isDurationValid = duration > 0
         // Triggers are optional — Unknown is auto-assigned. No gate needed.
-        saveButton.isEnabled = isTitleValid && isDateValid && isDurationValid
+        saveButton.isEnabled = isDateValid && isDurationValid
     }
 
     // MARK: - Date & Duration Pickers
@@ -419,7 +533,7 @@ class AddRecordTableViewController: UITableViewController {
             if min > 0 { parts.append("\(min) min") }
             if sec > 0 { parts.append("\(sec) sec") }
             durationLabel.text = parts.joined(separator: " ")
-            durationLabel.textColor = .label
+            durationLabel.textColor = UIColor(red: 44/255.0, green: 44/255.0, blue: 46/255.0, alpha: 1.0)
         }
     }
 

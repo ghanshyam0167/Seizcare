@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="24412" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="LyO-eI-Kam">
+    <device id="retina6_12" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="24405"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <!--Alert History-->
+        <scene sceneID="sOG-UZ-ztE">
+            <objects>
+                <tableViewController id="LyO-eI-Kam" customClass="AlertHistoryTableViewController" customModule="Seizcare" customModuleProvider="target" sceneMemberID="viewController">
+                    <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" id="39L-fO-TeI">
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <prototypes>
+                            <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="MonthlyAlertHistoryCell" rowHeight="51" id="cU5-iF-hRa" customClass="MonthlyAlertHistoryCell" customModule="Seizcare" customModuleProvider="target">
+                                <rect key="frame" x="0.0" y="50" width="393" height="51"/>
+                                <autoresizingMask key="autoresizingMask"/>
+                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="cU5-iF-hRa" id="snC-VS-CKs">
+                                    <rect key="frame" x="0.0" y="0.0" width="393" height="51"/>
+                                    <autoresizingMask key="autoresizingMask"/>
+                                    <subviews>
+                                        <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="aOJ-aJ-fzg">
+                                            <rect key="frame" x="16" y="8" width="361" height="35"/>
+                                            <subviews>
+                                                <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="6dt-ub-mR5">
+                                                    <rect key="frame" x="0.0" y="0.0" width="361" height="35"/>
+                                                </stackView>
+                                            </subviews>
+                                            <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                                            <constraints>
+                                                <constraint firstItem="6dt-ub-mR5" firstAttribute="top" secondItem="aOJ-aJ-fzg" secondAttribute="top" id="9Fh-Jk-VGa"/>
+                                                <constraint firstItem="6dt-ub-mR5" firstAttribute="leading" secondItem="aOJ-aJ-fzg" secondAttribute="leading" id="kpe-bF-E7R"/>
+                                                <constraint firstAttribute="bottom" secondItem="6dt-ub-mR5" secondAttribute="bottom" id="lBs-ln-GwW"/>
+                                                <constraint firstAttribute="trailing" secondItem="6dt-ub-mR5" secondAttribute="trailing" id="uLu-Hd-SMr"/>
+                                            </constraints>
+                                        </view>
+                                    </subviews>
+                                    <constraints>
+                                        <constraint firstItem="aOJ-aJ-fzg" firstAttribute="leading" secondItem="snC-VS-CKs" secondAttribute="leading" constant="16" id="06x-HP-Fr7"/>
+                                        <constraint firstAttribute="bottom" secondItem="aOJ-aJ-fzg" secondAttribute="bottom" constant="8" id="RLZ-bk-Qp1"/>
+                                        <constraint firstAttribute="trailing" secondItem="aOJ-aJ-fzg" secondAttribute="trailing" constant="16" id="S9S-Kv-faf"/>
+                                        <constraint firstItem="aOJ-aJ-fzg" firstAttribute="top" secondItem="snC-VS-CKs" secondAttribute="top" constant="8" id="pie-j6-9Zu"/>
+                                    </constraints>
+                                </tableViewCellContentView>
+                                <connections>
+                                    <outlet property="cardView" destination="aOJ-aJ-fzg" id="Dj8-VA-QtC"/>
+                                    <outlet property="stackView" destination="6dt-ub-mR5" id="Ykx-TC-Y0q"/>
+                                </connections>
+                            </tableViewCell>
+                        </prototypes>
+                        <connections>
+                            <outlet property="dataSource" destination="LyO-eI-Kam" id="Jol-QS-iD7"/>
+                            <outlet property="delegate" destination="LyO-eI-Kam" id="qv5-ri-0vz"/>
+                        </connections>
+                    </tableView>
+                    <navigationItem key="navigationItem" title="Alert History" id="geZ-Bb-Mq7"/>
+                </tableViewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="u1z-Fr-c4W" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="814.50381679389307" y="-52.112676056338032"/>
+        </scene>
+    </scenes>
+    <resources>
+        <systemColor name="systemBackgroundColor">
+            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
+    </resources>
+</document>

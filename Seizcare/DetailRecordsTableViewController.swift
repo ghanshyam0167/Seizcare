@@ -54,13 +54,15 @@ class DetailRecordsTableViewController: UITableViewController {
             applyDefaultTableBackground()
             navigationController?.applyWhiteNavBar()
             
-            [topCardView, bottomCardView, mainDetailsCardView, heartRateTimelineContainerView].forEach { view in
+            [bottomCardView, mainDetailsCardView, heartRateTimelineContainerView].forEach { view in
                 view?.applyDashboardCard()
-                }
+            }
+            topCardView?.backgroundColor = .clear
             descriptionTextView.delegate = self
             
             // Configure dynamic label sizing
             configureDynamicLabels()
+            refineDetailsTypographyAndStyles()
             
             // Enable automatic cell height
             tableView.rowHeight = UITableView.automaticDimension
@@ -128,6 +130,82 @@ class DetailRecordsTableViewController: UITableViewController {
             }
         }
     }
+
+    private func refineDetailsTypographyAndStyles() {
+        // 1. Titles / Section Labels
+        let labelFont = UIFont.systemFont(ofSize: 16, weight: .medium)
+        let labelColor = UIColor(red: 44/255.0, green: 44/255.0, blue: 46/255.0, alpha: 1.0) // #2C2C2E
+        
+        [durationTitleLabel, spo2TitleLabel, heartRateTitleLabel, locationTitleLabel].forEach { lbl in
+            lbl?.font = labelFont
+            lbl?.textColor = labelColor
+        }
+        
+        // 2. Values
+        let valueFont = UIFont.systemFont(ofSize: 15, weight: .regular)
+        let valueColor = UIColor(red: 58/255.0, green: 58/255.0, blue: 60/255.0, alpha: 1.0) // #3A3A3C
+        
+        [durationValueLabel, spo2ValueLabel, heartRateValueLabel, locationValueLabel].forEach { lbl in
+            lbl?.font = valueFont
+            lbl?.textColor = valueColor
+        }
+        
+        // Notes text view
+        descriptionTextView?.font = UIFont.systemFont(ofSize: 15, weight: .regular)
+        
+        // 6. Top Card 
+        seizureLevelLabel?.font = UIFont.systemFont(ofSize: 20, weight: .medium)
+        seizureLevelLabel?.textColor = UIColor.label
+        
+        dateLabel?.font = UIFont.systemFont(ofSize: 14, weight: .regular)
+        dateLabel?.textColor = UIColor.secondaryLabel
+        
+        // 3. Layout Spacing
+        [mainDetailsCardView, topCardView, bottomCardView].forEach { card in
+            guard let card = card else { return }
+            increaseStackViewSpacing(in: card)
+        }
+    }
+
+    private func increaseStackViewSpacing(in view: UIView) {
+        for subview in view.subviews {
+            if let stack = subview as? UIStackView {
+                if stack.axis == .vertical && stack.spacing < 14 {
+                    stack.spacing = 16
+                }
+            }
+            increaseStackViewSpacing(in: subview)
+        }
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        [mainDetailsCardView, bottomCardView, topCardView].forEach { card in
+            guard let card = card else { return }
+            adjustDividersAndMiscLabels(in: card)
+        }
+    }
+
+    private func adjustDividersAndMiscLabels(in view: UIView) {
+        for subview in view.subviews {
+            // Divider Lines condition
+            if subview.frame.height > 0 && subview.frame.height <= 2.0 && subview.backgroundColor != .clear && !(subview is UILabel) && !(subview is UITextView) && !(subview is UIImageView) {
+                subview.backgroundColor = UIColor(white: 0.65, alpha: 0.25)
+                for constraint in subview.constraints where constraint.firstAttribute == .height {
+                    constraint.constant = 0.5
+                }
+            }
+            
+            // Notes Label condition
+            if let lbl = subview as? UILabel, lbl.text == "Notes" || lbl.text == "Description" {
+                lbl.font = UIFont.systemFont(ofSize: 17, weight: .medium)
+                lbl.textColor = UIColor(red: 44/255.0, green: 44/255.0, blue: 46/255.0, alpha: 1.0)
+            }
+            
+            adjustDividersAndMiscLabels(in: subview)
+        }
+    }
+
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
@@ -362,7 +440,7 @@ class DetailRecordsTableViewController: UITableViewController {
 
         //  Automatic record display
         func configureAutomatic(_ record: SeizureRecord) {
-
+            seizureLevelLabel.isHidden = false
             seizureLevelLabel.text = record.type?.rawValue.capitalized
 
             durationTitleLabel.text = "Duration"
@@ -389,7 +467,9 @@ class DetailRecordsTableViewController: UITableViewController {
         //  Manual record display (same UI, changed meaning)
         func configureManual(_ record: SeizureRecord) {
 
-            seizureLevelLabel.text = record.title ?? "Manual Log"
+            seizureLevelLabel.isHidden = true
+            dateLabel.font = UIFont.systemFont(ofSize: 18, weight: .medium)
+            dateLabel.textColor = .label
 
             durationTitleLabel.text = "Seizure Level"
             durationValueLabel.text = record.type?.rawValue.capitalized ?? "Not available"
