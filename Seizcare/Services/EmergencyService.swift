@@ -117,6 +117,12 @@ class EmergencyService {
                 // --- Add Notification to History ---
                 DispatchQueue.main.async {
                     NotificationDataModel.shared.addNotification(type: .emergencyAlert)
+                    
+                    // Present feedback if the app is in foreground
+                    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                       let rootVC = windowScene.windows.first(where: { $0.isKeyWindow })?.rootViewController {
+                        AlertManager.shared.presentPendingFeedbackIfNeeded(from: rootVC)
+                    }
                 }
             } else {
                 print("⚠️ [EmergencyService] Response (\(statusCode)): \(body)")

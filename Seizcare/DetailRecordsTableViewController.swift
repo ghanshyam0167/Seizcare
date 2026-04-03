@@ -128,9 +128,14 @@ class DetailRecordsTableViewController: UITableViewController {
         }
     }
 
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        configureNavigationBarButton()
+    }
+
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-            view.endEditing(true)
+        view.endEditing(true)
     }
     private func applyRecord() {
         guard let record else { return }
@@ -171,13 +176,65 @@ class DetailRecordsTableViewController: UITableViewController {
                 action: #selector(editTapped)
             )
         } else {
-            navigationItem.rightBarButtonItem = UIBarButtonItem(
+            let shareItem = UIBarButtonItem(
                 image: UIImage(systemName: "square.and.arrow.up"),
                 style: .plain,
                 target: self,
                 action: #selector(shareTapped)
             )
+            
+            // Add Feedback Label option for automatic records if a matching ML session exists
+            if let matchingSession = findDetectionSession(for: record) {
+                let currentLabelTitle = matchingSession.feedbackLabel?.displayTitle ?? "Add Label"
+                let feedbackItem = UIBarButtonItem(
+                    title: currentLabelTitle,
+                    style: .plain,
+                    target: self,
+                    action: #selector(feedbackTapped)
+                )
+                
+                // Style it depending on whether we have a label
+                if matchingSession.feedbackLabel != nil {
+                    feedbackItem.tintColor = .systemGreen
+                } else {
+                    feedbackItem.tintColor = .systemBlue
+                }
+                
+                navigationItem.rightBarButtonItems = [shareItem, feedbackItem]
+            } else {
+                navigationItem.rightBarButtonItems = [shareItem]
+            }
         }
+    }
+    
+    private func findDetectionSession(for record: SeizureRecord) -> DetectionSession? {
+        let sessions = DetectionSessionStore.shared.allSessions()
+        var closest: DetectionSession?
+        var minDiff: TimeInterval = 300 // within 5 minutes
+        for s in sessions {
+            let diff = abs(s.timestamp.timeIntervalSince(record.dateTime))
+            if diff < minDiff {
+                minDiff = diff
+                closest = s
+            }
+        }
+        return closest
+    }
+    
+    @objc private func feedbackTapped() {
+        guard let record = record, let session = findDetectionSession(for: record) else { return }
+        let vc = FeedbackViewController(sessionID: session.id, source: "history", initialLabel: session.feedbackLabel)
+        
+        vc.modalPresentationStyle = .pageSheet
+        if let sheet = vc.sheetPresentationController {
+            sheet.detents = [.medium()]
+            sheet.prefersGrabberVisible = true
+        }
+        
+        // When feedback is done, it dismisses. We can refresh the UI by adding an observer or just waiting.
+        // the easiest way is to add a small delay and refresh, or let the user re-open.
+        // Let's add an action handler to vc if it had one, or just refresh on viewWillAppear.
+        present(vc, animated: true)
     }
     @objc private func editTapped() {
         guard let record else { return }

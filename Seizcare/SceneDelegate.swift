@@ -35,6 +35,14 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     func sceneDidBecomeActive(_ scene: UIScene) {
         // Called when the scene has moved from an inactive state to an active state.
         // Use this method to restart any tasks that were paused (or not yet started) when the scene was inactive.
+        
+        // Present pending post-alert feedback if there is an unresolved session
+        if let windowScene = scene as? UIWindowScene, let rootVC = windowScene.windows.first(where: { $0.isKeyWindow })?.rootViewController {
+            AlertManager.shared.presentPendingFeedbackIfNeeded(from: rootVC)
+        }
+        
+        // Trigger offline sync for unpushed sessions
+        DetectionSessionStore.shared.syncPendingToSupabase()
     }
 
     func sceneWillResignActive(_ scene: UIScene) {
