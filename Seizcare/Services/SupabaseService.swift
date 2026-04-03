@@ -461,6 +461,15 @@ final class SupabaseService {
             .insert(dto)
             .execute()
     }
+    
+    // MARK: - Detection Sessions
+
+    func upsertDetectionSession(_ dto: DetectionSessionDTO) async throws {
+        try await client
+            .from("detection_sessions")
+            .upsert(dto)
+            .execute()
+    }
 }
 
 // MARK: - SupabaseServiceError
@@ -755,5 +764,64 @@ struct LanguageDTO: Codable {
         self.id = nil
         self.userId = userId
         self.languageCode = languageCode
+    }
+}
+
+// MARK: - Detection Session Table (ML Logs)
+
+struct DetectionSessionDTO: Codable {
+    let id: UUID
+    let userId: UUID
+    let timestamp: Date
+    let decision: String
+    let artifactProb: Double
+    let seizureProb: Double
+    let smoothedProb: Double
+    let activityClass: String
+    let sensitivityLevel: String
+    let thresholdUsed: Double
+    let isAsleep: Bool
+    let isWorkoutActive: Bool
+    let hrConfirmed: Bool
+    let reason: String
+    let featureSnapshot: [String: Double]
+    let labelHistory: [FeedbackProvenance]
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case userId           = "user_id"
+        case timestamp        = "event_timestamp"
+        case decision
+        case artifactProb     = "artifact_prob"
+        case seizureProb      = "seizure_prob"
+        case smoothedProb     = "smoothed_prob"
+        case activityClass    = "activity_class"
+        case sensitivityLevel = "sensitivity_level"
+        case thresholdUsed    = "threshold_used"
+        case isAsleep         = "is_asleep"
+        case isWorkoutActive  = "is_workout_active"
+        case hrConfirmed      = "hr_confirmed"
+        case reason
+        case featureSnapshot  = "feature_snapshot"
+        case labelHistory     = "label_history"
+    }
+    
+    init(from session: DetectionSession, userId: UUID) {
+        self.id               = session.id
+        self.userId           = userId
+        self.timestamp        = session.timestamp
+        self.decision         = session.decision.rawValue
+        self.artifactProb     = session.artifactProb
+        self.seizureProb      = session.seizureProb
+        self.smoothedProb     = session.smoothedProb
+        self.activityClass    = session.activityClass
+        self.sensitivityLevel = session.sensitivityLevel
+        self.thresholdUsed    = session.thresholdUsed
+        self.isAsleep         = session.isAsleep
+        self.isWorkoutActive  = session.isWorkoutActive
+        self.hrConfirmed      = session.hrConfirmed
+        self.reason           = session.reason
+        self.featureSnapshot  = session.featureSnapshot
+        self.labelHistory     = session.labelHistory
     }
 }

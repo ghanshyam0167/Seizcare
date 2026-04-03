@@ -145,7 +145,7 @@ final class RecordRowView: UIView {
         iconView?.tintColor = icon.tintColor
 
         if record.entryType == .manual {
-            titleLabel?.text = record.title ?? "Manual Log"
+            titleLabel?.text = "Manual Record"
         } else {
             titleLabel?.text = record.type?.rawValue.capitalized ?? "Seizure"
         }

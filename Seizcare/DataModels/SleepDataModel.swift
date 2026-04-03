@@ -106,7 +106,13 @@ final class SleepDataModel {
     }
 
     func getAverageSleepLastMonth() -> Double {
-        let data = getDailySleepData().map { $0.hours }
+        let cal = Calendar.current
+        guard let rolling30Days = cal.date(byAdding: .day, value: -30, to: Date()) else { return 0 }
+        
+        let data = getDailySleepData()
+            .filter { $0.date >= rolling30Days }
+            .map { $0.hours }
+            
         guard !data.isEmpty else { return 0 }
         return data.reduce(0, +) / Double(data.count)
     }

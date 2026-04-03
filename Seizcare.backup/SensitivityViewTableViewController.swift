@@ -1,0 +1,275 @@
+import UIKit
+import Combine
+
+class SensitivityViewTableViewController: UIViewController {
+
+    // MARK: - Data
+    private let sensitivities = ["Low", "Medium", "High"]
+
+    private let descriptions = [
+        "Triggers alerts only for strong seizure patterns",
+        "Balanced detection for everyday use",
+        "Highly sensitive, detects even mild activity"
+    ]
+
+    private var selectedIndex = 1 // Default = Medium
+    private var cancellables = Set<AnyCancellable>()
+
+    // MARK: - Views
+    private let cardView: UIView = {
+        let v = UIView()
+        // Pure white card background
+        v.backgroundColor = .white
+        v.layer.cornerRadius = 20
+        v.layer.masksToBounds = false
+        // Subtle shadow for elevation
+        v.layer.shadowColor = UIColor.black.cgColor
+        v.layer.shadowOpacity = 0.06
+        v.layer.shadowOffset = CGSize(width: 0, height: 2)
+        v.layer.shadowRadius = 8
+        return v
+    }()
+
+    private let stackView: UIStackView = {
+        let sv = UIStackView()
+        sv.axis = .vertical
+        sv.alignment = .fill
+        sv.distribution = .fill
+        sv.spacing = 0
+        sv.isLayoutMarginsRelativeArrangement = true
+        sv.layoutMargins = UIEdgeInsets(top: 12, left: 0, bottom: 12, right: 0)
+        return sv
+    }()
+
+    private var rowControls: [SensitivityRowView] = []
+
+    // MARK: - Lifecycle
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        // Title centered in nav bar
+        let titleLabel = UILabel()
+        titleLabel.text = "Sensitivity"
+        titleLabel.font = .systemFont(ofSize: 17, weight: .semibold)
+        titleLabel.textColor = .label
+        titleLabel.textAlignment = .center
+        navigationItem.titleView = titleLabel
+
+        view.backgroundColor = .systemGroupedBackground
+
+        loadSavedPreference()
+        setupViews()
+        
+        // Listen to Watch connectivity changes to sensitivity while this screen is open
+        SettingsManager.shared.$sensitivity
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] newSensitivity in
+                guard let self = self else { return }
+                guard let newIndex = self.sensitivities.firstIndex(of: newSensitivity) else { return }
+                if newIndex != self.selectedIndex {
+                    let prev = self.selectedIndex
+                    self.selectedIndex = newIndex
+                    self.rowControls[prev].setChecked(false, animated: true)
+                    self.rowControls[self.selectedIndex].setChecked(true, animated: true)
+                }
+            }
+            .store(in: &cancellables)
+    }
+
+    // MARK: - Setup
+
+    private func setupViews() {
+        view.addSubview(cardView)
+        cardView.translatesAutoresizingMaskIntoConstraints = false
+
+        // Horizontal padding 16–20pt, use 16
+        NSLayoutConstraint.activate([
+            cardView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            cardView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
+            cardView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 24)
+        ])
+
+        // Build stack
+        cardView.addSubview(stackView)
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            stackView.leadingAnchor.constraint(equalTo: cardView.leadingAnchor),
+            stackView.trailingAnchor.constraint(equalTo: cardView.trailingAnchor),
+            stackView.topAnchor.constraint(equalTo: cardView.topAnchor),
+            stackView.bottomAnchor.constraint(equalTo: cardView.bottomAnchor)
+        ])
+
+        // Create rows
+        for i in 0..<sensitivities.count {
+            let row = SensitivityRowView(title: sensitivities[i], subtitle: descriptions[i])
+            row.tag = i
+            row.translatesAutoresizingMaskIntoConstraints = false
+            row.heightAnchor.constraint(greaterThanOrEqualToConstant: 68).isActive = true
+            row.addTarget(self, action: #selector(rowTapped(_:)), for: .touchUpInside)
+            rowControls.append(row)
+
+            stackView.addArrangedSubview(row)
+
+            if i < sensitivities.count - 1 {
+                let divWrap = UIView()
+                divWrap.translatesAutoresizingMaskIntoConstraints = false
+                
+                let divider = UIView()
+                divider.backgroundColor = UIColor.separator.withAlphaComponent(0.4)
+                divider.translatesAutoresizingMaskIntoConstraints = false
+                divWrap.addSubview(divider)
+                
+                NSLayoutConstraint.activate([
+                    divider.leadingAnchor.constraint(equalTo: divWrap.leadingAnchor, constant: 16),
+                    divider.trailingAnchor.constraint(equalTo: divWrap.trailingAnchor),
+                    divider.topAnchor.constraint(equalTo: divWrap.topAnchor),
+                    divider.bottomAnchor.constraint(equalTo: divWrap.bottomAnchor),
+                    divider.heightAnchor.constraint(equalToConstant: 0.5)
+                ])
+                stackView.addArrangedSubview(divWrap)
+            }
+        }
+
+        // Ensure selected state reflects saved index
+        for (i, r) in rowControls.enumerated() {
+            r.setChecked(i == selectedIndex, animated: false)
+        }
+    }
+
+    // MARK: - Actions
+
+    @objc private func rowTapped(_ sender: SensitivityRowView) {
+        let index = sender.tag
+        guard index != selectedIndex else { return }
+
+        let previous = selectedIndex
+        selectedIndex = index
+
+        // Persist
+        let selectedSensitivityString = sensitivities[selectedIndex].lowercased()
+        
+        // Tell WatchConnectivity / SettingsManager
+        SettingsManager.shared.sensitivity = sensitivities[selectedIndex]
+        
+        if let newLevel = SensitivityLevel(rawValue: selectedSensitivityString) {
+            if UserDataModel.shared.getCurrentUser() == nil {
+                // Not signed in yet — save to temporary onboarding preferences
+                OnboardingPreferences.shared.sensitivity = newLevel
+            } else {
+                // Signed in — save to database
+                SensitivityDataModel.shared.setSensitivity(level: newLevel)
+            }
+        }
+
+        // Animate change
+        rowControls[previous].setChecked(false, animated: true)
+        rowControls[selectedIndex].setChecked(true, animated: true)
+    }
+
+    // MARK: - Persistence
+
+    private func loadSavedPreference() {
+        let savedLevel: String
+        if UserDataModel.shared.getCurrentUser() == nil {
+            // Not signed in yet — load from temporary onboarding preferences
+            savedLevel = OnboardingPreferences.shared.sensitivity.rawValue.capitalized
+        } else {
+            // Signed in — load from cache
+            savedLevel = SensitivityDataModel.shared.getCurrentSensitivity().rawValue.capitalized
+        }
+
+        if let index = sensitivities.firstIndex(of: savedLevel) {
+            selectedIndex = index
+        }
+    }
+}
+
+// MARK: - SensitivityRowView
+
+private class SensitivityRowView: UIControl {
+    private let titleLabel = UILabel()
+    private let subtitleLabel = UILabel()
+    private let checkImageView = UIImageView()
+
+    init(title: String, subtitle: String) {
+        super.init(frame: .zero)
+        setup(title: title, subtitle: subtitle)
+    }
+
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        setup(title: "", subtitle: "")
+    }
+
+    private func setup(title: String, subtitle: String) {
+        // UIControl configuration for reliable touch detection
+        self.isUserInteractionEnabled = true
+        self.isExclusiveTouch = true
+        self.backgroundColor = .clear
+        
+        // Accessibility
+        isAccessibilityElement = true
+        accessibilityTraits = .button
+
+        // Title Label
+        titleLabel.text = title
+        titleLabel.font = .systemFont(ofSize: 17, weight: .semibold)
+        titleLabel.textColor = .label
+
+        // Subtitle Label
+        subtitleLabel.text = subtitle
+        subtitleLabel.font = .systemFont(ofSize: 14, weight: .regular)
+        subtitleLabel.textColor = .secondaryLabel
+        subtitleLabel.numberOfLines = 0
+
+        // Checkmark ImageView
+        checkImageView.image = UIImage(systemName: "checkmark")
+        checkImageView.tintColor = .systemBlue
+        checkImageView.contentMode = .scaleAspectFit
+        checkImageView.alpha = 0
+
+        // Labels vertical stack
+        let labelsStack = UIStackView(arrangedSubviews: [titleLabel, subtitleLabel])
+        labelsStack.axis = .vertical
+        labelsStack.spacing = 4
+        labelsStack.alignment = .leading
+        labelsStack.isUserInteractionEnabled = false
+
+        // Main horizontal stack
+        let hStack = UIStackView(arrangedSubviews: [labelsStack, checkImageView])
+        hStack.axis = .horizontal
+        hStack.alignment = .center
+        hStack.distribution = .fill
+        hStack.spacing = 12
+        hStack.isUserInteractionEnabled = false
+
+        addSubview(hStack)
+        hStack.translatesAutoresizingMaskIntoConstraints = false
+        checkImageView.translatesAutoresizingMaskIntoConstraints = false
+
+        NSLayoutConstraint.activate([
+            hStack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+            hStack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+            hStack.topAnchor.constraint(equalTo: topAnchor, constant: 14),
+            hStack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -14),
+
+            checkImageView.widthAnchor.constraint(equalToConstant: 24),
+            checkImageView.heightAnchor.constraint(equalToConstant: 24)
+        ])
+    }
+
+    func setChecked(_ checked: Bool, animated: Bool) {
+        let animations = {
+            self.checkImageView.alpha = checked ? 1.0 : 0.0
+        }
+
+        if animated {
+            UIView.transition(with: checkImageView, duration: 0.22, options: [.transitionCrossDissolve], animations: animations, completion: nil)
+        } else {
+            animations()
+        }
+        accessibilityValue = checked ? "Selected" : "Not selected"
+    }
+}
+

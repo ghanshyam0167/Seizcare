@@ -7,7 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		05983B6E2F71CB0A00D14BE0 /* SeizureModel.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 05983B6D2F71CB0A00D14BE0 /* SeizureModel.mlmodel */; };
+		66167CC202CE754FE3E7A361 /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D7ACE81DD606D84A5738F484 /* CoreMotion.framework */; };
+		90B26900D0C3C7436E3F2079 /* SeizureModel.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 05983B6D2F71CB0A00D14BE0 /* SeizureModel.mlmodel */; };
+		C679A1DF053E5AD2DE3D33CF /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 95A2F0ABC5B8F6B6C1B48479 /* Accelerate.framework */; };
 		C9A4321E2F6169D100BC09A9 /* SeizcareWatch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = C9A432142F6169D000BC09A9 /* SeizcareWatch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		D81DEE432F616E8D00C736E5 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = D81DEE422F616E8D00C736E5 /* Supabase */; };
 /* End PBXBuildFile section */
@@ -39,7 +41,9 @@
 /* Begin PBXFileReference section */
 		05983B6D2F71CB0A00D14BE0 /* SeizureModel.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; path = SeizureModel.mlmodel; sourceTree = "<group>"; };
 		3F9A8C232ECD7CB500DF37E6 /* Seizcare.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Seizcare.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		95A2F0ABC5B8F6B6C1B48479 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		C9A432142F6169D000BC09A9 /* SeizcareWatch Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "SeizcareWatch Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		D7ACE81DD606D84A5738F484 /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = System/Library/Frameworks/CoreMotion.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -74,6 +78,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D81DEE432F616E8D00C736E5 /* Supabase in Frameworks */,
+				C679A1DF053E5AD2DE3D33CF /* Accelerate.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -81,12 +86,22 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				66167CC202CE754FE3E7A361 /* CoreMotion.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		2AFABFA6A03FE4468500207B /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				95A2F0ABC5B8F6B6C1B48479 /* Accelerate.framework */,
+				D7ACE81DD606D84A5738F484 /* CoreMotion.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		3F9A8C1A2ECD7CB500DF37E6 = {
 			isa = PBXGroup;
 			children = (
@@ -94,6 +109,7 @@
 				3F9A8C252ECD7CB500DF37E6 /* Seizcare */,
 				C9A432152F6169D000BC09A9 /* SeizcareWatch Watch App */,
 				3F9A8C242ECD7CB500DF37E6 /* Products */,
+				2AFABFA6A03FE4468500207B /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -150,8 +166,6 @@
 				C9A432152F6169D000BC09A9 /* SeizcareWatch Watch App */,
 			);
 			name = "SeizcareWatch Watch App";
-			packageProductDependencies = (
-			);
 			productName = "SeizcareWatch Watch App";
 			productReference = C9A432142F6169D000BC09A9 /* SeizcareWatch Watch App.app */;
 			productType = "com.apple.product-type.application";
@@ -220,7 +234,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				05983B6E2F71CB0A00D14BE0 /* SeizureModel.mlmodel in Sources */,
+				90B26900D0C3C7436E3F2079 /* SeizureModel.mlmodel in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -251,7 +265,7 @@
 				CODE_SIGN_ENTITLEMENTS = Seizcare/Seizcare.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = WQ98R62YF4;
+				DEVELOPMENT_TEAM = HTW9G6WB72;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Seizcare/Info.plist;
 				INFOPLIST_KEY_NSContactsUsageDescription = "Seizcare needs access to your contacts so you can add emergency contacts who will be notified during a seizure event.";
@@ -292,7 +306,7 @@
 				CODE_SIGN_ENTITLEMENTS = Seizcare/Seizcare.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = WQ98R62YF4;
+				DEVELOPMENT_TEAM = HTW9G6WB72;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Seizcare/Info.plist;
 				INFOPLIST_KEY_NSContactsUsageDescription = "Seizcare needs access to your contacts so you can add emergency contacts who will be notified during a seizure event.";
@@ -451,7 +465,7 @@
 				CODE_SIGN_ENTITLEMENTS = "SeizcareWatch Watch App/SeizcareWatch Watch App.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = WQ98R62YF4;
+				DEVELOPMENT_TEAM = HTW9G6WB72;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = SeizcareWatch;
@@ -488,7 +502,7 @@
 				CODE_SIGN_ENTITLEMENTS = "SeizcareWatch Watch App/SeizcareWatch Watch App.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = WQ98R62YF4;
+				DEVELOPMENT_TEAM = HTW9G6WB72;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = SeizcareWatch;

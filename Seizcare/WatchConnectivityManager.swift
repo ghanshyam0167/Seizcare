@@ -215,20 +215,24 @@ class WatchConnectivityManager: NSObject, WCSessionDelegate, ObservableObject {
 
     nonisolated func session(_ session: WCSession, didReceiveMessage message: [String: Any]) {
         print("📨 [WCM-iPhone] Received sendMessage from Watch: \(message)")
-        handleIncomingPayload(message)
+        Task { @MainActor in
+            self.handleIncomingPayload(message)
+        }
     }
 
     /// Handles the transferUserInfo fallback (used when iPhone is in background / not reachable).
     nonisolated func session(_ session: WCSession, didReceiveUserInfo userInfo: [String: Any]) {
         print("📦 [WCM-iPhone] Received transferUserInfo from Watch: \(userInfo)")
-        handleIncomingPayload(userInfo)
+        Task { @MainActor in
+            self.handleIncomingPayload(userInfo)
+        }
     }
 
     /// Handles received application context (two-way sync from watch)
     nonisolated func session(_ session: WCSession, didReceiveApplicationContext applicationContext: [String : Any]) {
         print("🔄 [WCM-iPhone] Received application context from Watch: \(applicationContext)")
-        handleIncomingPayload(applicationContext)
-        DispatchQueue.main.async {
+        Task { @MainActor in
+            self.handleIncomingPayload(applicationContext)
             WatchConnectivityManager.shared.printDebugStatus()
         }
     }
@@ -264,14 +268,12 @@ class WatchConnectivityManager: NSObject, WCSessionDelegate, ObservableObject {
             sleepValue = sleepHours
             foundHealthData = true
             print("📥 [WCM-iPhone] Received sleep data from Watch: \(String(format: "%.1f", sleepHours)) hrs")
-            // Update the legacy property just in case
             DispatchQueue.main.async { self.sleepHours = sleepHours }
-            // Update the new HealthDataManager for real-time UI refresh
             HealthDataManager.shared.updateSleepData(hours: sleepHours)
-            
-            // Post notification for UIKit Dashboard
             print("📣 [WCM-iPhone] Posting NotificationCenter broadcast: didReceiveSleepData")
             NotificationCenter.default.post(name: .didReceiveSleepData, object: nil, userInfo: ["sleepHours": sleepHours])
+            // Update detection context with new sleep data
+            SeizureDetectionManager.shared.updateContext(sleepHours: sleepHours)
         }
         
         if foundHealthData {
@@ -281,8 +283,62 @@ class WatchConnectivityManager: NSObject, WCSessionDelegate, ObservableObject {
         if let sensitivity = payload["sensitivity"] as? String {
             print("📊 [WCM-iPhone] Sensitivity from Watch: \(sensitivity)")
             SettingsManager.shared.updateSensitivity(fromWatch: sensitivity)
+            // Sync sensitivity level to detection context
+            if let level = SensitivityLevel(rawValue: sensitivity.lowercased()) {
+                SeizureDetectionManager.shared.updateContext(sensitivity: level)
+            }
         } else if payload["emergencyAlert"] == nil && payload["heartRate"] == nil && !foundHealthData {
             print("ℹ️ [WCM-iPhone] Unhandled payload: \(payload)")
+        }
+
+        // ─────────────────────────────────────────────────────────────────
+        // Detection Pipeline — batch sensor routing
+        //
+        // The Watch sends a "sensorBatch" every 2 seconds containing ~100
+        // [ax, ay, az, gx, gy, gz, timestamp] arrays collected at ~50 Hz.
+        // HR is provided separately via "heartRate" (already extracted above).
+        // ─────────────────────────────────────────────────────────────────
+        if let batch = payload["sensorBatch"] as? [[Double]] {
+            var samples: [SensorSample] = []
+            samples.reserveCapacity(batch.count)
+            for row in batch {
+                guard row.count >= 7 else { continue }
+                samples.append(SensorSample(
+                    timestamp: row[6],
+                    ax: row[0], ay: row[1], az: row[2],
+                    gx: row[3], gy: row[4], gz: row[5],
+                    hr: hrValue > 0 ? hrValue : nil
+                ))
+            }
+            if !samples.isEmpty {
+                print("🧠 [WCM-iPhone] Forwarding batch of \(samples.count) samples → SeizureDetectionManager")
+                SeizureDetectionManager.shared.processBatch(samples)
+                // Keep HR baseline context current
+                if hrValue > 0 {
+                    let motionSMA = samples.map { $0.accelMagnitude }.reduce(0, +) / Double(samples.count)
+                    SeizureDetectionManager.shared.updateContext(latestHR: hrValue, latestMotionSMA: motionSMA)
+                }
+            }
+        }
+        // Backward-compatible single-sample path (pre-batch Watch builds)
+        else if let ax = payload["ax"] as? Double,
+                let ay = payload["ay"] as? Double,
+                let az = payload["az"] as? Double,
+                let timestamp = payload["timestamp"] as? Double {
+            let sample = SensorSample(
+                timestamp: timestamp,
+                ax: ax,
+                ay: ay,
+                az: az,
+                gx: payload["gx"] as? Double ?? 0,
+                gy: payload["gy"] as? Double ?? 0,
+                gz: payload["gz"] as? Double ?? 0,
+                hr: hrValue > 0 ? hrValue : nil
+            )
+
+            print("🧠 Sending sample to SeizureDetectionManager")
+
+            SeizureDetectionManager.shared.processSample(sample: sample)
         }
     }
 }

@@ -49,8 +49,6 @@ class WatchConnectivityManager: NSObject, WCSessionDelegate {
         }
     }
     
-    // MARK: - WCSessionDelegate
-    
     // nonisolated needed because watchOS also has SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor
     nonisolated func session(_ session: WCSession,
                              activationDidCompleteWith activationState: WCSessionActivationState,
@@ -64,10 +62,14 @@ class WatchConnectivityManager: NSObject, WCSessionDelegate {
         print("⌚️ [WCM-Watch] isReachable: \(session.isReachable)")
         
         // Flush any emergency that was triggered before activation finished
-        if activationState == .activated && pendingEmergency {
-            print("🚨 [WCM-Watch] Sending queued emergency alert after activation")
-            pendingEmergency = false
-            dispatchEmergency()
+        if activationState == .activated {
+            Task { @MainActor in
+                if self.pendingEmergency {
+                    print("🚨 [WCM-Watch] Sending queued emergency alert after activation")
+                    self.pendingEmergency = false
+                    self.dispatchEmergency()
+                }
+            }
         }
     }
     
@@ -76,9 +78,11 @@ class WatchConnectivityManager: NSObject, WCSessionDelegate {
         print("🔄 [WCM-Watch] Received application context from iPhone: \(applicationContext)")
         if let sensitivity = applicationContext["sensitivity"] as? String {
             print("📊 [WCM-Watch] Received sensitivity update: \(sensitivity)")
-            SettingsManager.shared.updateSensitivity(fromiPhone: sensitivity)
+            Task { @MainActor in
+                SettingsManager.shared.updateSensitivity(fromiPhone: sensitivity)
+            }
         }
-        DispatchQueue.main.async {
+        Task { @MainActor in
             WatchConnectivityManager.shared.printDebugStatus()
         }
     }
@@ -158,6 +162,34 @@ class WatchConnectivityManager: NSObject, WCSessionDelegate {
         }
     }
     
+    /// Send a batch of motion samples to the iPhone.
+    /// Format: [[ax, ay, az, gx, gy, gz, timestamp], ...] — called by MotionCollector every 2s.
+    /// Includes the latest heart rate so the iPhone can associate HR with the motion window.
+    func sendMotionBatch(_ batch: [[Double]]) {
+        guard !batch.isEmpty else { return }
+        guard WCSession.default.activationState == .activated,
+              WCSession.default.isCompanionAppInstalled else {
+            print("⚠️ [WCM-Watch] Cannot send motion batch — session not ready")
+            return
+        }
+        
+        var payload: [String: Any] = ["sensorBatch": batch]
+        
+        // Include latest HR reading alongside the batch
+        if let hr = HealthKitManager.shared.healthData.heartRate {
+            payload["heartRate"] = hr
+        }
+        
+        if WCSession.default.isReachable {
+            WCSession.default.sendMessage(payload, replyHandler: nil) { error in
+                print("❌ [WCM-Watch] sendMotionBatch failed: \(error.localizedDescription)")
+            }
+        } else {
+            // iPhone not reachable — transferUserInfo guarantees delivery in background
+            WCSession.default.transferUserInfo(payload)
+        }
+    }
+
     // MARK: - Private helpers
     
     /// Dispatches the emergency via the best available WCSession channel.

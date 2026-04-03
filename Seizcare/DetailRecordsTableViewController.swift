@@ -8,6 +8,7 @@
 import UIKit
 import Charts
 import SwiftUI
+import HealthKit
 
 class DetailRecordsTableViewController: UITableViewController {
 
@@ -53,13 +54,15 @@ class DetailRecordsTableViewController: UITableViewController {
             applyDefaultTableBackground()
             navigationController?.applyWhiteNavBar()
             
-            [topCardView, bottomCardView, mainDetailsCardView, heartRateTimelineContainerView].forEach { view in
+            [bottomCardView, mainDetailsCardView, heartRateTimelineContainerView].forEach { view in
                 view?.applyDashboardCard()
-                }
+            }
+            topCardView?.backgroundColor = .clear
             descriptionTextView.delegate = self
             
             // Configure dynamic label sizing
             configureDynamicLabels()
+            refineDetailsTypographyAndStyles()
             
             // Enable automatic cell height
             tableView.rowHeight = UITableView.automaticDimension
@@ -128,9 +131,90 @@ class DetailRecordsTableViewController: UITableViewController {
         }
     }
 
+    private func refineDetailsTypographyAndStyles() {
+        // 1. Titles / Section Labels
+        let labelFont = UIFont.systemFont(ofSize: 16, weight: .medium)
+        let labelColor = UIColor(red: 44/255.0, green: 44/255.0, blue: 46/255.0, alpha: 1.0) // #2C2C2E
+        
+        [durationTitleLabel, spo2TitleLabel, heartRateTitleLabel, locationTitleLabel].forEach { lbl in
+            lbl?.font = labelFont
+            lbl?.textColor = labelColor
+        }
+        
+        // 2. Values
+        let valueFont = UIFont.systemFont(ofSize: 15, weight: .regular)
+        let valueColor = UIColor(red: 58/255.0, green: 58/255.0, blue: 60/255.0, alpha: 1.0) // #3A3A3C
+        
+        [durationValueLabel, spo2ValueLabel, heartRateValueLabel, locationValueLabel].forEach { lbl in
+            lbl?.font = valueFont
+            lbl?.textColor = valueColor
+        }
+        
+        // Notes text view
+        descriptionTextView?.font = UIFont.systemFont(ofSize: 15, weight: .regular)
+        
+        // 6. Top Card 
+        seizureLevelLabel?.font = UIFont.systemFont(ofSize: 20, weight: .medium)
+        seizureLevelLabel?.textColor = UIColor.label
+        
+        dateLabel?.font = UIFont.systemFont(ofSize: 14, weight: .regular)
+        dateLabel?.textColor = UIColor.secondaryLabel
+        
+        // 3. Layout Spacing
+        [mainDetailsCardView, topCardView, bottomCardView].forEach { card in
+            guard let card = card else { return }
+            increaseStackViewSpacing(in: card)
+        }
+    }
+
+    private func increaseStackViewSpacing(in view: UIView) {
+        for subview in view.subviews {
+            if let stack = subview as? UIStackView {
+                if stack.axis == .vertical && stack.spacing < 14 {
+                    stack.spacing = 16
+                }
+            }
+            increaseStackViewSpacing(in: subview)
+        }
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        [mainDetailsCardView, bottomCardView, topCardView].forEach { card in
+            guard let card = card else { return }
+            adjustDividersAndMiscLabels(in: card)
+        }
+    }
+
+    private func adjustDividersAndMiscLabels(in view: UIView) {
+        for subview in view.subviews {
+            // Divider Lines condition
+            if subview.frame.height > 0 && subview.frame.height <= 2.0 && subview.backgroundColor != .clear && !(subview is UILabel) && !(subview is UITextView) && !(subview is UIImageView) {
+                subview.backgroundColor = UIColor(white: 0.65, alpha: 0.25)
+                for constraint in subview.constraints where constraint.firstAttribute == .height {
+                    constraint.constant = 0.5
+                }
+            }
+            
+            // Notes Label condition
+            if let lbl = subview as? UILabel, lbl.text == "Notes" || lbl.text == "Description" {
+                lbl.font = UIFont.systemFont(ofSize: 17, weight: .medium)
+                lbl.textColor = UIColor(red: 44/255.0, green: 44/255.0, blue: 46/255.0, alpha: 1.0)
+            }
+            
+            adjustDividersAndMiscLabels(in: subview)
+        }
+    }
+
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        configureNavigationBarButton()
+    }
+
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-            view.endEditing(true)
+        view.endEditing(true)
     }
     private func applyRecord() {
         guard let record else { return }
@@ -149,11 +233,10 @@ class DetailRecordsTableViewController: UITableViewController {
 
         if record.entryType == .automatic {
             configureAutomatic(record)
-            setupHeartRateChart(for: record)
         } else {
             configureManual(record)
-            hideHeartRateChart()
         }
+        setupHeartRateChart(for: record)
         // SpO2 chart section is permanently hidden
         spo2ChartContainerView.isHidden = true
 
@@ -171,13 +254,65 @@ class DetailRecordsTableViewController: UITableViewController {
                 action: #selector(editTapped)
             )
         } else {
-            navigationItem.rightBarButtonItem = UIBarButtonItem(
+            let shareItem = UIBarButtonItem(
                 image: UIImage(systemName: "square.and.arrow.up"),
                 style: .plain,
                 target: self,
                 action: #selector(shareTapped)
             )
+            
+            // Add Feedback Label option for automatic records if a matching ML session exists
+            if let matchingSession = findDetectionSession(for: record) {
+                let currentLabelTitle = matchingSession.feedbackLabel?.displayTitle ?? "Add Label"
+                let feedbackItem = UIBarButtonItem(
+                    title: currentLabelTitle,
+                    style: .plain,
+                    target: self,
+                    action: #selector(feedbackTapped)
+                )
+                
+                // Style it depending on whether we have a label
+                if matchingSession.feedbackLabel != nil {
+                    feedbackItem.tintColor = .systemGreen
+                } else {
+                    feedbackItem.tintColor = .systemBlue
+                }
+                
+                navigationItem.rightBarButtonItems = [shareItem, feedbackItem]
+            } else {
+                navigationItem.rightBarButtonItems = [shareItem]
+            }
         }
+    }
+    
+    private func findDetectionSession(for record: SeizureRecord) -> DetectionSession? {
+        let sessions = DetectionSessionStore.shared.allSessions()
+        var closest: DetectionSession?
+        var minDiff: TimeInterval = 300 // within 5 minutes
+        for s in sessions {
+            let diff = abs(s.timestamp.timeIntervalSince(record.dateTime))
+            if diff < minDiff {
+                minDiff = diff
+                closest = s
+            }
+        }
+        return closest
+    }
+    
+    @objc private func feedbackTapped() {
+        guard let record = record, let session = findDetectionSession(for: record) else { return }
+        let vc = FeedbackViewController(sessionID: session.id, source: "history", initialLabel: session.feedbackLabel)
+        
+        vc.modalPresentationStyle = .pageSheet
+        if let sheet = vc.sheetPresentationController {
+            sheet.detents = [.medium()]
+            sheet.prefersGrabberVisible = true
+        }
+        
+        // When feedback is done, it dismisses. We can refresh the UI by adding an observer or just waiting.
+        // the easiest way is to add a small delay and refresh, or let the user re-open.
+        // Let's add an action handler to vc if it had one, or just refresh on viewWillAppear.
+        present(vc, animated: true)
     }
     @objc private func editTapped() {
         guard let record else { return }
@@ -220,46 +355,79 @@ class DetailRecordsTableViewController: UITableViewController {
     }
 
     private func setupHeartRateChart(for record: SeizureRecord) {
-
-        guard record.entryType == .automatic else {
-            hideHeartRateChart()
-            return
-        }
-
-        let hrData = HeartRateTimelineBuilder.generateTimeline(for: record)
-
-        guard !hrData.isEmpty else {
-            hideHeartRateChart()
-            return
-        }
-
-        let chartView = HeartRateTimelineChart(
-            data: hrData,
-            seizureTime: record.dateTime,
-            seizureDuration: record.duration ?? 60
-        )
-
-        let host = UIHostingController(rootView: chartView)
-        host.view.translatesAutoresizingMaskIntoConstraints = false
-        host.view.backgroundColor = UIColor.clear
-
-        // Clean previous chart
-        hrChartHost?.view.removeFromSuperview()
-        hrChartHost?.removeFromParent()
-
-        hrChartHost = host
-        addChild(host)
-        heartRateTimelineContainerView.addSubview(host.view)
-
-        NSLayoutConstraint.activate([
-            host.view.topAnchor.constraint(equalTo: heartRateTimelineContainerView.topAnchor),
-            host.view.leadingAnchor.constraint(equalTo: heartRateTimelineContainerView.leadingAnchor),
-            host.view.trailingAnchor.constraint(equalTo: heartRateTimelineContainerView.trailingAnchor),
-            host.view.bottomAnchor.constraint(equalTo: heartRateTimelineContainerView.bottomAnchor)
-        ])
-
-        host.didMove(toParent: self)
+        let seizureTime = record.dateTime
+        let startDate = seizureTime.addingTimeInterval(-2 * 3600) // 2 hours before
+        let endDate = seizureTime.addingTimeInterval(2 * 3600) // 2 hours after
+        let duration = record.duration ?? 60.0
+        
+        // Temporarily prepare the container while data arrives
         heartRateTimelineContainerView.isHidden = false
+        
+        HealthKitManager.shared.fetchHeartRateData(from: startDate, to: endDate) { [weak self] samples in
+            guard let self = self else { return }
+            
+            var hrData: [HeartRateTimelinePoint] = []
+            let hrUnit = HKUnit.count().unitDivided(by: HKUnit.minute())
+            
+            for sample in samples {
+                let bpm = Int(sample.quantity.doubleValue(for: hrUnit))
+                let timestamp = sample.startDate
+                
+                let phase: HeartRatePhase
+                if timestamp < seizureTime {
+                    phase = .before
+                } else if timestamp > seizureTime.addingTimeInterval(duration) {
+                    phase = .after
+                } else {
+                    phase = .during
+                }
+                
+                hrData.append(HeartRateTimelinePoint(timestamp: timestamp, bpm: bpm, phase: phase))
+            }
+            
+            // Fallback for simulators or profiles without permissions/data
+            if hrData.isEmpty {
+                hrData = HeartRateTimelineBuilder.generateTimeline(for: record)
+            }
+            
+            guard !hrData.isEmpty else {
+                self.hideHeartRateChart()
+                return
+            }
+            
+            let chartView = HeartRateTimelineChart(
+                data: hrData,
+                seizureTime: seizureTime,
+                seizureDuration: duration,
+                recordedPeak: record.heartRate
+            )
+            
+            let host = UIHostingController(rootView: chartView)
+            host.view.translatesAutoresizingMaskIntoConstraints = false
+            host.view.backgroundColor = UIColor.clear
+            
+            // Clean previous chart
+            self.hrChartHost?.view.removeFromSuperview()
+            self.hrChartHost?.removeFromParent()
+            
+            self.hrChartHost = host
+            self.addChild(host)
+            self.heartRateTimelineContainerView.addSubview(host.view)
+            
+            NSLayoutConstraint.activate([
+                host.view.topAnchor.constraint(equalTo: self.heartRateTimelineContainerView.topAnchor),
+                host.view.leadingAnchor.constraint(equalTo: self.heartRateTimelineContainerView.leadingAnchor),
+                host.view.trailingAnchor.constraint(equalTo: self.heartRateTimelineContainerView.trailingAnchor),
+                host.view.bottomAnchor.constraint(equalTo: self.heartRateTimelineContainerView.bottomAnchor),
+                host.view.heightAnchor.constraint(greaterThanOrEqualToConstant: 320)
+            ])
+            
+            host.didMove(toParent: self)
+            
+            // Force the UITableView to recalculate its AutoLayout dimensions asynchronously
+            self.tableView.beginUpdates()
+            self.tableView.endUpdates()
+        }
     }
     private func hideHeartRateChart() {
         heartRateTimelineContainerView.isHidden = true
@@ -272,7 +440,7 @@ class DetailRecordsTableViewController: UITableViewController {
 
         //  Automatic record display
         func configureAutomatic(_ record: SeizureRecord) {
-
+            seizureLevelLabel.isHidden = false
             seizureLevelLabel.text = record.type?.rawValue.capitalized
 
             durationTitleLabel.text = "Duration"
@@ -299,7 +467,9 @@ class DetailRecordsTableViewController: UITableViewController {
         //  Manual record display (same UI, changed meaning)
         func configureManual(_ record: SeizureRecord) {
 
-            seizureLevelLabel.text = record.title ?? "Manual Log"
+            seizureLevelLabel.isHidden = true
+            dateLabel.font = UIFont.systemFont(ofSize: 18, weight: .medium)
+            dateLabel.textColor = .label
 
             durationTitleLabel.text = "Seizure Level"
             durationValueLabel.text = record.type?.rawValue.capitalized ?? "Not available"

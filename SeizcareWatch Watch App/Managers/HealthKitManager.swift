@@ -2,6 +2,14 @@ import Foundation
 import HealthKit
 import Combine
 
+// ─────────────────────────────────────────────────────────────────────────────
+// MARK: - HealthKitManager (Watch)
+// ─────────────────────────────────────────────────────────────────────────────
+//
+// Manages HealthKit authorisation and periodic data fetching on the Watch.
+// Continuous heart rate is now sourced via MonitoringSession (HKWorkoutSession).
+// Motion collection is delegated to MotionCollector (CMMotionManager).
+
 class HealthKitManager: NSObject, ObservableObject {
     static let shared = HealthKitManager()
     let healthStore = HKHealthStore()
@@ -17,20 +25,15 @@ class HealthKitManager: NSObject, ObservableObject {
         }
     }
     
-    private var heartRateAnchor: HKQueryAnchor?
-    private var isStreaming = false
     private var spo2Timer: Timer?
     
-    // Workout session properties for continuous background streaming
-    private var workoutSession: HKWorkoutSession?
-    private var builder: HKLiveWorkoutBuilder?
-    
-    var workoutSessionActive: Bool {
-        return workoutSession != nil
-    }
+    /// Whether the monitoring session is currently active.
+    var workoutSessionActive: Bool { MonitoringSession.shared.isActive }
     
     override init() {
         super.init()
+        // Wire MonitoringSession HR callbacks
+        MonitoringSession.shared.delegate = self
     }
     
     // Authorization
@@ -71,46 +74,20 @@ class HealthKitManager: NSObject, ObservableObject {
         fetchLatestSleepDuration()
     }
     
-    // MARK: - Continuous Heart Rate Collection (Workout Session)
+    // MARK: - Monitoring Session (abstracts HKWorkoutSession)
+    // Use MonitoringSession.shared instead of managing HKWorkoutSession directly.
+    // MonitoringSession keeps the Watch alive for HR + motion collection.
     
     func startWorkout() {
-        guard workoutSession == nil else { return }
-        
-        let configuration = HKWorkoutConfiguration()
-        configuration.activityType = .other
-        configuration.locationType = .indoor
-        
-        do {
-            workoutSession = try HKWorkoutSession(healthStore: healthStore, configuration: configuration)
-            builder = workoutSession?.associatedWorkoutBuilder()
-            
-            workoutSession?.delegate = self
-            builder?.delegate = self
-            
-            // Set data source for the builder
-            builder?.dataSource = HKLiveWorkoutDataSource(healthStore: healthStore, workoutConfiguration: configuration)
-            
-            let startDate = Date()
-            workoutSession?.startActivity(with: startDate)
-            builder?.beginCollection(withStart: startDate) { success, error in
-                if success {
-                    print("🏃‍♂️ [HKM-Watch] Workout session started. Continuous collection active.")
-                } else if let error = error {
-                    print("❌ [HKM-Watch] Failed to start collection: \(error.localizedDescription)")
-                }
-            }
-        } catch {
-            print("❌ [HKM-Watch] Error starting workout session: \(error.localizedDescription)")
-        }
+        MonitoringSession.shared.start()
+        MotionCollector.shared.startCollecting()
+        print("🏃 [HKM-Watch] Monitoring session + motion collection started")
     }
     
     func stopWorkout() {
-        workoutSession?.end()
-        builder?.endCollection(withEnd: Date()) { success, error in
-            print("🛑 [HKM-Watch] Workout session ended.")
-            self.workoutSession = nil
-            self.builder = nil
-        }
+        MonitoringSession.shared.stop()
+        MotionCollector.shared.stopCollecting()
+        print("🛑 [HKM-Watch] Monitoring session + motion collection stopped")
     }
     
     // Periodic SpO2 Fetching
@@ -161,7 +138,7 @@ class HealthKitManager: NSObject, ObservableObject {
         
         print("🛌 [HKM-Watch] Querying sleep from \(startDate) to \(endDate)")
         
-        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: .strictStartDate)
+        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: [])
         let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
         
         let query = HKSampleQuery(sampleType: sleepType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: [sortDescriptor]) { _, samples, error in
@@ -199,34 +176,19 @@ class HealthKitManager: NSObject, ObservableObject {
     }
 }
 
-// MARK: - HKWorkoutSessionDelegate & HKLiveWorkoutBuilderDelegate
+// MARK: - MonitoringSessionDelegate
+// Receives live heart rate from MonitoringSession (HKWorkoutSession)
 
-extension HealthKitManager: HKWorkoutSessionDelegate, HKLiveWorkoutBuilderDelegate {
+extension HealthKitManager: MonitoringSessionDelegate {
     
-    func workoutSession(_ workoutSession: HKWorkoutSession, didChangeTo toState: HKWorkoutSessionState, from fromState: HKWorkoutSessionState, date: Date) {
-        print("⚡️ [HKM-Watch] Workout session changed state: \(fromState.rawValue) → \(toState.rawValue)")
-    }
-    
-    func workoutSession(_ workoutSession: HKWorkoutSession, didFailWithError error: Error) {
-        print("❌ [HKM-Watch] Workout session failed: \(error.localizedDescription)")
-    }
-    
-    func workoutBuilder(_ workoutBuilder: HKLiveWorkoutBuilder, didCollectDataOf collectedTypes: Set<HKSampleType>) {
-        guard let heartRateType = HKQuantityType.quantityType(forIdentifier: .heartRate) else { return }
-        
-        if collectedTypes.contains(heartRateType) {
-            let statistics = workoutBuilder.statistics(for: heartRateType)
-            if let quantity = statistics?.mostRecentQuantity() {
-                let bpm = quantity.doubleValue(for: HKUnit.count().unitDivided(by: HKUnit.minute()))
-                DispatchQueue.main.async {
-                    print("💓 [HKM-Watch] Live Heart Rate: \(Int(bpm)) BPM")
-                    self.healthData.heartRate = bpm
-                }
-            }
+    func monitoringSession(_ session: MonitoringSession, didReceiveHeartRate bpm: Double) {
+        DispatchQueue.main.async {
+            print(String(format: "💓 [HKM-Watch] Live HR from MonitoringSession: %.0f BPM", bpm))
+            self.healthData.heartRate = bpm
         }
     }
     
-    func workoutBuilderDidCollectEvent(_ workoutBuilder: HKLiveWorkoutBuilder) {
-        // Handle events if needed
+    func monitoringSession(_ session: MonitoringSession, didChangeState isActive: Bool) {
+        print("⚡ [HKM-Watch] MonitoringSession active: \(isActive)")
     }
 }
