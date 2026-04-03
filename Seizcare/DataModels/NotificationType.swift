@@ -15,7 +15,7 @@ enum NotificationType {
 
     // MARK: Cases
 
-    /// Fired when an automatic seizure detection completes.
+    /// Fired when  an automatic seizure detection completes.
     /// - Parameter seizureType: The severity string (mild / moderate / severe).
     case seizureDetected(seizureType: String)
 

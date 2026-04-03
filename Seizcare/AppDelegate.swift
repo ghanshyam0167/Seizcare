@@ -29,6 +29,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             }
         }
         
+        // --- TEST INTEGRATION ---
+        PipelineTestRunner.shared.runAllTests()
+        
         return true
     }
 
