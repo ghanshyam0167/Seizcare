@@ -48,7 +48,7 @@ final class SeizureDetectionManager {
     private init() {
         setupBuffer()
         setupDecisionEngine()
-        print("✅ [SeizureDetectionManager] Initialised and ready")
+        // print("✅ [SeizureDetectionManager] Initialised and ready")
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -65,7 +65,7 @@ final class SeizureDetectionManager {
         engine.onSeizureAlertFired = { [weak self] decision in
             // Already on main thread (DecisionEngine guarantees this)
             guard let self else { return }
-            print("🚨 [SDM] Alert received from DecisionEngine — routing to AlertManager")
+            // print("🚨 [SDM] Alert received from DecisionEngine — routing to AlertManager")
             // We need the last window features for the session store.
             // AlertManager will use last features cached in engine.
             AlertManager.shared.handleConfirmedDecision(decision, features: WindowFeatures())
@@ -131,7 +131,7 @@ final class SeizureDetectionManager {
     func resetState() {
         engine.reset()
         buffer.reset()
-        print("🔄 [SDM] Detection state reset")
+        // print("🔄 [SDM] Detection state reset")
     }
 
     // ─────────────────────────────────────────────────────────────────────────

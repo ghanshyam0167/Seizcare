@@ -99,14 +99,14 @@ class WatchConnectivityManager: NSObject, WCSessionDelegate, ObservableObject {
   
     private override init() {
         super.init()
-        print("📱 [WCM-iPhone] Initialising WatchConnectivityManager")
+        // print("📱 [WCM-iPhone] Initialising WatchConnectivityManager")
         if WCSession.isSupported() {
-            print("📱 [WCM-iPhone] WCSession is supported — activating")
+            // print("📱 [WCM-iPhone] WCSession is supported — activating")
             let session = WCSession.default
             session.delegate = self
             session.activate()
         } else {
-            print("❌ [WCM-iPhone] WCSession NOT supported on this device")
+            // print("❌ [WCM-iPhone] WCSession NOT supported on this device")
         }
     }
 
@@ -138,18 +138,18 @@ class WatchConnectivityManager: NSObject, WCSessionDelegate, ObservableObject {
     /// Sends the current sensitivity setting to the Apple Watch via Application Context
     func sendApplicationContext(sensitivity: String) {
         guard WCSession.isSupported() else {
-            print("⚠️ [WCM-iPhone] Cannot send context: WCSession not supported")
+            // print("⚠️ [WCM-iPhone] Cannot send context: WCSession not supported")
             return
         }
         let session = WCSession.default
         
         guard session.activationState == .activated else {
-            print("⚠️ [WCM-iPhone] Cannot send context: WCSession activationState is \(session.activationState.rawValue)")
+            // print("⚠️ [WCM-iPhone] Cannot send context: WCSession activationState is \(session.activationState.rawValue)")
             return
         }
         
         guard session.isWatchAppInstalled else {
-            print("⚠️ [WCM-iPhone] Cannot send context: Watch app is not installed")
+            // print("⚠️ [WCM-iPhone] Cannot send context: Watch app is not installed")
             return
         }
         
@@ -157,30 +157,30 @@ class WatchConnectivityManager: NSObject, WCSessionDelegate, ObservableObject {
         let context = ["sensitivity": sensitivity]
         do {
             try session.updateApplicationContext(context)
-            print("📱 [WCM-iPhone] Sent application context successfully: \(context)")
+            // print("📱 [WCM-iPhone] Sent application context successfully: \(context)")
             printDebugStatus()
         } catch {
-            print("❌ [WCM-iPhone] Failed to update application context: \(error.localizedDescription)")
+            // print("❌ [WCM-iPhone] Failed to update application context: \(error.localizedDescription)")
             printDebugStatus()
         }
     }
     
     /// Prints a comprehensive console debug block for WCSession status
     func printDebugStatus() {
-        print("================================")
-        print("📱 [iPhone Debug] WCSession Status:")
-        print("- Supported: \(WCSession.isSupported())")
+        // print("================================")
+        // print("📱 [iPhone Debug] WCSession Status:")
+        // print("- Supported: \(WCSession.isSupported())")
         if WCSession.isSupported() {
             let session = WCSession.default
-            print("- Activation State: \(session.activationState.rawValue)")
-            print("- Paired: \(session.isPaired)")
-            print("- Watch App Installed: \(session.isWatchAppInstalled)")
-            print("- Reachable (Foreground): \(session.isReachable)")
-            print("- Current Sent Context: \(session.applicationContext)")
-            print("- Current Received Context: \(session.receivedApplicationContext)")
+            // print("- Activation State: \(session.activationState.rawValue)")
+            // print("- Paired: \(session.isPaired)")
+            // print("- Watch App Installed: \(session.isWatchAppInstalled)")
+            // print("- Reachable (Foreground): \(session.isReachable)")
+            // print("- Current Sent Context: \(session.applicationContext)")
+            // print("- Current Received Context: \(session.receivedApplicationContext)")
         }
-        print("- Current SettingsManager Sensitivity: \(SettingsManager.shared.sensitivity)")
-        print("================================")
+        // print("- Current SettingsManager Sensitivity: \(SettingsManager.shared.sensitivity)")
+        // print("================================")
     }
 
     // MARK: - WCSessionDelegate
@@ -192,11 +192,11 @@ class WatchConnectivityManager: NSObject, WCSessionDelegate, ObservableObject {
                              activationDidCompleteWith activationState: WCSessionActivationState,
                              error: Error?) {
         if let error = error {
-            print("❌ [WCM-iPhone] WCSession activation FAILED: \(error.localizedDescription)")
+            // print("❌ [WCM-iPhone] WCSession activation FAILED: \(error.localizedDescription)")
         } else {
-            print("✅ [WCM-iPhone] WCSession activated — state: \(activationState.rawValue)")
-            print("📱 [WCM-iPhone] isWatchAppInstalled: \(session.isWatchAppInstalled)")
-            print("📱 [WCM-iPhone] isPaired: \(session.isPaired)")
+            // print("✅ [WCM-iPhone] WCSession activated — state: \(activationState.rawValue)")
+            // print("📱 [WCM-iPhone] isWatchAppInstalled: \(session.isWatchAppInstalled)")
+            // print("📱 [WCM-iPhone] isPaired: \(session.isPaired)")
         }
         // Notify any listening UI so it can refresh its status display.
         DispatchQueue.main.async {
@@ -205,16 +205,19 @@ class WatchConnectivityManager: NSObject, WCSessionDelegate, ObservableObject {
     }
 
     nonisolated func sessionDidBecomeInactive(_ session: WCSession) {
-        print("⚠️ [WCM-iPhone] Session became inactive")
+        // print("⚠️ [WCM-iPhone] Session became inactive")
     }
 
     nonisolated func sessionDidDeactivate(_ session: WCSession) {
-        print("⚠️ [WCM-iPhone] Session deactivated — reactivating")
+        // print("⚠️ [WCM-iPhone] Session deactivated — reactivating")
         WCSession.default.activate()
     }
 
     nonisolated func session(_ session: WCSession, didReceiveMessage message: [String: Any]) {
-        print("📨 [WCM-iPhone] Received sendMessage from Watch: \(message)")
+        let batchCount = (message["sensorBatch"] as? [[Double]])?.count ?? 0
+        if batchCount > 0 {
+            print("📨 [Watch→iPhone] batch=\(batchCount) samples")
+        }
         Task { @MainActor in
             self.handleIncomingPayload(message)
         }
@@ -222,7 +225,10 @@ class WatchConnectivityManager: NSObject, WCSessionDelegate, ObservableObject {
 
     /// Handles the transferUserInfo fallback (used when iPhone is in background / not reachable).
     nonisolated func session(_ session: WCSession, didReceiveUserInfo userInfo: [String: Any]) {
-        print("📦 [WCM-iPhone] Received transferUserInfo from Watch: \(userInfo)")
+        let batchCount = (userInfo["sensorBatch"] as? [[Double]])?.count ?? 0
+        if batchCount > 0 {
+            print("📦 [Watch→iPhone] batch=\(batchCount) samples (background)")
+        }
         Task { @MainActor in
             self.handleIncomingPayload(userInfo)
         }
@@ -230,10 +236,9 @@ class WatchConnectivityManager: NSObject, WCSessionDelegate, ObservableObject {
 
     /// Handles received application context (two-way sync from watch)
     nonisolated func session(_ session: WCSession, didReceiveApplicationContext applicationContext: [String : Any]) {
-        print("🔄 [WCM-iPhone] Received application context from Watch: \(applicationContext)")
+        // context payloads are small (sensitivity, settings) — safe to skip printing
         Task { @MainActor in
             self.handleIncomingPayload(applicationContext)
-            WatchConnectivityManager.shared.printDebugStatus()
         }
     }
 
@@ -241,7 +246,7 @@ class WatchConnectivityManager: NSObject, WCSessionDelegate, ObservableObject {
 
     private func handleIncomingPayload(_ payload: [String: Any]) {
         if let isEmergency = payload["emergencyAlert"] as? Bool, isEmergency {
-            print("🚨 [WCM-iPhone] emergencyAlert=true — triggering countdown on main thread")
+            // print("🚨 [WCM-iPhone] emergencyAlert=true — triggering countdown on main thread")
             DispatchQueue.main.async {
                 EmergencyService.shared.triggerWithCountdown()
             }
@@ -256,7 +261,7 @@ class WatchConnectivityManager: NSObject, WCSessionDelegate, ObservableObject {
         if let heartRate = payload["heartRate"] as? Double {
             hrValue = heartRate
             foundHealthData = true
-            print("📥 [WCM-iPhone] Received heart rate data from Watch: \(Int(heartRate)) BPM")
+            // print("📥 [WCM-iPhone] Received heart rate data from Watch: \(Int(heartRate)) BPM")
             DispatchQueue.main.async { self.heartRate = heartRate }
         }
         if let spo2 = payload["spo2"] as? Double {
@@ -267,28 +272,28 @@ class WatchConnectivityManager: NSObject, WCSessionDelegate, ObservableObject {
         if let sleepHours = payload["sleepHours"] as? Double {
             sleepValue = sleepHours
             foundHealthData = true
-            print("📥 [WCM-iPhone] Received sleep data from Watch: \(String(format: "%.1f", sleepHours)) hrs")
+            // print("📥 [WCM-iPhone] Received sleep data from Watch: \(String(format: "%.1f", sleepHours)) hrs")
             DispatchQueue.main.async { self.sleepHours = sleepHours }
             HealthDataManager.shared.updateSleepData(hours: sleepHours)
-            print("📣 [WCM-iPhone] Posting NotificationCenter broadcast: didReceiveSleepData")
+            // print("📣 [WCM-iPhone] Posting NotificationCenter broadcast: didReceiveSleepData")
             NotificationCenter.default.post(name: .didReceiveSleepData, object: nil, userInfo: ["sleepHours": sleepHours])
             // Update detection context with new sleep data
             SeizureDetectionManager.shared.updateContext(sleepHours: sleepHours)
         }
         
         if foundHealthData {
-            print("📲 [WCM-iPhone] Received Health Data → HR: \(hrValue), SpO2: \(spo2Value), Sleep: \(sleepValue)")
+            // print("📲 [WCM-iPhone] Received Health Data → HR: \(hrValue), SpO2: \(spo2Value), Sleep: \(sleepValue)")
         }
         
         if let sensitivity = payload["sensitivity"] as? String {
-            print("📊 [WCM-iPhone] Sensitivity from Watch: \(sensitivity)")
+            // print("📊 [WCM-iPhone] Sensitivity from Watch: \(sensitivity)")
             SettingsManager.shared.updateSensitivity(fromWatch: sensitivity)
             // Sync sensitivity level to detection context
             if let level = SensitivityLevel(rawValue: sensitivity.lowercased()) {
                 SeizureDetectionManager.shared.updateContext(sensitivity: level)
             }
         } else if payload["emergencyAlert"] == nil && payload["heartRate"] == nil && !foundHealthData {
-            print("ℹ️ [WCM-iPhone] Unhandled payload: \(payload)")
+            // print("ℹ️ [WCM-iPhone] Unhandled payload: \(payload)")
         }
 
         // ─────────────────────────────────────────────────────────────────
@@ -311,7 +316,7 @@ class WatchConnectivityManager: NSObject, WCSessionDelegate, ObservableObject {
                 ))
             }
             if !samples.isEmpty {
-                print("🧠 [WCM-iPhone] Forwarding batch of \(samples.count) samples → SeizureDetectionManager")
+                // print("🧠 [WCM-iPhone] Forwarding batch of \(samples.count) samples → SeizureDetectionManager")
                 SeizureDetectionManager.shared.processBatch(samples)
                 // Keep HR baseline context current
                 if hrValue > 0 {
@@ -336,7 +341,7 @@ class WatchConnectivityManager: NSObject, WCSessionDelegate, ObservableObject {
                 hr: hrValue > 0 ? hrValue : nil
             )
 
-            print("🧠 Sending sample to SeizureDetectionManager")
+            // print("🧠 Sending sample to SeizureDetectionManager")
 
             SeizureDetectionManager.shared.processSample(sample: sample)
         }

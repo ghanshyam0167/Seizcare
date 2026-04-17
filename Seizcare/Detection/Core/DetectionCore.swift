@@ -53,6 +53,13 @@ struct WindowFeatures {
     // MARK: Motion Features
     var accelMagMean:        Double = 0
     var accelMagStd:         Double = 0
+    var accelMagMin:         Double = 0
+    var accelMagMax:         Double = 0
+    var accelMagMedian:      Double = 0
+    var accelMagP75:         Double = 0
+    var accelMagP25:         Double = 0
+    var accelEnergy:         Double = 0
+    var fftEnergy:           Double = 0
     var accelPeakToPeak:     Double = 0
     var signalMagnitudeArea: Double = 0  // ΣΣ|axis| / n
     var jerkMean:            Double = 0  // mean of |Δmag/Δt|
@@ -64,6 +71,16 @@ struct WindowFeatures {
     var periodicityScore:    Double = 0  // lag-1 normalised autocorrelation
     var gyroMagMean:         Double = 0
     var gyroMagStd:          Double = 0
+
+    // ─── ArtifactFilter ML Model Scalar Features ───────────
+    var accMeanX: Double = 0; var accMeanY: Double = 0; var accMeanZ: Double = 0
+    var accStdX:  Double = 0; var accStdY:  Double = 0; var accStdZ:  Double = 0
+    var accMinX:  Double = 0; var accMinY:  Double = 0; var accMinZ:  Double = 0
+    var accMaxX:  Double = 0; var accMaxY:  Double = 0; var accMaxZ:  Double = 0
+    var accZcX:   Double = 0; var accZcY:   Double = 0; var accZcZ:   Double = 0
+    var jerkRms:  Double = 0
+    var samplesInWindow: Double = 0
+    // ───────────────────────────────────────────────────────
 
     // MARK: Heart Rate Features
     var hrMean:              Double = 0
@@ -100,19 +117,39 @@ enum ActivityClass: String, Codable {
     case running        = "running"
     case walking        = "walking"
     case workout        = "workout"
+    case stairsMotion   = "stairs_motion"
+    case sit            = "sit"
     case sleepMovement  = "sleep_movement"
     case brushingTeeth  = "brushing_teeth"
     case vehicle        = "vehicle"
     case normalActivity = "normal_activity"
+    case suspicious     = "suspicious"
     case unknown        = "unknown"
 
     /// True for any label that strongly suggests the window is NOT a seizure.
     var isDefinitelyNormal: Bool {
         switch self {
-        case .running, .walking, .workout, .brushingTeeth, .vehicle:
+        case .running, .walking, .workout, .stairsMotion, .sit, .brushingTeeth, .vehicle:
             return true
-        case .sleepMovement, .normalActivity, .unknown:
+        case .sleepMovement, .normalActivity, .suspicious, .unknown:
             return false
+        }
+    }
+    
+    /// Human-readable UI string (e.g. "Walking", "Still / Rest")
+    var displayName: String {
+        switch self {
+        case .running:        return "Running"
+        case .walking:        return "Walking"
+        case .workout:        return "Workout"
+        case .stairsMotion:   return "Stairs Motion"
+        case .sit:            return "Sitting"
+        case .sleepMovement:  return "Sleep Movement"
+        case .brushingTeeth:  return "Brushing Teeth"
+        case .vehicle:        return "Vehicle / Transit"
+        case .normalActivity: return "Normal Activity"
+        case .suspicious:     return "Suspicious / Potential Event"
+        case .unknown:        return "Still / Rest"
         }
     }
 }
@@ -410,6 +447,13 @@ extension WindowFeatures {
         return [
             "accel_mag_mean":         accelMagMean,
             "accel_mag_std":          accelMagStd,
+            "accel_mag_min":          accelMagMin,
+            "accel_mag_max":          accelMagMax,
+            "accel_mag_median":       accelMagMedian,
+            "accel_mag_p75":          accelMagP75,
+            "accel_mag_p25":          accelMagP25,
+            "accel_energy":           accelEnergy,
+            "fft_energy":             fftEnergy,
             "accel_peak_to_peak":     accelPeakToPeak,
             "sma":                    signalMagnitudeArea,
             "jerk_mean":              jerkMean,

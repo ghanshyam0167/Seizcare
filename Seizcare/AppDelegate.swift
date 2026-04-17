@@ -29,8 +29,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             }
         }
         
-        // --- TEST INTEGRATION ---
+        // --- PIPELINE TEST RUNNER (DEBUG ONLY) ---
+        // Runs all simulation suites (Model 1 artifact filter, etc.) and prints
+        // results to the Xcode console. Safe to leave in — no-ops in Release builds.
+        #if DEBUG
         PipelineTestRunner.shared.runAllTests()
+        #endif
         
         return true
     }

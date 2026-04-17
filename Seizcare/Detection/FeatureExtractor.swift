@@ -40,7 +40,16 @@ enum FeatureExtractor {
 
         f.accelMagMean    = mean(magnitudes)
         f.accelMagStd     = std(magnitudes, mu: f.accelMagMean)
-        f.accelPeakToPeak = (magnitudes.max() ?? 0) - (magnitudes.min() ?? 0)
+        f.accelMagMin     = magnitudes.min() ?? 0
+        f.accelMagMax     = magnitudes.max() ?? 0
+        
+        let percentiles = computePercentiles(magnitudes)
+        f.accelMagMedian  = percentiles.median
+        f.accelMagP75     = percentiles.p75
+        f.accelMagP25     = percentiles.p25
+        
+        f.accelEnergy     = magnitudes.reduce(0.0) { $0 + ($1 * $1) } / n
+        f.accelPeakToPeak = f.accelMagMax - f.accelMagMin
         f.signalMagnitudeArea = samples.reduce(0.0) { acc, s in
             acc + abs(s.ax) + abs(s.ay) + abs(s.az)
         } / n
@@ -57,6 +66,7 @@ enum FeatureExtractor {
         f.spectralPowerLow  = spectral.lowBand   // 0.5–3 Hz
         f.spectralPowerMid  = spectral.midBand   // 3–8 Hz
         f.spectralPowerHigh = spectral.highBand  // 8–20 Hz
+        f.fftEnergy         = spectral.lowBand + spectral.midBand + spectral.highBand
 
         // Periodicity: normalised lag-1 autocorrelation
         f.periodicityScore = autocorrelationLag1(magnitudes)
@@ -64,6 +74,32 @@ enum FeatureExtractor {
         // Gyro
         f.gyroMagMean = mean(gyroMags)
         f.gyroMagStd  = std(gyroMags, mu: f.gyroMagMean)
+
+        // ─── Per-Axis Features for ArtifactFilter.mlmodel ────────────────────
+        // Model inputs: acc_mean_x/y/z, acc_std_x/y/z, acc_min_x/y/z,
+        //               acc_max_x/y/z, acc_range_x/y/z (derived in service),
+        //               acc_zc_x/y/z, jerk_rms, samples_in_window
+        let axVals = samples.map { $0.ax }
+        let ayVals = samples.map { $0.ay }
+        let azVals = samples.map { $0.az }
+
+        f.accMeanX = mean(axVals);  f.accMeanY = mean(ayVals);  f.accMeanZ = mean(azVals)
+        f.accStdX  = std(axVals, mu: f.accMeanX)
+        f.accStdY  = std(ayVals, mu: f.accMeanY)
+        f.accStdZ  = std(azVals, mu: f.accMeanZ)
+        f.accMinX  = axVals.min() ?? 0;  f.accMinY = ayVals.min() ?? 0;  f.accMinZ = azVals.min() ?? 0
+        f.accMaxX  = axVals.max() ?? 0;  f.accMaxY = ayVals.max() ?? 0;  f.accMaxZ = azVals.max() ?? 0
+
+        // Zero-crossings on mean-centred per-axis signals
+        f.accZcX = Double(zeroCrossings(axVals, mu: f.accMeanX))
+        f.accZcY = Double(zeroCrossings(ayVals, mu: f.accMeanY))
+        f.accZcZ = Double(zeroCrossings(azVals, mu: f.accMeanZ))
+
+        // Jerk RMS: sqrt(mean(jerk²))
+        let jerkSquared = jerks.map { $0 * $0 }
+        f.jerkRms = sqrt(mean(jerkSquared))
+
+        f.samplesInWindow = Double(samples.count)
 
         // --- Heart Rate ------------------------------------------------------
         let hrValues = samples.compactMap { $0.hr }
@@ -109,6 +145,18 @@ enum FeatureExtractor {
     // MARK: - Math Helpers
     // ─────────────────────────────────────────────────────────────────────────
 
+    static func computePercentiles(_ values: [Double]) -> (median: Double, p75: Double, p25: Double) {
+        guard !values.isEmpty else { return (0, 0, 0) }
+        let sorted = values.sorted()
+        let count = sorted.count
+
+        let median = sorted[count / 2]
+        let p75 = sorted[Int(Double(count) * 0.75)]
+        let p25 = sorted[Int(Double(count) * 0.25)]
+
+        return (median, p75, p25)
+    }
+
     static func mean(_ v: [Double]) -> Double {
         guard !v.isEmpty else { return 0 }
         return v.reduce(0, +) / Double(v.count)
@@ -147,6 +195,21 @@ enum FeatureExtractor {
         for i in 0..<demeaned.count { c0 += demeaned[i] * demeaned[i] }
         for i in 1..<demeaned.count { c1 += demeaned[i] * demeaned[i - 1] }
         return c0 > 0 ? c1 / c0 : 0
+    }
+
+    /// Zero-crossing count on mean-centred signal.
+    /// Counts the number of times the demeaned signal changes sign.
+    static func zeroCrossings(_ v: [Double], mu: Double) -> Int {
+        guard v.count > 1 else { return 0 }
+        let demeaned = v.map { $0 - mu }
+        var count = 0
+        for i in 1..<demeaned.count {
+            if (demeaned[i - 1] < 0 && demeaned[i] >= 0) ||
+               (demeaned[i - 1] >= 0 && demeaned[i] < 0) {
+                count += 1
+            }
+        }
+        return count
     }
 
     // ─────────────────────────────────────────────────────────────────────────

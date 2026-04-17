@@ -49,7 +49,7 @@ final class DecisionEngine {
     // MARK: Init
 
     private init() {
-        print("⚙️ [DecisionEngine] Initialised")
+        // print("⚙️ [DecisionEngine] Initialised")
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -70,7 +70,7 @@ final class DecisionEngine {
         // -----------------------------------------------------------------
         guard samples.count >= 50 else {  // at minimum 1 second
             let reason = "Insufficient samples — \(samples.count) received, need ≥50"
-            print("ℹ️ [DecisionEngine] \(reason)")
+            // print("ℹ️ [DecisionEngine] \(reason)")
             return makeDecision(
                 outcome:          .insufficientData,
                 artifactProb:     0,
@@ -100,7 +100,7 @@ final class DecisionEngine {
             postEventStillness:  0
         ) else {
             let reason = "Feature extraction returned nil — empty sample array"
-            print("⚠️ [DecisionEngine] \(reason)")
+            // print("⚠️ [DecisionEngine] \(reason)")
             return makeDecision(
                 outcome: .insufficientData, artifactProb: 0, seizureProb: 0,
                 smoothedProb: 0, activityClass: .unknown, policy: policy,
@@ -111,21 +111,18 @@ final class DecisionEngine {
         // -----------------------------------------------------------------
         // STAGE 2: Artifact Filter (Model 1)
         // -----------------------------------------------------------------
-        let artifactResult  = artifactFilter.classify(features: features, context: context)
+        let artifactResult  = artifactFilter.classify(features: features)
         let artifactProb    = artifactResult.normalActivityProbability
         let activityClass   = artifactResult.activityClass
 
-        print(String(format: "🔍 [DecisionEngine] Artifact → %@ p=%.3f | %@",
-                     activityClass.rawValue, artifactProb, artifactResult.reason))
+        // print(String(format: "🔍 [DecisionEngine] Artifact → %@ p=%.3f | %@",
+        //              activityClass.rawValue, artifactProb, artifactResult.reason))
 
-        // Suppress: artifact confidently explains the window
-        // NOTE: Hard suppression threshold is 0.85. Even High sensitivity cannot
-        // override a near-certain artifact classification. This prevents workout
-        // false alarms regardless of sensitivity.
-        let hardSuppressionThreshold = 0.85
-        if artifactProb >= hardSuppressionThreshold || activityClass.isDefinitelyNormal && artifactProb >= 0.70 {
-            let reason = "SUPPRESSED by artifact filter — \(activityClass.rawValue) p=\(String(format:"%.3f",artifactProb)) | \(artifactResult.reason)"
-            print("🚫 [DecisionEngine] \(reason)")
+        // Suppress: ML model identified a definite normal-activity class
+        // (walking, workout, stairs_motion, or sit — see ActivityClass.isDefinitelyNormal)
+        if activityClass.isDefinitelyNormal {
+            let reason = "SUPPRESSED by artifact filter — \(activityClass.rawValue) conf=\(String(format:"%.3f",artifactProb)) | \(artifactResult.reason)"
+            // print("🚫 [DecisionEngine] \(reason)")
 
             // Still feed probability 0 into smoother to keep history coherent
             _ = smoother.feed(probability: 0, policy: policy,
@@ -145,7 +142,7 @@ final class DecisionEngine {
         // -----------------------------------------------------------------
         let seizureProb = seizureInference.predict(features: features)
 
-        print(String(format: "🔬 [DecisionEngine] Seizure inference → p=%.4f", seizureProb))
+        // print(String(format: "🔬 [DecisionEngine] Seizure inference → p=%.4f", seizureProb))
 
         // -----------------------------------------------------------------
         // STAGE 4: Temporal Smoothing + Confirmation Vote
@@ -160,9 +157,9 @@ final class DecisionEngine {
         let smoothedProb = smoothing.smoothedProbability
         previousSmoothedRisk = smoothedProb
 
-        print(String(format: "⌛ [DecisionEngine] Smoothed → %.4f | positive=%d/%d rhythmic=%.1fs",
-                     smoothedProb, smoothing.positiveWindowCount,
-                     policy.windowPoolSize, smoothing.rhythmicDuration))
+        // print(String(format: "⌛ [DecisionEngine] Smoothed → %.4f | positive=%d/%d rhythmic=%.1fs",
+        //              smoothedProb, smoothing.positiveWindowCount,
+        //              policy.windowPoolSize, smoothing.rhythmicDuration))
 
         // Low/soft artifact signal: downgrade but don't suppress
         // If artifact filter found a probable activity (0.5–0.85) — reduce seizure prob
@@ -170,8 +167,8 @@ final class DecisionEngine {
         if artifactProb > 0.5 {
             let suppressionFactor = 1.0 - (artifactProb - 0.5) * 2.0  // 0.5→1.0, 0.85→0.30
             adjustedSeizureProb = smoothedProb * suppressionFactor
-            print(String(format: "⬇️ [DecisionEngine] Soft artifact suppression factor=%.2f → adjusted=%.4f",
-                         suppressionFactor, adjustedSeizureProb))
+            // print(String(format: "⬇️ [DecisionEngine] Soft artifact suppression factor=%.2f → adjusted=%.4f",
+            //              suppressionFactor, adjustedSeizureProb))
         } else {
             adjustedSeizureProb = smoothedProb
         }
@@ -183,7 +180,7 @@ final class DecisionEngine {
             let reason = String(format: "BELOW CONFIRMATION — smoothed=%.3f positive=%d/%d (need %d)",
                                 adjustedSeizureProb, smoothing.positiveWindowCount,
                                 policy.windowPoolSize, policy.requiredPositiveCount)
-            print("⬇️ [DecisionEngine] \(reason)")
+            // print("⬇️ [DecisionEngine] \(reason)")
             return makeDecision(
                 outcome: .suppressedBySmoothing, artifactProb: artifactProb,
                 seizureProb: seizureProb, smoothedProb: adjustedSeizureProb,
@@ -198,7 +195,7 @@ final class DecisionEngine {
         guard adjustedSeizureProb >= policy.seizureThreshold else {
             let reason = String(format: "BELOW THRESHOLD — smoothed=%.3f < threshold=%.2f",
                                 adjustedSeizureProb, policy.seizureThreshold)
-            print("⬇️ [DecisionEngine] \(reason)")
+            // print("⬇️ [DecisionEngine] \(reason)")
             return makeDecision(
                 outcome: .belowThreshold, artifactProb: artifactProb,
                 seizureProb: seizureProb, smoothedProb: adjustedSeizureProb,
@@ -215,7 +212,7 @@ final class DecisionEngine {
                 let reason = String(format: "HR CONFIRMATION FAILED — delta=%.0f < required=%.0f | smoothed=%.3f > threshold=%.2f",
                                     features.hrDeltaFromBaseline, policy.hrConfirmationDelta,
                                     adjustedSeizureProb, policy.seizureThreshold)
-                print("⬇️ [DecisionEngine] \(reason)")
+                // print("⬇️ [DecisionEngine] \(reason)")
                 return makeDecision(
                     outcome: .suppressedByContext, artifactProb: artifactProb,
                     seizureProb: seizureProb, smoothedProb: adjustedSeizureProb,
@@ -262,7 +259,7 @@ final class DecisionEngine {
     func reset() {
         smoother.reset()
         previousSmoothedRisk = 0
-        print("🔄 [DecisionEngine] State reset")
+        // print("🔄 [DecisionEngine] State reset")
     }
 
     // ─────────────────────────────────────────────────────────────────────────
